@@ -11,8 +11,10 @@ IMG_SIZE = tuple([size - (2*IMAGE_OFFSET) for size in CELL_SIZE])
 MAX_FPS = 30
 COLOR_WHITE = "#E6E6E6"
 COLOR_BLACK = "#202124"
+COLOR_HEALTH = "#FF0000"
 COLORS = [tuple(int(COLOR_WHITE[i:i+2], 16) for i in (1, 3, 5)),
-          tuple(int(COLOR_BLACK[i:i+2], 16) for i in (1, 3, 5))]
+          tuple(int(COLOR_BLACK[i:i+2], 16) for i in (1, 3, 5)),
+          tuple(int(COLOR_HEALTH[i:i+2], 16) for i in (1, 3, 5))]
 PIECE_IMAGES = {}
 workingDir = path.abspath(
     path.join(path.dirname(path.realpath(__file__)), '..')
@@ -42,6 +44,13 @@ def drawPieces(mainScreen, gameState):
                         pygame.Rect(piece.cell_x * CELL_SIZE[0] + IMAGE_OFFSET,
                                     piece.cell_y * CELL_SIZE[1] + IMAGE_OFFSET,
                                     *IMG_SIZE))
+        pygame.draw.rect(mainScreen, COLORS[2],
+                         pygame.Rect(
+                             piece.cell_x * CELL_SIZE[0] + (CELL_SIZE[0]//10),
+                             (piece.cell_y + 1) * CELL_SIZE[1] - IMAGE_OFFSET + (CELL_SIZE[0]//10),
+                             (piece.health * (CELL_SIZE[0] - (CELL_SIZE[0]//5)))//piece.maxHealth,
+                             IMAGE_OFFSET // 3)
+                         )
 
 
 def mainGUI():
@@ -65,6 +74,7 @@ def mainGUI():
                 col = col // CELL_SIZE[0]
                 row = row // CELL_SIZE[1]
                 gameState.pieces[0].cell_y = 3
+                gameState.pieces[0].health = 50
             
         drawBoard(mainScreen)
         drawPieces(mainScreen, gameState)

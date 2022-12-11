@@ -11,40 +11,40 @@ class Piece:
 class Rook(Piece):
     def __init__(self, name, cell_x, cell_y, player):
         super().__init__(name, cell_x, cell_y, player)
-        self.health = 100
+        self.maxHealth = self.health = 100
         self.damage = 10
 
 
 class Knight(Piece):
     def __init__(self, name, cell_x, cell_y, player):
         super().__init__(name, cell_x, cell_y, player)
-        self.health = 100
+        self.maxHealth = self.health = 100
         self.damage = 10
 
 
 class Bishop(Piece):
     def __init__(self, name, cell_x, cell_y, player):
         super().__init__(name, cell_x, cell_y, player)
-        self.health = 100
+        self.maxHealth = self.health = 100
         self.damage = 10
 
 
 class Pawn(Piece):
     def __init__(self, name, cell_x, cell_y, player):
         super().__init__(name, cell_x, cell_y, player)
-        self.health = 100
+        self.maxHealth = self.health = 100
         self.damage = 10
 
 
 class Queen(Piece):
     def __init__(self, name, cell_x, cell_y, player):
         super().__init__(name, cell_x, cell_y, player)
-        self.health = 100
+        self.maxHealth = self.health = 100
         self.damage = 10
 
 
 class King(Piece):
     def __init__(self, name, cell_x, cell_y, player):
         super().__init__(name, cell_x, cell_y, player)
-        self.health = 100
+        self.maxHealth = self.health = 100
         self.damage = 10
