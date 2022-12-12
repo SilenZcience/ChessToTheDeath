@@ -6,6 +6,9 @@ class Piece:
         self.cell_x = cell_x
         self.cell_y = cell_y
         self._player = player
+        
+    def __repr__(self):
+        return self._player + self._name
 
 
 class Rook(Piece):

@@ -30,6 +30,15 @@ def loadImages(gameState):
         )
 
 
+def highlightCell(mainScreen, piece):
+    if not piece:
+        return
+    highlight = pygame.Surface(CELL_SIZE)
+    highlight.set_alpha(100)
+    highlight.fill(pygame.Color("blue"))
+    mainScreen.blit(highlight, (piece.cell_x * CELL_SIZE[0], piece.cell_y * CELL_SIZE[1]))
+
+
 def drawBoard(mainScreen):
     for x in product(range(engine.DIMENSION[0]), range(engine.DIMENSION[1])):
         pygame.draw.rect(mainScreen, COLORS[sum(x) % 2],
@@ -64,31 +73,31 @@ def mainGUI():
     gameState = engine.GameState()
     loadImages(gameState)
     
-    selectedCells = []
+    selectedCell = None
     running = True
     while running:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
             if event.type == pygame.MOUSEBUTTONDOWN:
-                print(selectedCells)
+                print(selectedCell)
                 col, row = pygame.mouse.get_pos()
                 col = col // CELL_SIZE[0]
                 row = row // CELL_SIZE[1]
                 piece = gameState.getPiece(col, row)
-                if not selectedCells:
+                if not selectedCell:
                     if piece and gameState.selectablePiece(piece):
-                        selectedCells.append(piece)
+                        selectedCell = piece
                 else:
-                    print(selectedCells)
-                    if gameState.move(selectedCells[0], col, row):
-                        selectedCells.clear()
+                    if gameState.move(selectedCell, col, row):
+                        selectedCell = None
                         gameState.nextTurn()
                     elif piece and gameState.selectablePiece(piece):
-                        selectedCells[0] = gameState.getPiece(col, row)
+                        selectedCell = gameState.getPiece(col, row)
             
         drawBoard(mainScreen)
+        highlightCell(mainScreen, selectedCell)
         drawPieces(mainScreen, gameState)
-
+        
         clock.tick(MAX_FPS)
         pygame.display.flip()
