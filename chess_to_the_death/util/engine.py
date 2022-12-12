@@ -52,7 +52,8 @@ class GameState:
         self.black_pieces.append(Pawn('p', 7, 1, Player.PLAYER_B))
 
         self.pieces = self.white_pieces + self.black_pieces
-
+        self.createBoard() 
+    
     def getPiece(self, col, row):
         for piece in self.pieces:
             if piece.cell_x == col and piece.cell_y == row:
@@ -68,10 +69,17 @@ class GameState:
     def move(self, piece, to_col, to_row):
         if not self.isEmptyCell(to_col, to_row):
             return False
-        piece.cell_x = to_col
-        piece.cell_y = to_row
+        piece.move(to_col, to_row)
         return True
 
+    def getOptions(self, piece):
+        if not piece:
+            return Piece(None, None, None, None).getOptions(None)
+        options_move, options_attack = piece.getOptions(self.board)
+        print(options_move)
+        print(options_attack)
+        return (options_move, options_attack)
+    
     def flipBoard(self):
         for piece in self.pieces:
             piece.cell_x = flipDic[piece.cell_x]
@@ -80,16 +88,21 @@ class GameState:
     def nextTurn(self):
         self.player_turn = not self.player_turn
         self.flipBoard()
-    
+
     def createBoard(self):
         self.board = np.zeros(DIMENSION)
         for piece in self.pieces:
-            self.board[piece.cell_y:piece.cell_y+1,piece.cell_x:piece.cell_x+1] = pieceTranslateDic[piece._name] * (
+            self.board[piece.cell_y,piece.cell_x] = pieceTranslateDic[piece._name] * (
                 1 if piece._player == "white" else -1
-            )      
+            )   
+    
+    def nextTurn(self):
+        self.player_turn = not self.player_turn
+        self.flipBoard()
+        self.createBoard()   
+        print(self.__repr__())
     
     def __str__(self):
-        self.createBoard()
         return self.board.__str__()
     
     def __repr__(self):

@@ -14,10 +14,14 @@ COLOR_WHITE = "#E6E6E6"
 COLOR_BLACK = "#202124"
 COLOR_HEALTH = "#FF0000"
 COLOR_SELECTED = "#0000FF"
+COLOR_MOVABLE = "#00FF00"
+COLOR_ATTACKABLE = "#FF0000"
 COLORS = [tuple(int(COLOR_WHITE[i:i+2], 16) for i in (1, 3, 5)),
           tuple(int(COLOR_BLACK[i:i+2], 16) for i in (1, 3, 5)),
           tuple(int(COLOR_HEALTH[i:i+2], 16) for i in (1, 3, 5)),
-          tuple(int(COLOR_SELECTED[i:i+2], 16) for i in (1, 3, 5))]
+          tuple(int(COLOR_SELECTED[i:i+2], 16) for i in (1, 3, 5)),
+          tuple(int(COLOR_MOVABLE[i:i+2], 16) for i in (1, 3, 5)),
+          tuple(int(COLOR_ATTACKABLE[i:i+2], 16) for i in (1, 3, 5))]
 PIECE_IMAGES = {}
 workingDir = path.abspath(
     path.join(path.dirname(path.realpath(__file__)), '..')
@@ -33,13 +37,20 @@ def loadImages(gameState):
         )
 
 
-def highlightCell(mainScreen, piece):
-    if not piece:
-        return
+def highlightCell(mainScreen, x, y, color):
     highlight = pygame.Surface(CELL_SIZE)
-    highlight.set_alpha(100)
-    highlight.fill(COLORS[3])
-    mainScreen.blit(highlight, (piece.cell_x * CELL_SIZE[0], piece.cell_y * CELL_SIZE[1]))
+    highlight.set_alpha(75)
+    highlight.fill(color)
+    mainScreen.blit(highlight, (x * CELL_SIZE[0], y * CELL_SIZE[1]))
+
+
+def highlightCells(mainScreen, piece, options_move, options_attack):
+    if piece:
+        highlightCell(mainScreen, piece.cell_x, piece.cell_y, COLORS[3])
+    for option in options_move:
+        highlightCell(mainScreen, option[1], option[0], COLORS[4])
+    for option in options_attack:
+        highlightCell(mainScreen, option[1], option[0], COLORS[5])
 
 
 def drawBoard(mainScreen):
@@ -77,6 +88,7 @@ def mainGUI():
     loadImages(gameState)
     
     selectedCell = None
+    options_move, options_attack = [], []
     running = True
     while running:
         for event in pygame.event.get():
@@ -91,16 +103,18 @@ def mainGUI():
                 if not selectedCell:
                     if piece and gameState.selectablePiece(piece):
                         selectedCell = piece
+                        options_move, options_attack = gameState.getOptions(piece)
                 else:
                     if gameState.move(selectedCell, col, row):
                         selectedCell = None
+                        options_move, options_attack = [], []
                         gameState.nextTurn()
-                        print(gameState)
                     elif piece and gameState.selectablePiece(piece):
-                        selectedCell = gameState.getPiece(col, row)
+                        selectedCell = piece
+                        options_move, options_attack = gameState.getOptions(piece)
             
         drawBoard(mainScreen)
-        highlightCell(mainScreen, selectedCell)
+        highlightCells(mainScreen, selectedCell, options_move, options_attack)
         drawPieces(mainScreen, gameState)
         
         clock.render(mainScreen)
