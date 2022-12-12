@@ -64,17 +64,28 @@ def mainGUI():
     gameState = engine.GameState()
     loadImages(gameState)
     
+    selectedCells = []
     running = True
     while running:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
             if event.type == pygame.MOUSEBUTTONDOWN:
+                print(selectedCells)
                 col, row = pygame.mouse.get_pos()
                 col = col // CELL_SIZE[0]
                 row = row // CELL_SIZE[1]
-                gameState.pieces[0].cell_y = 3
-                gameState.pieces[0].health = 50
+                piece = gameState.getPiece(col, row)
+                if not selectedCells:
+                    if piece and gameState.selectablePiece(piece):
+                        selectedCells.append(piece)
+                else:
+                    print(selectedCells)
+                    if gameState.move(selectedCells[0], col, row):
+                        selectedCells.clear()
+                        gameState.nextTurn()
+                    elif piece and gameState.selectablePiece(piece):
+                        selectedCells[0] = gameState.getPiece(col, row)
             
         drawBoard(mainScreen)
         drawPieces(mainScreen, gameState)

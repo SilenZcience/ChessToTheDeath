@@ -4,6 +4,8 @@ from chess_to_the_death.util.player import Player
 DIMENSION = (8, 8)
 
 class GameState:
+    player_turn = True
+    
     def __init__(self):
         self.white_pieces = []
         self.white_pieces.append(Rook('r', 0, 0, Player.PLAYER_W))
@@ -46,18 +48,39 @@ class GameState:
         self.board = [
             [*self.white_pieces[0:8]],
             [*self.white_pieces[8:16]],
-            [Player.EMPTY, Player.EMPTY, Player.EMPTY, Player.EMPTY,
-             Player.EMPTY, Player.EMPTY, Player.EMPTY, Player.EMPTY],
-            [Player.EMPTY, Player.EMPTY, Player.EMPTY, Player.EMPTY,
-             Player.EMPTY, Player.EMPTY, Player.EMPTY, Player.EMPTY],
-            [Player.EMPTY, Player.EMPTY, Player.EMPTY, Player.EMPTY,
-             Player.EMPTY, Player.EMPTY, Player.EMPTY, Player.EMPTY],
-            [Player.EMPTY, Player.EMPTY, Player.EMPTY, Player.EMPTY,
-             Player.EMPTY, Player.EMPTY, Player.EMPTY, Player.EMPTY],
+            [False, False, False, False,
+             False, False, False, False],
+            [False, False, False, False,
+             False, False, False, False],
+            [False, False, False, False,
+             False, False, False, False],
+            [False, False, False, False,
+             False, False, False, False],
             [*self.black_pieces[8:16]],
-            [self.black_pieces[0:8]]
+            [*self.black_pieces[0:8]]
         ]
         
     def getPiece(self, col, row):
-        if (0 <= col < 8) and (0 <= row < 8):
-            return self.board[row][col]
+        for piece in self.pieces:
+            if piece.cell_x == col and piece.cell_y == row:
+                return piece
+        return False
+    
+    def selectablePiece(self, piece):
+        return piece._player == Player.OPTIONS[self.player_turn]
+    
+    def isEmptyCell(self, col, row):
+        print("empty?:", col, row)
+        return not self.board[row][col]
+    
+    def move(self, piece, to_col, to_row):
+        if not self.isEmptyCell(to_col, to_row):
+            return False
+        self.board[to_row][to_col] = piece
+        self.board[piece.cell_y][piece.cell_x] = False
+        piece.cell_x = to_col
+        piece.cell_y = to_row
+        return True
+    
+    def nextTurn(self):
+        self.player_turn = not self.player_turn
