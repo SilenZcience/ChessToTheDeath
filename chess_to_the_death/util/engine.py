@@ -1,11 +1,18 @@
+import numpy as np
 from chess_to_the_death.util.pieces import *
 from chess_to_the_death.util.player import Player
 
-DIMENSION = (8, 8)
+def bothWayDic(dic):
+    dic.update(dict(map(reversed, dic.items())))
+    return dic
 
+DIMENSION = (8, 8)
+flipDic = bothWayDic({0: 7, 1: 6, 2: 5, 3: 4})
+pieceTranslateDic = bothWayDic({'p': 1, 'b': 2, 'n': 3, 'r': 4, 'q': 5, 'k': 6})
 
 class GameState:
     player_turn = True
+    board = None
 
     def __init__(self):
         self.white_pieces = []
@@ -46,32 +53,16 @@ class GameState:
 
         self.pieces = self.white_pieces + self.black_pieces
 
-        # self.board = [
-        #     [*self.white_pieces[0:8]],
-        #     [*self.white_pieces[8:16]],
-        #     [False, False, False, False,
-        #      False, False, False, False],
-        #     [False, False, False, False,
-        #      False, False, False, False],
-        #     [False, False, False, False,
-        #      False, False, False, False],
-        #     [False, False, False, False,
-        #      False, False, False, False],
-        #     [*self.black_pieces[8:16]],
-        #     [*self.black_pieces[0:8]]
-        # ]
-
     def getPiece(self, col, row):
         for piece in self.pieces:
             if piece.cell_x == col and piece.cell_y == row:
                 return piece
-        return False
+        return None
 
     def selectablePiece(self, piece):
         return piece._player == Player.OPTIONS[self.player_turn]
 
     def isEmptyCell(self, col, row):
-        print("empty?:", col, row)
         return not self.getPiece(col, row)
 
     def move(self, piece, to_col, to_row):
@@ -82,7 +73,6 @@ class GameState:
         return True
 
     def flipBoard(self):
-        flipDic = {0: 7, 1: 6, 2: 5, 3: 4, 4: 3, 5: 2, 6: 1, 7: 0}
         for piece in self.pieces:
             piece.cell_x = flipDic[piece.cell_x]
             piece.cell_y = flipDic[piece.cell_y]
@@ -90,3 +80,17 @@ class GameState:
     def nextTurn(self):
         self.player_turn = not self.player_turn
         self.flipBoard()
+    
+    def createBoard(self):
+        self.board = np.zeros(DIMENSION)
+        for piece in self.pieces:
+            self.board[piece.cell_y:piece.cell_y+1,piece.cell_x:piece.cell_x+1] = pieceTranslateDic[piece._name] * (
+                1 if piece._player == "white" else -1
+            )      
+    
+    def __str__(self):
+        self.createBoard()
+        return self.board.__str__()
+    
+    def __repr__(self):
+        return self.__str__()

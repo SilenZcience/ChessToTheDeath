@@ -72,7 +72,7 @@ def mainGUI():
         path.join(workingDir, 'images/blackp.png')))
     mainScreen = pygame.display.set_mode(BOARD_SIZE)
 
-    clock = fpsClock.FPS(BOARD_SIZE[0]-30, 0)
+    clock = fpsClock.FPS(MAX_FPS, BOARD_SIZE[0]-30, 0)
     gameState = engine.GameState()
     loadImages(gameState)
     
@@ -87,6 +87,7 @@ def mainGUI():
                 col = col // CELL_SIZE[0]
                 row = row // CELL_SIZE[1]
                 piece = gameState.getPiece(col, row)
+                print("Selected:", piece, col, row)
                 if not selectedCell:
                     if piece and gameState.selectablePiece(piece):
                         selectedCell = piece
@@ -94,6 +95,7 @@ def mainGUI():
                     if gameState.move(selectedCell, col, row):
                         selectedCell = None
                         gameState.nextTurn()
+                        print(gameState)
                     elif piece and gameState.selectablePiece(piece):
                         selectedCell = gameState.getPiece(col, row)
             
@@ -101,6 +103,5 @@ def mainGUI():
         highlightCell(mainScreen, selectedCell)
         drawPieces(mainScreen, gameState)
         
-        clock.tick(MAX_FPS)
         clock.render(mainScreen)
         pygame.display.flip()
