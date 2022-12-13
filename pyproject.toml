@@ -19,8 +19,8 @@ classifiers = [
     "Operating System :: OS Independent"
 ]
 dependencies = [
-    "numpy~=1.22.0",
-	"pygame~=2.0.0"
+    "numpy>=1.22.0",
+	"pygame>=2.0.0"
 ]
 dynamic = [
     "version",
