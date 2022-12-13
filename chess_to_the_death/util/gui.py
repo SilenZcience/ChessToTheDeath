@@ -6,7 +6,8 @@ import chess_to_the_death.util.engine as engine
 import chess_to_the_death.util.fpsClock as fpsClock
 
 BOARD_SIZE = (1024, 1024)
-CELL_SIZE = (BOARD_SIZE[0] // engine.DIMENSION[0], BOARD_SIZE[1] // engine.DIMENSION[1])
+CELL_SIZE = (BOARD_SIZE[0] // engine.DIMENSION[0],
+             BOARD_SIZE[1] // engine.DIMENSION[1])
 IMAGE_OFFSET = 24
 IMG_SIZE = tuple([size - (2*IMAGE_OFFSET) for size in CELL_SIZE])
 MAX_FPS = 30
@@ -61,26 +62,26 @@ def highlightCell(mainScreen, x, y, color):
 
 def highlightCells(mainScreen, piece, options_move, options_attack):
     if piece:
-        highlightCell(mainScreen, piece.cell_x, piece.cell_y, COLORS[3])
+        highlightCell(mainScreen, piece.cell_col, piece.cell_row, COLORS[3])
     for option in options_move:
-        highlightCell(mainScreen, option[1], option[0], COLORS[4])
+        highlightCell(mainScreen, option[0], option[1], COLORS[4])
     for option in options_attack:
-        highlightCell(mainScreen, option[1], option[0], COLORS[5])
+        highlightCell(mainScreen, option[0], option[1], COLORS[5])
 
 
 def drawPieces(mainScreen, gameState):
     for piece in gameState.pieces:
         mainScreen.blit(piece.image,
-                        pygame.Rect(piece.cell_x * CELL_SIZE[0] + IMAGE_OFFSET,
-                                    piece.cell_y * CELL_SIZE[1] + IMAGE_OFFSET,
+                        pygame.Rect(piece.cell_col * CELL_SIZE[0] + IMAGE_OFFSET,
+                                    piece.cell_row * CELL_SIZE[1] + IMAGE_OFFSET,
                                     *IMG_SIZE))
         pygame.draw.rect(mainScreen, COLORS[2],
                          pygame.Rect(
-                             piece.cell_x * CELL_SIZE[0] + (CELL_SIZE[0]//10),
-                             (piece.cell_y + 1) * CELL_SIZE[1] - IMAGE_OFFSET + (CELL_SIZE[0]//10),
+                             piece.cell_col * CELL_SIZE[0] + (CELL_SIZE[0]//10),
+                             (piece.cell_row + 1) * CELL_SIZE[1] - IMAGE_OFFSET + (CELL_SIZE[0]//10),
                              (piece.health * (CELL_SIZE[0] - (CELL_SIZE[0]//5)))//piece.maxHealth,
                              IMAGE_OFFSET // 3)
-                         )
+        )
 
 
 def drawWinner(mainScreen, winner):
@@ -90,7 +91,7 @@ def drawWinner(mainScreen, winner):
     text = font.render(winner.upper() + " WON!", True, COLORS[6])
     text_location = pygame.Rect(0, 0, *BOARD_SIZE).move(BOARD_SIZE[0] / 2 - text.get_width() / 2,
                                                         BOARD_SIZE[1] / 2 - text.get_height() / 2)
-    mainScreen.blit(text, text_location)   
+    mainScreen.blit(text, text_location)
 
 
 def mainGUI():
@@ -103,7 +104,7 @@ def mainGUI():
     clock = fpsClock.FPS(MAX_FPS, BOARD_SIZE[0]-30, 0)
     gameState = engine.GameState()
     loadImages(gameState)
-    
+
     selectedCell, winner = None, None
     options_move, options_attack = [], []
     running = True
@@ -120,10 +121,11 @@ def mainGUI():
                 if not selectedCell:
                     if piece and gameState.selectablePiece(piece):
                         selectedCell = piece
-                        options_move, options_attack = gameState.getOptions(piece)
+                        options_move, options_attack = gameState.getOptions(
+                            piece)
                 else:
                     if (gameState.move(selectedCell, col, row, options_move)) or (
-                        gameState.attack(selectedCell, col, row, options_attack)):
+                            gameState.attack(selectedCell, col, row, options_attack)):
                         selectedCell = None
                         options_move, options_attack = [], []
                         winner = gameState.playerWon()
@@ -133,12 +135,13 @@ def mainGUI():
                         if piece == selectedCell:
                             piece = None
                         selectedCell = piece
-                        options_move, options_attack = gameState.getOptions(piece)
-            
+                        options_move, options_attack = gameState.getOptions(
+                            piece)
+
         drawBoard(mainScreen)
         highlightCells(mainScreen, selectedCell, options_move, options_attack)
         drawPieces(mainScreen, gameState)
         drawWinner(mainScreen, winner)
-        
+
         clock.render(mainScreen)
         pygame.display.flip()
