@@ -30,9 +30,14 @@ workingDir = path.abspath(
 
 def loadImages(gameState):
     basePath = path.join(workingDir, 'images')
+    imgDict = {}
     for piece in gameState.pieces:
-        piece.image = pygame.transform.scale(
-            pygame.image.load(path.join(basePath, piece._player + piece._name + '.png')),
+        pieceName = piece._player + piece._name
+        if pieceName in imgDict:
+            piece.image = imgDict[pieceName]
+            continue
+        piece.image = imgDict[pieceName] = pygame.transform.scale(
+            pygame.image.load(path.join(basePath, pieceName + '.png')),
             IMG_SIZE
         )
 
@@ -90,6 +95,7 @@ def mainGUI():
     selectedCell = None
     options_move, options_attack = [], []
     running = True
+    winner = ''
     while running:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
