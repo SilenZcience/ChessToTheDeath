@@ -134,8 +134,7 @@ def mainGUI():
                 if not selectedCell:
                     if piece and gameState.selectablePiece(piece):
                         selectedCell = piece
-                        options_move, options_attack = gameState.getOptions(
-                            piece)
+                        options_move, options_attack = gameState.getOptions(piece)
                 else:
                     if (gameState.move(selectedCell, col, row, options_move)) or (
                             gameState.attack(selectedCell, col, row, options_attack)):

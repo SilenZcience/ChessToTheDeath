@@ -1,7 +1,8 @@
 
 class Piece:
     image = None
-
+    firstMove = True
+    
     def __init__(self, name, cell_col, cell_row, player):
         self._name = name
         self.cell_col = cell_col
@@ -9,6 +10,7 @@ class Piece:
         self._player = player
 
     def move(self, x, y):
+        self.firstMove = False
         self.cell_col = x
         self.cell_row = y
 
@@ -99,8 +101,6 @@ class Bishop(Piece):
 
 
 class Pawn(Piece):
-    firstMove = True
-
     def __init__(self, name, cell_col, cell_row, player):
         super().__init__(name, cell_col, cell_row, player)
         self.maxHealth = self.health = 100
@@ -122,10 +122,6 @@ class Pawn(Piece):
                 options_move.append((self.cell_col, self.cell_row-2))
         
         return (options_move, options_attack)
-
-    def move(self, x, y):
-        self.firstMove = False
-        return super().move(x, y)
 
 
 class Queen(Piece):
