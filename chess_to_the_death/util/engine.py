@@ -121,6 +121,8 @@ class GameState:
         return Player.OPTIONS[self.player_turn]
 
     def getOptions(self, piece):
+        if not piece:
+            return ([], [])
         options_move, options_attack = piece.getOptions(self.board)
         leftCastle, _ = self.getCastleOptionLeft(piece)
         rightCastle, _ = self.getCastleOptionRight(piece)
