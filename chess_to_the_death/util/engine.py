@@ -91,6 +91,14 @@ class GameState:
             else:
                 self.black_casualties.append(attacked_piece)
         return True
+    
+    def playerWon(self):
+        currentEnemyPlayer = Player.OPTIONS[not self.player_turn]
+        print(currentEnemyPlayer)
+        for piece in self.pieces:
+            if piece._player == currentEnemyPlayer and piece._name == 'k':
+                return None
+        return Player.OPTIONS[self.player_turn]
 
     def getOptions(self, piece):
         if not piece:
