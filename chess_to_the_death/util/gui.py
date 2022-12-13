@@ -11,20 +11,13 @@ CELL_SIZE = (BOARD_SIZE[0] // engine.DIMENSION[0],
 IMAGE_OFFSET = 24
 IMG_SIZE = tuple([size - (2*IMAGE_OFFSET) for size in CELL_SIZE])
 MAX_FPS = 30
-COLOR_WHITE = "#E6E6E6"
-COLOR_BLACK = "#202124"
-COLOR_HEALTH = "#FF0000"
-COLOR_SELECTED = "#0000FF"
-COLOR_MOVABLE = "#00FF00"
-COLOR_ATTACKABLE = "#FF0000"
-COLOR_WINNER = "#2E9599"
-COLORS = [tuple(int(COLOR_WHITE[i:i+2], 16) for i in (1, 3, 5)),
-          tuple(int(COLOR_BLACK[i:i+2], 16) for i in (1, 3, 5)),
-          tuple(int(COLOR_HEALTH[i:i+2], 16) for i in (1, 3, 5)),
-          tuple(int(COLOR_SELECTED[i:i+2], 16) for i in (1, 3, 5)),
-          tuple(int(COLOR_MOVABLE[i:i+2], 16) for i in (1, 3, 5)),
-          tuple(int(COLOR_ATTACKABLE[i:i+2], 16) for i in (1, 3, 5)),
-          tuple(int(COLOR_WINNER[i:i+2], 16) for i in (1, 3, 5))]
+COLORS = [(230, 230, 230), #"#E6E6E6" -> WHITE
+          ( 32,  33,  36), #"#202124" -> BLACK
+          (255,   0,   0), #"#FF0000" -> RED / HEALTH
+          (  0,   0, 255), #"#0000FF" -> BLUE / SELECTED
+          (  0, 255,   0), #"#00FF00" -> GREEN / MOVABLE
+          (255,   0,   0), #"#FF0000" -> RED / ATTACKABLE
+          ( 46, 149, 153)] #"#2E9599" -> TEAL / WINNER
 PIECE_IMAGES = {}
 workingDir = path.abspath(
     path.join(path.dirname(path.realpath(__file__)), '..')
