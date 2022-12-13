@@ -1,13 +1,17 @@
+from chess_to_the_death.util.loader import loadImage
 
 class Piece:
     image = None
     firstMove = True
+    image = None
     
-    def __init__(self, name, cell_col, cell_row, player):
+    def __init__(self, name, cell_col, cell_row, player, image_size=None):
         self._name = name
         self.cell_col = cell_col
         self.cell_row = cell_row
         self._player = player
+        if image_size:
+            self.image = loadImage(player + name, image_size)
 
     def move(self, x, y):
         self.firstMove = False
@@ -26,8 +30,8 @@ class Piece:
 
 
 class Rook(Piece):
-    def __init__(self, name, cell_col, cell_row, player):
-        super().__init__(name, cell_col, cell_row, player)
+    def __init__(self, name, cell_col, cell_row, player, image_size=None):
+        super().__init__(name, cell_col, cell_row, player, image_size)
         self.maxHealth = self.health = 120
         self.damage = 35
 
@@ -51,8 +55,8 @@ class Rook(Piece):
 
 
 class Knight(Piece):
-    def __init__(self, name, cell_col, cell_row, player):
-        super().__init__(name, cell_col, cell_row, player)
+    def __init__(self, name, cell_col, cell_row, player, image_size=None):
+        super().__init__(name, cell_col, cell_row, player, image_size)
         self.maxHealth = self.health = 90
         self.damage = 30
 
@@ -76,8 +80,8 @@ class Knight(Piece):
 
 
 class Bishop(Piece):
-    def __init__(self, name, cell_col, cell_row, player):
-        super().__init__(name, cell_col, cell_row, player)
+    def __init__(self, name, cell_col, cell_row, player, image_size=None):
+        super().__init__(name, cell_col, cell_row, player, image_size)
         self.maxHealth = self.health = 110
         self.damage = 25
 
@@ -101,8 +105,8 @@ class Bishop(Piece):
 
 
 class Pawn(Piece):
-    def __init__(self, name, cell_col, cell_row, player):
-        super().__init__(name, cell_col, cell_row, player)
+    def __init__(self, name, cell_col, cell_row, player, image_size=None):
+        super().__init__(name, cell_col, cell_row, player, image_size)
         self.maxHealth = self.health = 35
         self.damage = 10
 
@@ -125,19 +129,19 @@ class Pawn(Piece):
 
 
 class Queen(Piece):
-    def __init__(self, name, cell_col, cell_row, player):
-        super().__init__(name, cell_col, cell_row, player)
+    def __init__(self, name, cell_col, cell_row, player, image_size=None):
+        super().__init__(name, cell_col, cell_row, player, image_size)
         self.maxHealth = self.health = 80
         self.damage = 50
 
     def getOptions(self, board):
         options_move, options_attack = [], []
         m, a = Bishop('b', self.cell_col, self.cell_row,
-                      self._player).getOptions(board)
+                      self._player, None).getOptions(board)
         options_move += m
         options_attack += a
         m, a = Rook('r', self.cell_col, self.cell_row,
-                    self._player).getOptions(board)
+                    self._player, None).getOptions(board)
         options_move += m
         options_attack += a
 
@@ -145,8 +149,8 @@ class Queen(Piece):
 
 
 class King(Piece):
-    def __init__(self, name, cell_col, cell_row, player):
-        super().__init__(name, cell_col, cell_row, player)
+    def __init__(self, name, cell_col, cell_row, player, image_size=None):
+        super().__init__(name, cell_col, cell_row, player, image_size)
         self.maxHealth = self.health = 175
         self.damage = 15
 

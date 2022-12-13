@@ -18,44 +18,46 @@ class GameState:
     board = None
     white_casualties, black_casualties = [], []
 
-    def __init__(self):
-        self.white_pieces = []
-        self.white_pieces.append(Rook('r', 0, 7, Player.PLAYER_W))
-        self.white_pieces.append(Rook('r', 7, 7, Player.PLAYER_W))
-        self.white_pieces.append(Knight('n', 1, 7, Player.PLAYER_W))
-        self.white_pieces.append(Knight('n', 6, 7, Player.PLAYER_W))
-        self.white_pieces.append(Bishop('b', 2, 7, Player.PLAYER_W))
-        self.white_pieces.append(Bishop('b', 5, 7, Player.PLAYER_W))
-        self.white_pieces.append(Queen('q', 3, 7, Player.PLAYER_W))
-        self.white_pieces.append(King('k', 4, 7, Player.PLAYER_W))
-        self.white_pieces.append(Pawn('p', 0, 6, Player.PLAYER_W))
-        self.white_pieces.append(Pawn('p', 1, 6, Player.PLAYER_W))
-        self.white_pieces.append(Pawn('p', 2, 6, Player.PLAYER_W))
-        self.white_pieces.append(Pawn('p', 3, 6, Player.PLAYER_W))
-        self.white_pieces.append(Pawn('p', 4, 6, Player.PLAYER_W))
-        self.white_pieces.append(Pawn('p', 5, 6, Player.PLAYER_W))
-        self.white_pieces.append(Pawn('p', 6, 6, Player.PLAYER_W))
-        self.white_pieces.append(Pawn('p', 7, 6, Player.PLAYER_W))
+    def __init__(self, image_size):
+        self.image_size = image_size
+        print(image_size)
+        white_pieces = []
+        white_pieces.append(Rook(  'r', 0, 7, Player.PLAYER_W, image_size))
+        white_pieces.append(Rook(  'r', 7, 7, Player.PLAYER_W, image_size))
+        white_pieces.append(Knight('n', 1, 7, Player.PLAYER_W, image_size))
+        white_pieces.append(Knight('n', 6, 7, Player.PLAYER_W, image_size))
+        white_pieces.append(Bishop('b', 2, 7, Player.PLAYER_W, image_size))
+        white_pieces.append(Bishop('b', 5, 7, Player.PLAYER_W, image_size))
+        white_pieces.append(Queen( 'q', 3, 7, Player.PLAYER_W, image_size))
+        white_pieces.append(King(  'k', 4, 7, Player.PLAYER_W, image_size))
+        white_pieces.append(Pawn(  'p', 0, 6, Player.PLAYER_W, image_size))
+        white_pieces.append(Pawn(  'p', 1, 6, Player.PLAYER_W, image_size))
+        white_pieces.append(Pawn(  'p', 2, 6, Player.PLAYER_W, image_size))
+        white_pieces.append(Pawn(  'p', 3, 6, Player.PLAYER_W, image_size))
+        white_pieces.append(Pawn(  'p', 4, 6, Player.PLAYER_W, image_size))
+        white_pieces.append(Pawn(  'p', 5, 6, Player.PLAYER_W, image_size))
+        white_pieces.append(Pawn(  'p', 6, 6, Player.PLAYER_W, image_size))
+        white_pieces.append(Pawn(  'p', 7, 6, Player.PLAYER_W, image_size))
 
-        self.black_pieces = []
-        self.black_pieces.append(Rook('r', 0, 0, Player.PLAYER_B))
-        self.black_pieces.append(Rook('r', 7, 0, Player.PLAYER_B))
-        self.black_pieces.append(Knight('n', 1, 0, Player.PLAYER_B))
-        self.black_pieces.append(Knight('n', 6, 0, Player.PLAYER_B))
-        self.black_pieces.append(Bishop('b', 2, 0, Player.PLAYER_B))
-        self.black_pieces.append(Bishop('b', 5, 0, Player.PLAYER_B))
-        self.black_pieces.append(Queen('q', 3, 0, Player.PLAYER_B))
-        self.black_pieces.append(King('k', 4, 0, Player.PLAYER_B))
-        self.black_pieces.append(Pawn('p', 0, 1, Player.PLAYER_B))
-        self.black_pieces.append(Pawn('p', 1, 1, Player.PLAYER_B))
-        self.black_pieces.append(Pawn('p', 2, 1, Player.PLAYER_B))
-        self.black_pieces.append(Pawn('p', 3, 1, Player.PLAYER_B))
-        self.black_pieces.append(Pawn('p', 4, 1, Player.PLAYER_B))
-        self.black_pieces.append(Pawn('p', 5, 1, Player.PLAYER_B))
-        self.black_pieces.append(Pawn('p', 6, 1, Player.PLAYER_B))
-        self.black_pieces.append(Pawn('p', 7, 1, Player.PLAYER_B))
+        black_pieces = []
+        black_pieces.append(Rook(  'r', 0, 0, Player.PLAYER_B, image_size))
+        black_pieces.append(Rook(  'r', 7, 0, Player.PLAYER_B, image_size))
+        black_pieces.append(Knight('n', 1, 0, Player.PLAYER_B, image_size))
+        black_pieces.append(Knight('n', 6, 0, Player.PLAYER_B, image_size))
+        black_pieces.append(Bishop('b', 2, 0, Player.PLAYER_B, image_size))
+        black_pieces.append(Bishop('b', 5, 0, Player.PLAYER_B, image_size))
+        black_pieces.append(Queen( 'q', 3, 0, Player.PLAYER_B, image_size))
+        black_pieces.append(King(  'k', 4, 0, Player.PLAYER_B, image_size))
+        black_pieces.append(Pawn(  'p', 0, 1, Player.PLAYER_B, image_size))
+        black_pieces.append(Pawn(  'p', 1, 1, Player.PLAYER_B, image_size))
+        black_pieces.append(Pawn(  'p', 2, 1, Player.PLAYER_B, image_size))
+        black_pieces.append(Pawn(  'p', 3, 1, Player.PLAYER_B, image_size))
+        black_pieces.append(Pawn(  'p', 4, 1, Player.PLAYER_B, image_size))
+        black_pieces.append(Pawn(  'p', 5, 1, Player.PLAYER_B, image_size))
+        black_pieces.append(Pawn(  'p', 6, 1, Player.PLAYER_B, image_size))
+        black_pieces.append(Pawn(  'p', 7, 1, Player.PLAYER_B, image_size))
 
-        self.pieces = self.white_pieces + self.black_pieces
+        self.pieces = white_pieces + black_pieces
         self.createBoard()
         print(self.__repr__())
 
@@ -71,6 +73,13 @@ class GameState:
     def isEmptyCell(self, col, row):
         return not self.getPiece(col, row)
 
+    def promotePawn(self, piece):
+        if piece._name != 'p' or piece.cell_row > 0:
+            return
+        promotedPiece = Queen('q', piece.cell_col, 0, piece._player, self.image_size)
+        self.pieces.append(promotedPiece)
+        self.pieces.remove(piece)
+
     def move(self, piece, to_col, to_row, options_move):
         if not self.isEmptyCell(to_col, to_row):
             return False
@@ -83,6 +92,7 @@ class GameState:
         if rightCastle == (to_col, to_row):
             rook.move(to_col-1, to_row)
         piece.move(to_col, to_row)
+        self.promotePawn(piece)
         return True
 
     def attack(self, piece, to_col, to_row, options_attack):
@@ -100,6 +110,7 @@ class GameState:
                 self.white_casualties.append(attacked_piece)
             else:
                 self.black_casualties.append(attacked_piece)
+            self.promotePawn(piece)
         return True
 
     def playerWon(self):
@@ -110,11 +121,9 @@ class GameState:
         return Player.OPTIONS[self.player_turn]
 
     def getOptions(self, piece):
-        if not piece:
-            return Piece(None, None, None, None).getOptions(None)
-        options_move, options_attack =  piece.getOptions(self.board)
-        leftCastle, rook = self.getCastleOptionLeft(piece)
-        rightCastle, rook = self.getCastleOptionRight(piece)
+        options_move, options_attack = piece.getOptions(self.board)
+        leftCastle, _ = self.getCastleOptionLeft(piece)
+        rightCastle, _ = self.getCastleOptionRight(piece)
         if leftCastle:
             options_move.append(leftCastle)
         if rightCastle:

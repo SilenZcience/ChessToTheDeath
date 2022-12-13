@@ -1,9 +1,9 @@
 import pygame
 from itertools import product
-from os import path
 
 import chess_to_the_death.util.engine as engine
 import chess_to_the_death.util.fpsClock as fpsClock
+from chess_to_the_death.util.loader import loadImage
 
 BOARD_SIZE = (1024, 1024)
 CELL_SIZE = (BOARD_SIZE[0] // engine.DIMENSION[0],
@@ -19,28 +19,6 @@ COLORS = [(230, 230, 230), #"#E6E6E6" -> WHITE / CELL
           (255,   0,   0), #"#FF0000" -> RED / ATTACKABLE
           ( 46, 149, 153), #"#2E9599" -> TEAL / TEXT
           (  0,   0,   0)] #"#000000" -> BLACK / REDO
-PIECE_IMAGES = {}
-workingDir = path.abspath(
-    path.join(path.dirname(path.realpath(__file__)), '..')
-)
-
-
-def loadImage(relPath, size):
-    basePath = path.join(workingDir, 'images')
-    return pygame.transform.smoothscale(
-        pygame.image.load(path.join(basePath, relPath)),
-        size
-    )
-
-
-def loadImages(gameState):
-    imgDict = {}
-    for piece in gameState.pieces:
-        pieceName = piece._player + piece._name
-        if pieceName in imgDict:
-            piece.image = imgDict[pieceName]
-            continue
-        piece.image = imgDict[pieceName] = loadImage(pieceName + '.png', IMG_SIZE)
 
 
 def drawBoard(mainScreen):
@@ -109,14 +87,12 @@ def drawWinner(mainScreen, winner):
 def mainGUI():
     pygame.init()
     pygame.display.set_caption('Chess to the Death')
-    pygame.display.set_icon(pygame.image.load(
-        path.join(workingDir, 'images/blackp.png')))
+    pygame.display.set_icon(loadImage("blackp", (20, 20), False))
     mainScreen = pygame.display.set_mode(BOARD_SIZE)
     
     clock = fpsClock.FPS(MAX_FPS, BOARD_SIZE[0]-30, 0)
-    gameState = engine.GameState()
-    loadImages(gameState)
-    attack_icon = loadImage("damage.png", (20, 20))
+    gameState = engine.GameState(IMG_SIZE)
+    attack_icon = loadImage("damage", (20, 20))
     
     selectedCell, winner = None, None
     options_move, options_attack = [], []
@@ -147,13 +123,11 @@ def mainGUI():
                         if piece == selectedCell:
                             piece = None
                         selectedCell = piece
-                        options_move, options_attack = gameState.getOptions(
-                            piece)
+                        options_move, options_attack = gameState.getOptions(piece)
             if event.type == pygame.KEYDOWN and winner:
                 if pygame.key.name(event.key) == 'r':
                     print("Restarting...")
-                    gameState = engine.GameState()
-                    loadImages(gameState)
+                    gameState = engine.GameState(IMG_SIZE)
                     selectedCell, winner = None, None
                     options_move, options_attack = [], []
 
