@@ -11,13 +11,14 @@ CELL_SIZE = (BOARD_SIZE[0] // engine.DIMENSION[0],
 IMAGE_OFFSET = 24
 IMG_SIZE = tuple([size - (2*IMAGE_OFFSET) for size in CELL_SIZE])
 MAX_FPS = 30
-COLORS = [(230, 230, 230), #"#E6E6E6" -> WHITE
-          ( 32,  33,  36), #"#202124" -> BLACK
+COLORS = [(230, 230, 230), #"#E6E6E6" -> WHITE / CELL
+          ( 32,  33,  36), #"#202124" -> DARK_GRAY / CELL
           (255,   0,   0), #"#FF0000" -> RED / HEALTH
           (  0,   0, 255), #"#0000FF" -> BLUE / SELECTED
           (  0, 255,   0), #"#00FF00" -> GREEN / MOVABLE
           (255,   0,   0), #"#FF0000" -> RED / ATTACKABLE
-          ( 46, 149, 153)] #"#2E9599" -> TEAL / TEXT
+          ( 46, 149, 153), #"#2E9599" -> TEAL / TEXT
+          (  0,   0,   0)] #"#000000" -> BLACK / REDO
 PIECE_IMAGES = {}
 workingDir = path.abspath(
     path.join(path.dirname(path.realpath(__file__)), '..')
@@ -94,8 +95,14 @@ def drawWinner(mainScreen, winner):
         return
     font = pygame.font.SysFont("Verdana", 64)
     text = font.render(winner.upper() + " WON!", True, COLORS[6])
+    text_size = (text.get_width(), text.get_height())
+    text_location = pygame.Rect(0, 0, *BOARD_SIZE).move(BOARD_SIZE[0] / 2 - text_size[0] / 2,
+                                                        BOARD_SIZE[1] / 2 - text_size[1] / 2)
+    mainScreen.blit(text, text_location)
+    font = pygame.font.SysFont("Verdana", 32)
+    text = font.render("Play Again (R)", True, COLORS[7])
     text_location = pygame.Rect(0, 0, *BOARD_SIZE).move(BOARD_SIZE[0] / 2 - text.get_width() / 2,
-                                                        BOARD_SIZE[1] / 2 - text.get_height() / 2)
+                                                        BOARD_SIZE[1] / 2 + text_size[1] / 2)
     mainScreen.blit(text, text_location)
 
 
@@ -110,7 +117,7 @@ def mainGUI():
     gameState = engine.GameState()
     loadImages(gameState)
     attack_icon = loadImage("damage.png", (20, 20))
-
+    
     selectedCell, winner = None, None
     options_move, options_attack = [], []
     running = True
@@ -143,6 +150,13 @@ def mainGUI():
                         selectedCell = piece
                         options_move, options_attack = gameState.getOptions(
                             piece)
+            if event.type == pygame.KEYDOWN and winner:
+                if pygame.key.name(event.key) == 'r':
+                    print("Restarting...")
+                    gameState = engine.GameState()
+                    loadImages(gameState)
+                    selectedCell, winner = None, None
+                    options_move, options_attack = [], []
 
         drawBoard(mainScreen)
         highlightCells(mainScreen, selectedCell, options_move, options_attack)

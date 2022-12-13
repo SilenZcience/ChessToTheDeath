@@ -57,6 +57,7 @@ class GameState:
 
         self.pieces = self.white_pieces + self.black_pieces
         self.createBoard()
+        print(self.__repr__())
 
     def getPiece(self, col, row):
         for piece in self.pieces:
