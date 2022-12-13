@@ -17,25 +17,29 @@ COLORS = [(230, 230, 230), #"#E6E6E6" -> WHITE
           (  0,   0, 255), #"#0000FF" -> BLUE / SELECTED
           (  0, 255,   0), #"#00FF00" -> GREEN / MOVABLE
           (255,   0,   0), #"#FF0000" -> RED / ATTACKABLE
-          ( 46, 149, 153)] #"#2E9599" -> TEAL / WINNER
+          ( 46, 149, 153)] #"#2E9599" -> TEAL / TEXT
 PIECE_IMAGES = {}
 workingDir = path.abspath(
     path.join(path.dirname(path.realpath(__file__)), '..')
 )
 
 
-def loadImages(gameState):
+def loadImage(relPath, size):
     basePath = path.join(workingDir, 'images')
+    return pygame.transform.scale(
+        pygame.image.load(path.join(basePath, relPath)),
+        size
+    )
+
+
+def loadImages(gameState):
     imgDict = {}
     for piece in gameState.pieces:
         pieceName = piece._player + piece._name
         if pieceName in imgDict:
             piece.image = imgDict[pieceName]
             continue
-        piece.image = imgDict[pieceName] = pygame.transform.scale(
-            pygame.image.load(path.join(basePath, pieceName + '.png')),
-            IMG_SIZE
-        )
+        piece.image = imgDict[pieceName] = loadImage(pieceName + '.png', IMG_SIZE)
 
 
 def drawBoard(mainScreen):
@@ -62,12 +66,17 @@ def highlightCells(mainScreen, piece, options_move, options_attack):
         highlightCell(mainScreen, option[0], option[1], COLORS[5])
 
 
-def drawPieces(mainScreen, gameState):
+def drawPieces(mainScreen, gameState, attack_icon):
     for piece in gameState.pieces:
         mainScreen.blit(piece.image,
                         pygame.Rect(piece.cell_col * CELL_SIZE[0] + IMAGE_OFFSET,
                                     piece.cell_row * CELL_SIZE[1] + IMAGE_OFFSET,
                                     *IMG_SIZE))
+        mainScreen.blit(attack_icon, (piece.cell_col * CELL_SIZE[0], piece.cell_row * CELL_SIZE[1]))
+        font = pygame.font.SysFont("Verdana", 16)
+        mainScreen.blit(font.render(str(piece.damage), True, COLORS[6]), 
+                        (piece.cell_col * CELL_SIZE[0] + 25,
+                         piece.cell_row * CELL_SIZE[1]))
         pygame.draw.rect(mainScreen, COLORS[2],
                          pygame.Rect(
                              piece.cell_col * CELL_SIZE[0] + (CELL_SIZE[0]//10),
@@ -93,10 +102,11 @@ def mainGUI():
     pygame.display.set_icon(pygame.image.load(
         path.join(workingDir, 'images/blackp.png')))
     mainScreen = pygame.display.set_mode(BOARD_SIZE)
-
+    
     clock = fpsClock.FPS(MAX_FPS, BOARD_SIZE[0]-30, 0)
     gameState = engine.GameState()
     loadImages(gameState)
+    attack_icon = loadImage("damage.png", (20, 20))
 
     selectedCell, winner = None, None
     options_move, options_attack = [], []
@@ -133,7 +143,7 @@ def mainGUI():
 
         drawBoard(mainScreen)
         highlightCells(mainScreen, selectedCell, options_move, options_attack)
-        drawPieces(mainScreen, gameState)
+        drawPieces(mainScreen, gameState, attack_icon)
         drawWinner(mainScreen, winner)
 
         clock.render(mainScreen)
