@@ -55,7 +55,7 @@
 
 This project simply contains a custom chess variant in which every chess piece has it's own
 health and damage values. Therefor simply taking an enemy piece is not an option. Instead
-you have to fight it multiple times. The game ends when of the Kings has no healthpoints
+you have to fight it multiple times. The game ends when one of the Kings has no healthpoints
 left.
 
 ### Made With
