@@ -105,7 +105,8 @@ def mainGUI():
                         selectedCell = piece
                         options_move, options_attack = gameState.getOptions(piece)
                 else:
-                    if gameState.move(selectedCell, col, row):
+                    if (gameState.move(selectedCell, col, row, options_move)) or (
+                        gameState.attack(selectedCell, col, row, options_attack)):
                         selectedCell = None
                         options_move, options_attack = [], []
                         gameState.nextTurn()

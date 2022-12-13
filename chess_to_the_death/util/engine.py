@@ -13,6 +13,7 @@ pieceTranslateDic = bothWayDic({'p': 1, 'b': 2, 'n': 3, 'r': 4, 'q': 5, 'k': 6})
 class GameState:
     player_turn = True
     board = None
+    white_casualties, black_casualties = [], []
 
     def __init__(self):
         self.white_pieces = []
@@ -66,10 +67,29 @@ class GameState:
     def isEmptyCell(self, col, row):
         return not self.getPiece(col, row)
 
-    def move(self, piece, to_col, to_row):
+    def move(self, piece, to_col, to_row, options_move):
         if not self.isEmptyCell(to_col, to_row):
             return False
+        if not (to_row, to_col) in options_move:
+            return False
         piece.move(to_col, to_row)
+        return True
+    
+    def attack(self, piece, to_col, to_row, options_attack):
+        if self.isEmptyCell(to_col, to_row):
+            return False
+        if not (to_row, to_col) in options_attack:
+            return False
+        attacked_piece = self.getPiece(to_col, to_row)
+        attacked_piece.health -= piece.damage
+        if attacked_piece.health <= 0:
+            piece.move(attacked_piece.cell_x, attacked_piece.cell_y)
+            self.pieces.remove(attacked_piece)
+            print("Dead:", attacked_piece)
+            if attacked_piece._player == Player.PLAYER_W:
+                self.white_casualties.append(attacked_piece)
+            else:
+                self.black_casualties.append(attacked_piece)
         return True
 
     def getOptions(self, piece):
