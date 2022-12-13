@@ -27,7 +27,7 @@ workingDir = path.abspath(
 
 def loadImage(relPath, size):
     basePath = path.join(workingDir, 'images')
-    return pygame.transform.scale(
+    return pygame.transform.smoothscale(
         pygame.image.load(path.join(basePath, relPath)),
         size
     )
