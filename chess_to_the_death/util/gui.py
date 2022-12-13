@@ -21,6 +21,13 @@ COLORS = [(230, 230, 230), #"#E6E6E6" -> WHITE / CELL
           (  0,   0,   0)] #"#000000" -> BLACK / REDO
 
 
+class Holder:
+    selectedCell, winner = None, None
+    options_move, options_attack = [], []
+    attack_icon = None
+    fps = None
+
+
 def drawBoard(mainScreen):
     for x in product(range(engine.DIMENSION[0]), range(engine.DIMENSION[1])):
         pygame.draw.rect(mainScreen, COLORS[sum(x) % 2],
@@ -84,57 +91,62 @@ def drawWinner(mainScreen, winner):
     mainScreen.blit(text, text_location)
 
 
+def drawGame(mainScreen, gameState, holder):
+    drawBoard(mainScreen)
+    highlightCells(mainScreen, holder.selectedCell,  holder.options_move,  holder.options_attack)
+    drawPieces(mainScreen, gameState,  holder.attack_icon)
+    drawWinner(mainScreen,  holder.winner)
+    holder.fps.render(mainScreen)
+    pygame.display.flip()
+
 def mainGUI():
+    holder = Holder()
     pygame.init()
     pygame.display.set_caption('Chess to the Death')
     pygame.display.set_icon(loadImage("blackp", (20, 20), False))
     mainScreen = pygame.display.set_mode(BOARD_SIZE)
     
-    clock = fpsClock.FPS(MAX_FPS, BOARD_SIZE[0]-30, 0)
+    holder.fps = fpsClock.FPS(MAX_FPS, BOARD_SIZE[0]-30, 0)
     gameState = engine.GameState(IMG_SIZE)
-    attack_icon = loadImage("damage", (20, 20))
+    holder.attack_icon = loadImage("damage", (20, 20))
     
-    selectedCell, winner = None, None
-    options_move, options_attack = [], []
     running = True
     while running:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
-            if event.type == pygame.MOUSEBUTTONDOWN and not winner:
+            if event.type == pygame.MOUSEBUTTONDOWN and not holder.winner:
                 col, row = pygame.mouse.get_pos()
                 col = col // CELL_SIZE[0]
                 row = row // CELL_SIZE[1]
                 piece = gameState.getPiece(col, row)
                 print("Selected:", piece, col, row)
-                if not selectedCell:
+                if not holder.selectedCell:
                     if piece and gameState.selectablePiece(piece):
-                        selectedCell = piece
-                        options_move, options_attack = gameState.getOptions(piece)
+                        holder.selectedCell = piece
+                        holder.options_move, holder.options_attack = gameState.getOptions(piece)
                 else:
-                    if (gameState.move(selectedCell, col, row, options_move)) or (
-                            gameState.attack(selectedCell, col, row, options_attack)):
-                        selectedCell = None
-                        options_move, options_attack = [], []
-                        winner = gameState.playerWon()
-                        if not winner:
+                    if (gameState.move(holder.selectedCell, col, row, holder.options_move)) or (
+                            gameState.attack(holder.selectedCell, col, row, holder.options_attack)):
+                        holder.selectedCell = None
+                        holder.options_move, holder.options_attack = [], []
+                        holder.winner = gameState.playerWon()
+                        if not holder.winner:
+                            gameState.createBoard()
+                            drawGame(mainScreen, gameState, holder)
+                            pygame.time.delay(250)
                             gameState.nextTurn()
                     elif piece and gameState.selectablePiece(piece):
-                        if piece == selectedCell:
+                        if piece == holder.selectedCell:
                             piece = None
-                        selectedCell = piece
-                        options_move, options_attack = gameState.getOptions(piece)
-            if event.type == pygame.KEYDOWN and winner:
+                        holder.selectedCell = piece
+                        holder.options_move, holder.options_attack = gameState.getOptions(piece)
+            if event.type == pygame.KEYDOWN and holder.winner:
                 if pygame.key.name(event.key) == 'r':
                     print("Restarting...")
                     gameState = engine.GameState(IMG_SIZE)
-                    selectedCell, winner = None, None
-                    options_move, options_attack = [], []
+                    holder.selectedCell, holder.winner = None, None
+                    holder.options_move, holder.options_attack = [], []
 
-        drawBoard(mainScreen)
-        highlightCells(mainScreen, selectedCell, options_move, options_attack)
-        drawPieces(mainScreen, gameState, attack_icon)
-        drawWinner(mainScreen, winner)
-
-        clock.render(mainScreen)
-        pygame.display.flip()
+        drawGame(mainScreen, gameState, holder)
+    print("GoodBye!")
