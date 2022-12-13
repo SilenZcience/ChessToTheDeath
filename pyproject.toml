@@ -1,0 +1,36 @@
+[build-system]
+requires = ["flit_core >=3.2,<4"]
+build-backend = "flit_core.buildapi"
+
+[project]
+name = "ChessToTheDeath"
+requires-python = ">=3.7"
+authors = [{name = "Silas A. Kraume", email = "silas.kraume1552@gmail.com"}]
+readme = "README.md"
+license = {file = "LICENSE"}
+keywords = [
+    "python",
+    "chess",
+	"pygame"
+]
+classifiers = [
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Operating System :: OS Independent"
+]
+dependencies = [
+    "numpy~=1.22.0",
+	"pygame~=2.0.0"
+]
+dynamic = [
+    "version",
+    "description"
+]
+
+[tool.flit.module]
+name = "chess_to_the_death"
+
+[project.urls]
+Github = "https://github.com/SilenZcience/ChessToTheDeath"
+Download = "https://github.com/SilenZcience/ChessToTheDeath/tarball/master"
+Tracker = "https://github.com/SilenZcience/ChessToTheDeath/issues"
