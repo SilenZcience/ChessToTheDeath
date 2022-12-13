@@ -28,8 +28,8 @@ class Piece:
 class Rook(Piece):
     def __init__(self, name, cell_col, cell_row, player):
         super().__init__(name, cell_col, cell_row, player)
-        self.maxHealth = self.health = 100
-        self.damage = 10
+        self.maxHealth = self.health = 120
+        self.damage = 35
 
     def getOptions(self, board):
         options_move, options_attack = [], []
@@ -53,8 +53,8 @@ class Rook(Piece):
 class Knight(Piece):
     def __init__(self, name, cell_col, cell_row, player):
         super().__init__(name, cell_col, cell_row, player)
-        self.maxHealth = self.health = 100
-        self.damage = 10
+        self.maxHealth = self.health = 90
+        self.damage = 30
 
     def getOptions(self, board):
         options_move, options_attack = [], []
@@ -78,8 +78,8 @@ class Knight(Piece):
 class Bishop(Piece):
     def __init__(self, name, cell_col, cell_row, player):
         super().__init__(name, cell_col, cell_row, player)
-        self.maxHealth = self.health = 100
-        self.damage = 10
+        self.maxHealth = self.health = 110
+        self.damage = 25
 
     def getOptions(self, board):
         options_move, options_attack = [], []
@@ -103,7 +103,7 @@ class Bishop(Piece):
 class Pawn(Piece):
     def __init__(self, name, cell_col, cell_row, player):
         super().__init__(name, cell_col, cell_row, player)
-        self.maxHealth = self.health = 100
+        self.maxHealth = self.health = 35
         self.damage = 10
 
     def getOptions(self, board):
@@ -127,8 +127,8 @@ class Pawn(Piece):
 class Queen(Piece):
     def __init__(self, name, cell_col, cell_row, player):
         super().__init__(name, cell_col, cell_row, player)
-        self.maxHealth = self.health = 100
-        self.damage = 10
+        self.maxHealth = self.health = 80
+        self.damage = 50
 
     def getOptions(self, board):
         options_move, options_attack = [], []
@@ -147,8 +147,8 @@ class Queen(Piece):
 class King(Piece):
     def __init__(self, name, cell_col, cell_row, player):
         super().__init__(name, cell_col, cell_row, player)
-        self.maxHealth = self.health = 100
-        self.damage = 10
+        self.maxHealth = self.health = 175
+        self.damage = 15
 
     def getOptions(self, board):
         options_move, options_attack = [], []
