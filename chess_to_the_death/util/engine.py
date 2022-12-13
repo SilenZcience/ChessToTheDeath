@@ -94,7 +94,6 @@ class GameState:
     
     def playerWon(self):
         currentEnemyPlayer = Player.OPTIONS[not self.player_turn]
-        print(currentEnemyPlayer)
         for piece in self.pieces:
             if piece._player == currentEnemyPlayer and piece._name == 'k':
                 return None
@@ -104,8 +103,6 @@ class GameState:
         if not piece:
             return Piece(None, None, None, None).getOptions(None)
         options_move, options_attack = piece.getOptions(self.board)
-        print(options_move)
-        print(options_attack)
         return (options_move, options_attack)
     
     def flipBoard(self):

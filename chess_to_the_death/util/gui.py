@@ -111,28 +111,29 @@ def mainGUI():
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
-            if event.type == pygame.MOUSEBUTTONDOWN:
-                if not winner:
-                    col, row = pygame.mouse.get_pos()
-                    col = col // CELL_SIZE[0]
-                    row = row // CELL_SIZE[1]
-                    piece = gameState.getPiece(col, row)
-                    print("Selected:", piece, col, row)
-                    if not selectedCell:
-                        if piece and gameState.selectablePiece(piece):
-                            selectedCell = piece
-                            options_move, options_attack = gameState.getOptions(piece)
-                    else:
-                        if (gameState.move(selectedCell, col, row, options_move)) or (
-                            gameState.attack(selectedCell, col, row, options_attack)):
-                            selectedCell = None
-                            options_move, options_attack = [], []
-                            winner = gameState.playerWon()
-                            if not winner:
-                                gameState.nextTurn()
-                        elif piece and gameState.selectablePiece(piece):
-                            selectedCell = piece
-                            options_move, options_attack = gameState.getOptions(piece)
+            if event.type == pygame.MOUSEBUTTONDOWN and not winner:
+                col, row = pygame.mouse.get_pos()
+                col = col // CELL_SIZE[0]
+                row = row // CELL_SIZE[1]
+                piece = gameState.getPiece(col, row)
+                print("Selected:", piece, col, row)
+                if not selectedCell:
+                    if piece and gameState.selectablePiece(piece):
+                        selectedCell = piece
+                        options_move, options_attack = gameState.getOptions(piece)
+                else:
+                    if (gameState.move(selectedCell, col, row, options_move)) or (
+                        gameState.attack(selectedCell, col, row, options_attack)):
+                        selectedCell = None
+                        options_move, options_attack = [], []
+                        winner = gameState.playerWon()
+                        if not winner:
+                            gameState.nextTurn()
+                    elif piece and gameState.selectablePiece(piece):
+                        if piece == selectedCell:
+                            piece = None
+                        selectedCell = piece
+                        options_move, options_attack = gameState.getOptions(piece)
             
         drawBoard(mainScreen)
         highlightCells(mainScreen, selectedCell, options_move, options_attack)
