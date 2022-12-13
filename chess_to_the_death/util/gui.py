@@ -82,8 +82,11 @@ def drawPieces(mainScreen, gameState, attack_icon):
                              piece.cell_col * CELL_SIZE[0] + (CELL_SIZE[0]//10),
                              (piece.cell_row + 1) * CELL_SIZE[1] - IMAGE_OFFSET + (CELL_SIZE[0]//10),
                              (piece.health * (CELL_SIZE[0] - (CELL_SIZE[0]//5)))//piece.maxHealth,
-                             IMAGE_OFFSET // 3)
-        )
+                             IMAGE_OFFSET // 3))
+        font = pygame.font.SysFont("Verdana", 8)
+        mainScreen.blit(font.render(str(piece.health) + "/" + str(piece.maxHealth), True, COLORS[6]), 
+                        (piece.cell_col * CELL_SIZE[0] + (CELL_SIZE[0]//10),
+                         (piece.cell_row + 1) * CELL_SIZE[1] - IMAGE_OFFSET))
 
 
 def drawWinner(mainScreen, winner):
