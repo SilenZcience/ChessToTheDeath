@@ -94,6 +94,8 @@ python -m chess_to_the_death
 
 ![Example2](https://raw.githubusercontent.com/SilenZcience/ChessToTheDeath/main/img/example2.png "example2")
 
+![Example3](https://raw.githubusercontent.com/SilenZcience/ChessToTheDeath/main/img/example3.png "example3")
+
 <p align="right">(<a href="#top">back to top</a>)</p>
 
 ## License
