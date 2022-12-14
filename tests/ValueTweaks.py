@@ -3,9 +3,9 @@ import numpy as np
 chess_values = np.array([1,3,3,5,9]) #p,n,b,r,q - actual chess values
 
 quantity = np.array([8, 2, 2, 2, 1]) 
-attack_values = np.array([20, 35, 25, 20, 50])
-health_values = np.array([35, 90, 115, 120, 60])
-
+attack_values = np.array([120, 45, 32, 15, 60])
+health_values = np.array([120, 32, 45, 90, 10])
+#King Hp/Dmg = 150/35
 avg_attack_values = 0
 for x in zip(quantity, attack_values):
     avg_attack_values += x[0] * x[1]
@@ -34,5 +34,7 @@ print(val)
 
 val_diff = val - (1/9)*max(val)*chess_values
 print(val_diff)
-print(attack_values.shape)
-print(health_values.reshape(-1, 1).repeat(attack_values[0], axis=1))
+
+print("Attacks, 'til death:")
+hits_to_death = np.ceil(health_values.reshape(-1, 1).repeat(attack_values.shape[0], axis=1) / attack_values)
+print(hits_to_death)
