@@ -75,10 +75,11 @@ class GameState:
 
     def promotePawn(self, piece):
         if piece._name != 'p' or piece.cell_row > 0:
-            return
+            return False
         promotedPiece = Queen('q', piece.cell_col, 0, piece._player, self.image_size)
         self.pieces.append(promotedPiece)
         self.pieces.remove(piece)
+        return True
 
     def move(self, piece, to_col, to_row, options_move):
         if not self.isEmptyCell(to_col, to_row):
@@ -92,7 +93,6 @@ class GameState:
         if rightCastle == (to_col, to_row):
             rook.move(to_col-1, to_row)
         piece.move(to_col, to_row)
-        self.promotePawn(piece)
         return True
 
     def attack(self, piece, to_col, to_row, options_attack):
@@ -110,7 +110,6 @@ class GameState:
                 self.white_casualties.append(attacked_piece)
             else:
                 self.black_casualties.append(attacked_piece)
-            self.promotePawn(piece)
         return True
 
     def playerWon(self):

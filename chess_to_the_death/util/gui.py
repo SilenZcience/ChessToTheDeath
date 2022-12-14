@@ -128,6 +128,8 @@ def mainGUI():
                 else:
                     if (gameState.move(holder.selectedCell, col, row, holder.options_move)) or (
                             gameState.attack(holder.selectedCell, col, row, holder.options_attack)):
+                        if gameState.promotePawn(holder.selectedCell):
+                            print("Pawn promoted!") 
                         holder.selectedCell = None
                         holder.options_move, holder.options_attack = [], []
                         holder.winner = gameState.playerWon()
