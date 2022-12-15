@@ -24,7 +24,7 @@ COLORS = [(230, 230, 230), #"#E6E6E6" -> WHITE / CELL
 
 
 class Holder:
-    selectedCell = None
+    selectedCell: Piece = None
     winner: str = ''
     options_move, options_attack = [], []
     attack_icon: pygame.Surface = None
@@ -143,7 +143,7 @@ def drawPromoteOptions(mainScreen: pygame.Surface, piece: Piece, promoteOptions:
             mainScreen.blit(option[0], pygame.Rect(*option[1]))
 
 
-def renderPromoteOptions(mainScreen: pygame.Surface, gameState: engine.GameState, holder: Holder) -> bool:
+def choosePromoteOptions(mainScreen: pygame.Surface, gameState: engine.GameState, holder: Holder) -> bool:
     """
     Takes over the main Loop, until the player has decided to which piece he/she wants to
     promote the pawn (holder.selectedCell).
@@ -184,8 +184,7 @@ def renderPromoteOptions(mainScreen: pygame.Surface, gameState: engine.GameState
                         row//2 == holder.selectedCell.cell_row):
                     col = col-(2*holder.selectedCell.cell_col)
                     row = row-(2*holder.selectedCell.cell_row)
-                    gameState.promotePiece(
-                        holder.selectedCell, promoteOptions[row][col])
+                    gameState.promotePiece(holder.selectedCell, promoteOptions[row][col])
                     selecting = False
         drawGame(mainScreen, gameState, holder)
         drawPromoteOptions(mainScreen, holder.selectedCell,
@@ -234,7 +233,7 @@ def mainGUI():
                     if (gameState.move(holder.selectedCell, col, row, holder.options_move)) or (
                             gameState.attack(holder.selectedCell, col, row, holder.options_attack)):
                         if gameState.promotePawnOption(holder.selectedCell):
-                            running = renderPromoteOptions(mainScreen, gameState, holder)
+                            running = choosePromoteOptions(mainScreen, gameState, holder)
                             print("Pawn promoted!")
                         holder.selectedCell = None
                         holder.options_move, holder.options_attack = [], []

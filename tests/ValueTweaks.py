@@ -29,11 +29,11 @@ print("norm health:", normalized_health_values)
 normalized_value = normalized_attack_values + normalized_health_values
 print("norm value:", normalized_value)
 
-val = normalized_value * chess_values
-print(val)
+chess_value = normalized_value * chess_values
+print("chess value:", chess_value)
 
-val_diff = val - (1/9)*max(val)*chess_values
-print(val_diff)
+chess_value_diff = chess_value - (1/9)*max(chess_value)*chess_values
+print("chess value difference:", chess_value_diff)
 
 print("Attacks, 'til death:")
 hits_to_death = np.ceil(health_values.reshape(-1, 1).repeat(attack_values.shape[0], axis=1) / attack_values)
