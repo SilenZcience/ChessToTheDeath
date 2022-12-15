@@ -1,10 +1,11 @@
 from chess_to_the_death.util.loader import loadImage
 
+
 class Piece:
     image = None
     firstMove = True
     image = None
-    
+
     def __init__(self, name, cell_col, cell_row, player, image_size=None):
         self._name = name
         self.cell_col = cell_col
@@ -124,7 +125,7 @@ class Pawn(Piece):
         if self.cell_row-2 >= 0 and self.firstMove:
             if board[self.cell_row-2, self.cell_col] == 0:
                 options_move.append((self.cell_col, self.cell_row-2))
-        
+
         return (options_move, options_attack)
 
 

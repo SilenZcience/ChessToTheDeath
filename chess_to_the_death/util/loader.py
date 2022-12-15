@@ -8,13 +8,9 @@ basePath = path.join(workingDir, 'images')
 PIECE_IMAGES = {}
 
 
-def loadImage(relPath, size, store_value=True):
+def loadImage(relPath, size):
     pieceName = relPath
-    if not pieceName in PIECE_IMAGES:
-        _image = transform.smoothscale(image.load(path.join(basePath, relPath + ".png")),
-                size)
-        if store_value:
-            PIECE_IMAGES[pieceName] = _image
-        else:
-            return _image
-    return PIECE_IMAGES[pieceName]
+    if not (pieceName + str(size[0]) + "x" + str(size[1])) in PIECE_IMAGES:
+        PIECE_IMAGES[pieceName + str(size[0]) + "x" + str(size[1])] = transform.smoothscale(
+            image.load(path.join(basePath, relPath + ".png")), size)
+    return PIECE_IMAGES[pieceName + str(size[0]) + "x" + str(size[1])]

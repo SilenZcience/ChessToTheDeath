@@ -8,6 +8,7 @@ from chess_to_the_death.util.loader import loadImage
 BOARD_SIZE = (1024, 1024)
 CELL_SIZE = (BOARD_SIZE[0] // engine.DIMENSION[0],
              BOARD_SIZE[1] // engine.DIMENSION[1])
+HALF_CELL_SIZE = (CELL_SIZE[0]//2, CELL_SIZE[1]//2)
 IMAGE_OFFSET = 24
 IMG_SIZE = tuple([size - (2*IMAGE_OFFSET) for size in CELL_SIZE])
 MAX_FPS = 30
@@ -60,7 +61,7 @@ def drawPieces(mainScreen, gameState, attack_icon):
                                     *IMG_SIZE))
         mainScreen.blit(attack_icon, (piece.cell_col * CELL_SIZE[0], piece.cell_row * CELL_SIZE[1]))
         font = pygame.font.SysFont("Verdana", 16)
-        mainScreen.blit(font.render(str(piece.damage), True, COLORS[6]), 
+        mainScreen.blit(font.render(str(piece.damage), True, COLORS[6]),
                         (piece.cell_col * CELL_SIZE[0] + 25,
                          piece.cell_row * CELL_SIZE[1]))
         pygame.draw.rect(mainScreen, COLORS[2],
@@ -70,7 +71,7 @@ def drawPieces(mainScreen, gameState, attack_icon):
                              (piece.health * (CELL_SIZE[0] - (CELL_SIZE[0]//5)))//piece.maxHealth,
                              IMAGE_OFFSET // 3))
         font = pygame.font.SysFont("Verdana", 8)
-        mainScreen.blit(font.render(str(piece.health) + "/" + str(piece.maxHealth), True, COLORS[6]), 
+        mainScreen.blit(font.render(str(piece.health) + "/" + str(piece.maxHealth), True, COLORS[6]),
                         (piece.cell_col * CELL_SIZE[0] + (CELL_SIZE[0]//10),
                          (piece.cell_row + 1) * CELL_SIZE[1] - IMAGE_OFFSET))
 
@@ -96,20 +97,89 @@ def drawGame(mainScreen, gameState, holder):
     highlightCells(mainScreen, holder.selectedCell,  holder.options_move,  holder.options_attack)
     drawPieces(mainScreen, gameState,  holder.attack_icon)
     drawWinner(mainScreen,  holder.winner)
+
+
+def renderGame(mainScreen, gameState, holder):
+    drawGame(mainScreen, gameState, holder)
     holder.fps.render(mainScreen)
     pygame.display.flip()
+
+
+def drawPromoteOptions(mainScreen, piece, promoteOptions):
+    pygame.draw.rect(mainScreen, COLORS[(piece.cell_col+piece.cell_row) % 2],
+                     pygame.Rect(piece.cell_col * CELL_SIZE[0],
+                                 piece.cell_row * CELL_SIZE[1],
+                                 *CELL_SIZE))
+    for row in promoteOptions:
+        for option in row:
+            mainScreen.blit(
+                option[0],
+                pygame.Rect(*option[1]))
+
+
+def renderPromoteOptions(mainScreen, gameState, holder):
+    piece = holder.selectedCell
+    currentPlayer = gameState.currentPlayer()
+    promoteOptions = [['n', 'b'], ['r', 'q']]
+    promoteOptionsDimensions = [[(loadImage(currentPlayer+'n', HALF_CELL_SIZE),
+                                  (piece.cell_col * CELL_SIZE[0],
+                                   piece.cell_row * CELL_SIZE[1],
+                                   *HALF_CELL_SIZE)),
+                                 (loadImage(currentPlayer+'b', HALF_CELL_SIZE),
+                                  (piece.cell_col * CELL_SIZE[0] + HALF_CELL_SIZE[0],
+                                     piece.cell_row * CELL_SIZE[1],
+                                     *HALF_CELL_SIZE))],
+                                [(loadImage(currentPlayer+'r', HALF_CELL_SIZE),
+                                  (piece.cell_col * CELL_SIZE[0],
+                                    piece.cell_row *
+                                   CELL_SIZE[1] + HALF_CELL_SIZE[1],
+                                    *HALF_CELL_SIZE)),
+                                 (loadImage(currentPlayer+'q', HALF_CELL_SIZE),
+                                    (piece.cell_col * CELL_SIZE[0] + HALF_CELL_SIZE[0],
+                                     piece.cell_row *
+                                     CELL_SIZE[1] + HALF_CELL_SIZE[1],
+                                     *HALF_CELL_SIZE))]]
+    selecting = True
+    while selecting:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                return False
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                col, row = pygame.mouse.get_pos()
+                col = (col*2) // CELL_SIZE[0]
+                row = (row*2) // CELL_SIZE[1]
+                if (col//2 == holder.selectedCell.cell_col) and (
+                        row//2 == holder.selectedCell.cell_row):
+                    col = col-(2*holder.selectedCell.cell_col)
+                    row = row-(2*holder.selectedCell.cell_row)
+                    gameState.promotePiece(
+                        holder.selectedCell, promoteOptions[row][col])
+                    selecting = False
+        drawGame(mainScreen, gameState, holder)
+        drawPromoteOptions(mainScreen, holder.selectedCell,
+                           promoteOptionsDimensions)
+        holder.fps.render(mainScreen)
+        pygame.display.flip()
+    return True
+
+
+def newGame(holder):
+    holder.selectedCell, holder.winner = None, None
+    holder.options_move, holder.options_attack = [], []
+    return engine.GameState(IMG_SIZE)
+
 
 def mainGUI():
     holder = Holder()
     pygame.init()
     pygame.display.set_caption('Chess to the Death')
-    pygame.display.set_icon(loadImage("blackp", (20, 20), False))
+    pygame.display.set_icon(loadImage("blackp", (20, 20)))
     mainScreen = pygame.display.set_mode(BOARD_SIZE)
-    
+
     holder.fps = fpsClock.FPS(MAX_FPS, BOARD_SIZE[0]-30, 0)
-    gameState = engine.GameState(IMG_SIZE)
+    gameState = newGame(holder)
     holder.attack_icon = loadImage("damage", (20, 20))
-    
+
     running = True
     while running:
         for event in pygame.event.get():
@@ -128,14 +198,15 @@ def mainGUI():
                 else:
                     if (gameState.move(holder.selectedCell, col, row, holder.options_move)) or (
                             gameState.attack(holder.selectedCell, col, row, holder.options_attack)):
-                        if gameState.promotePawn(holder.selectedCell):
-                            print("Pawn promoted!") 
+                        if gameState.promotePawnOption(holder.selectedCell):
+                            running = renderPromoteOptions(mainScreen, gameState, holder)
+                            print("Pawn promoted!")
                         holder.selectedCell = None
                         holder.options_move, holder.options_attack = [], []
                         holder.winner = gameState.playerWon()
                         if not holder.winner:
                             gameState.createBoard()
-                            drawGame(mainScreen, gameState, holder)
+                            renderGame(mainScreen, gameState, holder)
                             pygame.time.delay(250)
                             gameState.nextTurn()
                     elif piece and gameState.selectablePiece(piece):
@@ -146,9 +217,7 @@ def mainGUI():
             if event.type == pygame.KEYDOWN and holder.winner:
                 if pygame.key.name(event.key) == 'r':
                     print("Restarting...")
-                    gameState = engine.GameState(IMG_SIZE)
-                    holder.selectedCell, holder.winner = None, None
-                    holder.options_move, holder.options_attack = [], []
+                    gameState = newGame(holder)
 
-        drawGame(mainScreen, gameState, holder)
+        renderGame(mainScreen, gameState, holder)
     print("GoodBye!")

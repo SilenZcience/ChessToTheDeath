@@ -61,6 +61,9 @@ class GameState:
         self.createBoard()
         print(self.__repr__())
 
+    def currentPlayer(self):
+        return Player.OPTIONS[self.player_turn]
+
     def getPiece(self, col, row):
         for piece in self.pieces:
             if piece.cell_col == col and piece.cell_row == row:
@@ -68,18 +71,29 @@ class GameState:
         return None
 
     def selectablePiece(self, piece):
-        return piece._player == Player.OPTIONS[self.player_turn]
+        return piece._player == self.currentPlayer()
 
     def isEmptyCell(self, col, row):
         return not self.getPiece(col, row)
 
-    def promotePawn(self, piece):
-        if piece._name != 'p' or piece.cell_row > 0:
-            return False
-        promotedPiece = Queen('q', piece.cell_col, 0, piece._player, self.image_size)
+    def promotePiece(self, piece, newPieceName):
+        if newPieceName == 'r':
+            promotedPiece = Rook(
+                'r', piece.cell_col, piece.cell_row, piece._player, self.image_size)
+        elif newPieceName == 'n':
+            promotedPiece = Knight(
+                'n', piece.cell_col, piece.cell_row, piece._player, self.image_size)
+        elif newPieceName == 'b':
+            promotedPiece = Bishop(
+                'b', piece.cell_col, piece.cell_row, piece._player, self.image_size)
+        else:
+            promotedPiece = Queen(
+                'q', piece.cell_col, piece.cell_row, piece._player, self.image_size)
         self.pieces.append(promotedPiece)
         self.pieces.remove(piece)
-        return True
+
+    def promotePawnOption(self, piece):
+        return piece._name == 'p' and piece.cell_row == 0
 
     def move(self, piece, to_col, to_row, options_move):
         if not self.isEmptyCell(to_col, to_row):
@@ -117,7 +131,7 @@ class GameState:
         for piece in self.pieces:
             if piece._player == currentEnemyPlayer and piece._name == 'k':
                 return None
-        return Player.OPTIONS[self.player_turn]
+        return self.currentPlayer()
 
     def getOptions(self, piece):
         if not piece:
@@ -129,42 +143,42 @@ class GameState:
             options_move.append(leftCastle)
         if rightCastle:
             options_move.append(rightCastle)
-        
+
         return (options_move, options_attack)
 
     def getCastleOptionLeft(self, piece):
         if piece._name != 'k' or not piece.firstMove:
             return (None, None)
         if (self.board[piece.cell_row, piece.cell_col-1] != 0) or (
-            self.board[piece.cell_row, piece.cell_col-2] != 0):
+                self.board[piece.cell_row, piece.cell_col-2] != 0):
             return (None, None)
-        if (Player.OPTIONS[self.player_turn] == Player.PLAYER_W):
+        if (self.currentPlayer() == Player.PLAYER_W):
             if (self.board[piece.cell_row, piece.cell_col-3] != 0):
                 return (None, None)
             if (self.board[piece.cell_row, piece.cell_col-4] == pieceTranslateDic['r']) and (
-                self.getPiece(piece.cell_col-4, piece.cell_row).firstMove):
+                    self.getPiece(piece.cell_col-4, piece.cell_row).firstMove):
                 return ((piece.cell_col-2, piece.cell_row), self.getPiece(piece.cell_col-4, piece.cell_row))
-        if (Player.OPTIONS[self.player_turn] == Player.PLAYER_B):
+        if (self.currentPlayer() == Player.PLAYER_B):
             if (self.board[piece.cell_row, piece.cell_col-3] == -pieceTranslateDic['r']) and (
-                self.getPiece(piece.cell_col-3, piece.cell_row).firstMove):
+                    self.getPiece(piece.cell_col-3, piece.cell_row).firstMove):
                 return ((piece.cell_col-2, piece.cell_row), self.getPiece(piece.cell_col-3, piece.cell_row))
         return (None, None)
-    
+
     def getCastleOptionRight(self, piece):
         if piece._name != 'k' or not piece.firstMove:
             return (None, None)
         if (self.board[piece.cell_row, piece.cell_col+1] != 0) or (
-            self.board[piece.cell_row, piece.cell_col+1] != 0):
+                self.board[piece.cell_row, piece.cell_col+1] != 0):
             return (None, None)
-        if (Player.OPTIONS[self.player_turn] == Player.PLAYER_W):
+        if (self.currentPlayer() == Player.PLAYER_W):
             if (self.board[piece.cell_row, piece.cell_col+3] == pieceTranslateDic['r']) and (
-                self.getPiece(piece.cell_col+3, piece.cell_row).firstMove):
+                    self.getPiece(piece.cell_col+3, piece.cell_row).firstMove):
                 return ((piece.cell_col+2, piece.cell_row), self.getPiece(piece.cell_col+3, piece.cell_row))
-        if (Player.OPTIONS[self.player_turn] == Player.PLAYER_B):
+        if (self.currentPlayer() == Player.PLAYER_B):
             if (self.board[piece.cell_row, piece.cell_col+3] != 0):
                 return (None, None)
             if (self.board[piece.cell_row, piece.cell_col+4] == -pieceTranslateDic['r']) and (
-                self.getPiece(piece.cell_col+4, piece.cell_row).firstMove):
+                    self.getPiece(piece.cell_col+4, piece.cell_row).firstMove):
                 return ((piece.cell_col+2, piece.cell_row), self.getPiece(piece.cell_col+4, piece.cell_row))
         return (None, None)
 
