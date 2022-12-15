@@ -171,8 +171,8 @@ def choosePromoteOptions(mainScreen: pygame.Surface, gameState: engine.GameState
                                      piece.cell_row *
                                      CELL_SIZE[1] + HALF_CELL_SIZE[1],
                                      *HALF_CELL_SIZE))]]
-    selecting = True
-    while selecting:
+    
+    while True:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 return False
@@ -185,13 +185,11 @@ def choosePromoteOptions(mainScreen: pygame.Surface, gameState: engine.GameState
                     col = col-(2*holder.selectedCell.cell_col)
                     row = row-(2*holder.selectedCell.cell_row)
                     gameState.promotePiece(holder.selectedCell, promoteOptions[row][col])
-                    selecting = False
+                    return True
         drawGame(mainScreen, gameState, holder)
-        drawPromoteOptions(mainScreen, holder.selectedCell,
-                           promoteOptionsDimensions)
+        drawPromoteOptions(mainScreen, holder.selectedCell, promoteOptionsDimensions)
         holder.fps.render(mainScreen)
         pygame.display.flip()
-    return True
 
 
 def newGame(holder: Holder) -> engine.GameState:
@@ -216,6 +214,8 @@ def mainGUI():
 
     running = True
     while running:
+        renderGame(mainScreen, gameState, holder)
+        
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
@@ -233,16 +233,18 @@ def mainGUI():
                     if (gameState.move(holder.selectedCell, col, row, holder.options_move)) or (
                             gameState.attack(holder.selectedCell, col, row, holder.options_attack)):
                         if gameState.promotePawnOption(holder.selectedCell):
+                            print("Choose Pawn Promotion...")
                             running = choosePromoteOptions(mainScreen, gameState, holder)
                             print("Pawn promoted!")
-                        holder.selectedCell = None
-                        holder.options_move, holder.options_attack = [], []
-                        holder.winner = gameState.playerWon()
-                        if not holder.winner:
-                            gameState.createBoard()
-                            renderGame(mainScreen, gameState, holder)
-                            pygame.time.delay(250)
-                            gameState.nextTurn()
+                        if running:
+                            holder.selectedCell = None
+                            holder.options_move, holder.options_attack = [], []
+                            holder.winner = gameState.playerWon()
+                            if not holder.winner:
+                                gameState.createBoard()
+                                renderGame(mainScreen, gameState, holder)
+                                pygame.time.delay(250)
+                                gameState.nextTurn()
                     elif piece and gameState.selectablePiece(piece):
                         if piece == holder.selectedCell:
                             piece = None
@@ -253,5 +255,4 @@ def mainGUI():
                     print("Restarting...")
                     gameState = newGame(holder)
 
-        renderGame(mainScreen, gameState, holder)
     print("GoodBye!")
