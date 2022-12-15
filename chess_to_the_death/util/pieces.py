@@ -14,19 +14,31 @@ class Piece:
         if image_size:
             self.image = loadImage(player + name, image_size)
 
-    def move(self, x, y):
+    def move(self, x: int, y: int) -> None:
+        """
+        move the piece to the new coordinates x,y.
+        """
         self.firstMove = False
         self.cell_col = x
         self.cell_row = y
 
-    def isEnemy(self, x, y, board):
+    def isEnemy(self, x: int, y: int, board) -> bool:
+        """
+        Checks whether a piece on the numpy-array board
+        on the coordinates x,y is an enemy or not.
+        """
         return (self._player == 'white' and board[y, x] < 0) or (
             self._player == 'black' and board[y, x] > 0)
 
-    def getOptions(self, board):
+    def getOptions(self, board) -> tuple:
+        """
+        Takes a numpy-array board and returns a tuple containing
+        two lists. The lists contain tuples of valid movement-moves
+        and valid attack-moves.
+        """
         return ([], [])
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return self._player + self._name + " (" + hex(id(self)) + ")"
 
 

@@ -4,6 +4,7 @@ from itertools import product
 import chess_to_the_death.util.engine as engine
 import chess_to_the_death.util.fpsClock as fpsClock
 from chess_to_the_death.util.loader import loadImage
+from chess_to_the_death.util.pieces import Piece # only for type-hints
 
 BOARD_SIZE = (1024, 1024)
 CELL_SIZE = (BOARD_SIZE[0] // engine.DIMENSION[0],
@@ -23,13 +24,17 @@ COLORS = [(230, 230, 230), #"#E6E6E6" -> WHITE / CELL
 
 
 class Holder:
-    selectedCell, winner = None, None
+    selectedCell = None
+    winner: str = ''
     options_move, options_attack = [], []
-    attack_icon = None
-    fps = None
+    attack_icon: pygame.Surface = None
+    fps: fpsClock = None
 
 
-def drawBoard(mainScreen):
+def drawBoard(mainScreen: pygame.Surface) -> None:
+    """
+    Draws the black and white background cells.
+    """
     for x in product(range(engine.DIMENSION[0]), range(engine.DIMENSION[1])):
         pygame.draw.rect(mainScreen, COLORS[sum(x) % 2],
                          pygame.Rect(x[0] * CELL_SIZE[0],
@@ -37,14 +42,23 @@ def drawBoard(mainScreen):
                                      *CELL_SIZE))
 
 
-def highlightCell(mainScreen, x, y, color):
+def highlightCell(mainScreen: pygame.Surface, x: int, y: int, color: tuple) -> None:
+    """
+    Highlights a single cell at the coordinates x,y
+    with the 'color' given as a tuple (R, G, B).
+    """
     highlight = pygame.Surface(CELL_SIZE)
     highlight.set_alpha(75)
     highlight.fill(color)
     mainScreen.blit(highlight, (x * CELL_SIZE[0], y * CELL_SIZE[1]))
 
 
-def highlightCells(mainScreen, piece, options_move, options_attack):
+def highlightCells(mainScreen: pygame.Surface, piece: Piece, options_move: list, options_attack: list) -> None:
+    """
+    Highlights the selected cell.
+    Highlights the valid moves of the selected cell.
+    Highlights the valid attacks of the selected cell.
+    """
     if piece:
         highlightCell(mainScreen, piece.cell_col, piece.cell_row, COLORS[3])
     for option in options_move:
@@ -53,7 +67,10 @@ def highlightCells(mainScreen, piece, options_move, options_attack):
         highlightCell(mainScreen, option[0], option[1], COLORS[5])
 
 
-def drawPieces(mainScreen, gameState, attack_icon):
+def drawPieces(mainScreen: pygame.Surface, gameState: engine.GameState, attack_icon: pygame.Surface) -> None:
+    """
+    Draws all pieces of the engine.board, including their health- and attackvalues
+    """
     for piece in gameState.pieces:
         mainScreen.blit(piece.image,
                         pygame.Rect(piece.cell_col * CELL_SIZE[0] + IMAGE_OFFSET,
@@ -76,7 +93,11 @@ def drawPieces(mainScreen, gameState, attack_icon):
                          (piece.cell_row + 1) * CELL_SIZE[1] - IMAGE_OFFSET))
 
 
-def drawWinner(mainScreen, winner):
+def drawWinner(mainScreen: pygame.Surface, winner: str) -> None:
+    """
+    If a player has won this function will display the win-message
+    on the 'mainScreen'.
+    """
     if not winner:
         return
     font = pygame.font.SysFont("Verdana", 64)
@@ -92,32 +113,43 @@ def drawWinner(mainScreen, winner):
     mainScreen.blit(text, text_location)
 
 
-def drawGame(mainScreen, gameState, holder):
+def drawGame(mainScreen: pygame.Surface, gameState: engine.GameState, holder: Holder) -> None:
     drawBoard(mainScreen)
     highlightCells(mainScreen, holder.selectedCell,  holder.options_move,  holder.options_attack)
     drawPieces(mainScreen, gameState,  holder.attack_icon)
     drawWinner(mainScreen,  holder.winner)
 
 
-def renderGame(mainScreen, gameState, holder):
+def renderGame(mainScreen: pygame.Surface, gameState: engine.GameState, holder: Holder) -> None:
+    """
+    Draws the Game, the Fps-display and updates the screen.
+    """
     drawGame(mainScreen, gameState, holder)
     holder.fps.render(mainScreen)
     pygame.display.flip()
 
 
-def drawPromoteOptions(mainScreen, piece, promoteOptions):
+def drawPromoteOptions(mainScreen: pygame.Surface, piece: Piece, promoteOptions: list) -> None:
+    """
+    If a pawn can be promoted this function will draw the four promoteOptions on the
+    cell at which the pawn stands.
+    """
     pygame.draw.rect(mainScreen, COLORS[(piece.cell_col+piece.cell_row) % 2],
                      pygame.Rect(piece.cell_col * CELL_SIZE[0],
                                  piece.cell_row * CELL_SIZE[1],
                                  *CELL_SIZE))
     for row in promoteOptions:
         for option in row:
-            mainScreen.blit(
-                option[0],
-                pygame.Rect(*option[1]))
+            mainScreen.blit(option[0], pygame.Rect(*option[1]))
 
 
-def renderPromoteOptions(mainScreen, gameState, holder):
+def renderPromoteOptions(mainScreen: pygame.Surface, gameState: engine.GameState, holder: Holder) -> bool:
+    """
+    Takes over the main Loop, until the player has decided to which piece he/she wants to
+    promote the pawn (holder.selectedCell).
+    
+    Returns a boolean in case the game is being quit.
+    """
     piece = holder.selectedCell
     currentPlayer = gameState.currentPlayer()
     promoteOptions = [['n', 'b'], ['r', 'q']]
@@ -163,7 +195,10 @@ def renderPromoteOptions(mainScreen, gameState, holder):
     return True
 
 
-def newGame(holder):
+def newGame(holder: Holder) -> engine.GameState:
+    """
+    Resets all values and starts/returns a new engine.GameState.
+    """
     holder.selectedCell, holder.winner = None, None
     holder.options_move, holder.options_attack = [], []
     return engine.GameState(IMG_SIZE)

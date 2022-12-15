@@ -3,7 +3,11 @@ from chess_to_the_death.util.pieces import *
 from chess_to_the_death.util.player import Player
 
 
-def bothWayDic(dic):
+def bothWayDic(dic: dict) -> dict:
+    """
+    takes a dictionary and adds every (value, key) entry,
+    essentially flipping the given entries.
+    """
     dic.update(dict(map(reversed, dic.items())))
     return dic
 
@@ -14,13 +18,13 @@ pieceTranslateDic = bothWayDic({'p': 1, 'b': 2, 'n': 3, 'r': 4, 'q': 5, 'k': 6})
 
 
 class GameState:
-    player_turn = True
-    board = None
+    player_turn = True # True -> 'white', False -> 'black'
+    board: np.ndarray = None
     white_casualties, black_casualties = [], []
 
     def __init__(self, image_size):
         self.image_size = image_size
-        print(image_size)
+        
         white_pieces = []
         white_pieces.append(Rook(  'r', 0, 7, Player.PLAYER_W, image_size))
         white_pieces.append(Rook(  'r', 7, 7, Player.PLAYER_W, image_size))
@@ -57,26 +61,44 @@ class GameState:
         black_pieces.append(Pawn(  'p', 6, 1, Player.PLAYER_B, image_size))
         black_pieces.append(Pawn(  'p', 7, 1, Player.PLAYER_B, image_size))
 
-        self.pieces = white_pieces + black_pieces
+        self.pieces: list[Piece] = white_pieces + black_pieces
         self.createBoard()
+        
         print(self.__repr__())
 
-    def currentPlayer(self):
+    def currentPlayer(self) -> str:
+        """
+        returns 'white' or 'black'.
+        """
         return Player.OPTIONS[self.player_turn]
 
-    def getPiece(self, col, row):
+    def getPiece(self, col: int, row: int) -> Piece:
+        """
+        Takes x,y (col,row) coordinates andd returns
+        the corresponding piece standing on that position.
+        """
         for piece in self.pieces:
             if piece.cell_col == col and piece.cell_row == row:
                 return piece
         return None
 
-    def selectablePiece(self, piece):
+    def selectablePiece(self, piece: Piece) -> bool:
+        """
+        Returns a boolean, whether or not the selected Piece
+        belongs no the current team-color.
+        """
         return piece._player == self.currentPlayer()
 
-    def isEmptyCell(self, col, row):
+    def isEmptyCell(self, col: int, row: int) -> bool:
         return not self.getPiece(col, row)
 
-    def promotePiece(self, piece, newPieceName):
+    def promotePiece(self, piece: Piece, newPieceName: str) -> None:
+        """
+        Takes an existing Piece and promotes it to another Piece-Type
+        corresponding to the given 'newPieceName' identifier.
+        (e.g. promotePiece(Pawn(...), 'q') replaces the Pawn with a new Queen)
+        This should only happen to Pawn-pieces, checks havee to be made beforehand.
+        """
         if newPieceName == 'r':
             promotedPiece = Rook(
                 'r', piece.cell_col, piece.cell_row, piece._player, self.image_size)
@@ -92,10 +114,20 @@ class GameState:
         self.pieces.append(promotedPiece)
         self.pieces.remove(piece)
 
-    def promotePawnOption(self, piece):
+    def promotePawnOption(self, piece: Piece) -> bool:
+        """
+        Checks whether or not a piece can be promoted.
+        It has to be a pawn and it has to have reached the top
+        of the board.
+        """
         return piece._name == 'p' and piece.cell_row == 0
 
-    def move(self, piece, to_col, to_row, options_move):
+    def move(self, piece: Piece, to_col: int, to_row: int, options_move: list) -> bool:
+        """
+            moves a 'piece' to the new coordinates 'to_col','to_row'
+            if it is a valid move. Also checks for castling.
+            Returns True if the move is valid and has been taken.
+        """
         if not self.isEmptyCell(to_col, to_row):
             return False
         if not (to_col, to_row) in options_move:
@@ -109,7 +141,12 @@ class GameState:
         piece.move(to_col, to_row)
         return True
 
-    def attack(self, piece, to_col, to_row, options_attack):
+    def attack(self, piece: Piece, to_col: int, to_row: int, options_attack: list) -> bool:
+        """
+            'piece' attacks another piece at the coordinates 'to_col','to_row'
+            if it is a valid attack. 
+            Returns True if the attack is valid and has been taken.
+        """
         if self.isEmptyCell(to_col, to_row):
             return False
         if not (to_col, to_row) in options_attack:
@@ -126,14 +163,24 @@ class GameState:
                 self.black_casualties.append(attacked_piece)
         return True
 
-    def playerWon(self):
+    def playerWon(self) -> str:
+        """
+        Checks if a player has won, by successfully defeating the
+        enemy king.
+        Returns 'white' or 'black' according to the team that won,
+        or returns an empty string no team has won yet.
+        """
         currentEnemyPlayer = Player.OPTIONS[not self.player_turn]
         for piece in self.pieces:
             if piece._player == currentEnemyPlayer and piece._name == 'k':
-                return None
+                return ''
         return self.currentPlayer()
 
-    def getOptions(self, piece):
+    def getOptions(self, piece: Piece) -> tuple:
+        """
+        Returns a tuple of lists containing all valid moves
+        and attacks of a given 'piece'.
+        """
         if not piece:
             return ([], [])
         options_move, options_attack = piece.getOptions(self.board)
@@ -146,7 +193,14 @@ class GameState:
 
         return (options_move, options_attack)
 
-    def getCastleOptionLeft(self, piece):
+    def getCastleOptionLeft(self, piece: Piece) -> tuple:
+        """
+        Takes a 'piece' and checks if it has
+        the option to castle of the left side.
+        If so the function returns a tuple containing the position
+        to which the piece can castle, aswell as the rook included
+        in the move.
+        """
         if piece._name != 'k' or not piece.firstMove:
             return (None, None)
         if (self.board[piece.cell_row, piece.cell_col-1] != 0) or (
@@ -164,7 +218,14 @@ class GameState:
                 return ((piece.cell_col-2, piece.cell_row), self.getPiece(piece.cell_col-3, piece.cell_row))
         return (None, None)
 
-    def getCastleOptionRight(self, piece):
+    def getCastleOptionRight(self, piece: Piece):
+        """
+        Takes a 'piece' and checks if it has
+        the option to castle of the right side.
+        If so the function returns a tuple containing the position
+        to which the piece can castle, aswell as the rook included
+        in the move.
+        """
         if piece._name != 'k' or not piece.firstMove:
             return (None, None)
         if (self.board[piece.cell_row, piece.cell_col+1] != 0) or (
@@ -182,12 +243,30 @@ class GameState:
                 return ((piece.cell_col+2, piece.cell_row), self.getPiece(piece.cell_col+4, piece.cell_row))
         return (None, None)
 
-    def flipBoard(self):
+    def flipBoard(self) -> None:
+        """
+        flips the gameboard, by mirroring the
+        x,y coordinates of all pieces at the center
+        of the board.
+        """
         for piece in self.pieces:
             piece.cell_col = flipDic[piece.cell_col]
             piece.cell_row = flipDic[piece.cell_row]
 
-    def createBoard(self):
+    def createBoard(self) -> None:
+        """
+        Creates the gameboard as a numpy.ndarray representation.
+        Each piece has a unique number identifier stored in 'pieceTranslateDic'.
+        e.g.: startingPosition:
+        [[-4. -3. -2. -5. -6. -2. -3. -4.]       
+        [-1. -1. -1. -1. -1. -1. -1. -1.]       
+        [ 0.  0.  0.  0.  0.  0.  0.  0.]       
+        [ 0.  0.  0.  0.  0.  0.  0.  0.]       
+        [ 0.  0.  0.  0.  0.  0.  0.  0.]       
+        [ 0.  0.  0.  0.  0.  0.  0.  0.]       
+        [ 1.  1.  1.  1.  1.  1.  1.  1.]       
+        [ 4.  3.  2.  5.  6.  2.  3.  4.]]
+        """
         self.board = np.zeros(DIMENSION)
         for piece in self.pieces:
             self.board[piece.cell_row, piece.cell_col] = pieceTranslateDic[piece._name] * (
@@ -195,13 +274,17 @@ class GameState:
             )
 
     def nextTurn(self):
+        """
+        flips the board at switches to thee team whose
+        turn it is at the moment.
+        """
         self.player_turn = not self.player_turn
         self.flipBoard()
         self.createBoard()
         print(self.__repr__())
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.board.__str__()
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return self.__str__()

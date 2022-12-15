@@ -8,9 +8,13 @@ basePath = path.join(workingDir, 'images')
 PIECE_IMAGES = {}
 
 
-def loadImage(relPath, size):
-    pieceName = relPath
-    if not (pieceName + str(size[0]) + "x" + str(size[1])) in PIECE_IMAGES:
-        PIECE_IMAGES[pieceName + str(size[0]) + "x" + str(size[1])] = transform.smoothscale(
+def loadImage(relPath: str, size: tuple):
+    """
+    Takes an image-name (e.g. 'blackp') and a tuple
+    containing the width, height.
+    Returns a pygame.Surface image.
+    """
+    if not (relPath + str(size[0]) + "x" + str(size[1])) in PIECE_IMAGES:
+        PIECE_IMAGES[relPath + str(size[0]) + "x" + str(size[1])] = transform.smoothscale(
             image.load(path.join(basePath, relPath + ".png")), size)
-    return PIECE_IMAGES[pieceName + str(size[0]) + "x" + str(size[1])]
+    return PIECE_IMAGES[relPath + str(size[0]) + "x" + str(size[1])]
