@@ -12,9 +12,9 @@ CELL_SIZE = (BOARD_SIZE[0] // engine.DIMENSION[0],
 HALF_CELL_SIZE = (CELL_SIZE[0]//2, CELL_SIZE[1]//2)
 IMAGE_OFFSET = 24
 IMG_SIZE = tuple([size - (2*IMAGE_OFFSET) for size in CELL_SIZE])
-MAX_FPS = 30
-COLORS = [(230, 230, 230), #"#E6E6E6" -> WHITE / CELL
-          ( 32,  33,  36), #"#202124" -> DARK_GRAY / CELL
+MAX_FPS = 20
+COLORS = [(230, 230, 230), #"#E6E6E6" -> WHITE / CELL + HOVER
+          ( 32,  33,  36), #"#202124" -> DARK_GRAY / CELL + HOVER
           (255,   0,   0), #"#FF0000" -> RED / HEALTH
           (  0,   0, 255), #"#0000FF" -> BLUE / SELECTED
           (  0, 255,   0), #"#00FF00" -> GREEN / MOVABLE
@@ -86,6 +86,8 @@ def highlightCells(mainScreen: pygame.Surface, piece: Piece, options_move: list,
         highlightCell(mainScreen, option[0] * CELL_SIZE[0],
                       option[1] * CELL_SIZE[1],
                       *CELL_SIZE, COLORS[5])
+    col, row = getMouseCell()
+    highlightCell(mainScreen, col * CELL_SIZE[0], row * CELL_SIZE[1], *CELL_SIZE, COLORS[1 - ((col+row) % 2)])
 
 
 def drawPieces(mainScreen: pygame.Surface, gameState: engine.GameState, attack_icon: pygame.Surface) -> None:
