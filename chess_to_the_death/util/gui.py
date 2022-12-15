@@ -31,6 +31,20 @@ class Holder:
     fps: fpsClock = None
 
 
+def getMouseCell(halfCell: bool = False) -> tuple:
+    """
+    gets the current cell (column, row) at
+    the mouse position.
+    measures in half cells if 'halfCell' is True, this
+    is needed for the promotionOptions.
+    """
+    col, row = pygame.mouse.get_pos()
+    if halfCell:
+        col *= 2
+        row *= 2
+    return (col // CELL_SIZE[0], row // CELL_SIZE[1])
+
+
 def drawBoard(mainScreen: pygame.Surface) -> None:
     """
     Draws the black and white background cells.
@@ -42,15 +56,16 @@ def drawBoard(mainScreen: pygame.Surface) -> None:
                                      *CELL_SIZE))
 
 
-def highlightCell(mainScreen: pygame.Surface, x: int, y: int, color: tuple) -> None:
+def highlightCell(mainScreen: pygame.Surface, x: int, y: int, w: int, h: int, color: tuple) -> None:
     """
     Highlights a single cell at the coordinates x,y
+    with the width 'w' and height 'h' and
     with the 'color' given as a tuple (R, G, B).
     """
-    highlight = pygame.Surface(CELL_SIZE)
+    highlight = pygame.Surface((w, h))
     highlight.set_alpha(75)
     highlight.fill(color)
-    mainScreen.blit(highlight, (x * CELL_SIZE[0], y * CELL_SIZE[1]))
+    mainScreen.blit(highlight, (x, y))
 
 
 def highlightCells(mainScreen: pygame.Surface, piece: Piece, options_move: list, options_attack: list) -> None:
@@ -60,11 +75,17 @@ def highlightCells(mainScreen: pygame.Surface, piece: Piece, options_move: list,
     Highlights the valid attacks of the selected cell.
     """
     if piece:
-        highlightCell(mainScreen, piece.cell_col, piece.cell_row, COLORS[3])
+        highlightCell(mainScreen, piece.cell_col * CELL_SIZE[0],
+                      piece.cell_row * CELL_SIZE[1],
+                      *CELL_SIZE, COLORS[3])
     for option in options_move:
-        highlightCell(mainScreen, option[0], option[1], COLORS[4])
+        highlightCell(mainScreen, option[0] * CELL_SIZE[0],
+                      option[1] * CELL_SIZE[1],
+                      *CELL_SIZE, COLORS[4])
     for option in options_attack:
-        highlightCell(mainScreen, option[0], option[1], COLORS[5])
+        highlightCell(mainScreen, option[0] * CELL_SIZE[0],
+                      option[1] * CELL_SIZE[1],
+                      *CELL_SIZE, COLORS[5])
 
 
 def drawPieces(mainScreen: pygame.Surface, gameState: engine.GameState, attack_icon: pygame.Surface) -> None:
@@ -132,14 +153,21 @@ def renderGame(mainScreen: pygame.Surface, gameState: engine.GameState, holder: 
 def drawPromoteOptions(mainScreen: pygame.Surface, piece: Piece, promoteOptions: list) -> None:
     """
     If a pawn can be promoted this function will draw the four promoteOptions on the
-    cell at which the pawn stands.
+    cell at which the pawn stands, aswell as the hover-highlight effect for
+    said options.
     """
     pygame.draw.rect(mainScreen, COLORS[(piece.cell_col+piece.cell_row) % 2],
                      pygame.Rect(piece.cell_col * CELL_SIZE[0],
                                  piece.cell_row * CELL_SIZE[1],
                                  *CELL_SIZE))
-    for row in promoteOptions:
-        for option in row:
+    
+    col, row = getMouseCell(True)
+    if (col//2 == piece.cell_col) and (row//2 == piece.cell_row):
+        highlightCell(mainScreen, (col//2) * CELL_SIZE[0] + (HALF_CELL_SIZE[0] * (col % 2)),
+                    (row//2) * CELL_SIZE[1] + (HALF_CELL_SIZE[1] * (row % 2)),
+                    *HALF_CELL_SIZE, COLORS[3])
+    for options in promoteOptions:
+        for option in options:
             mainScreen.blit(option[0], pygame.Rect(*option[1]))
 
 
@@ -177,13 +205,11 @@ def choosePromoteOptions(mainScreen: pygame.Surface, gameState: engine.GameState
             if event.type == pygame.QUIT:
                 return False
             if event.type == pygame.MOUSEBUTTONDOWN:
-                col, row = pygame.mouse.get_pos()
-                col = (col*2) // CELL_SIZE[0]
-                row = (row*2) // CELL_SIZE[1]
+                col, row = getMouseCell(True)
                 if (col//2 == holder.selectedCell.cell_col) and (
                         row//2 == holder.selectedCell.cell_row):
                     col = col-(2*holder.selectedCell.cell_col)
-                    row = row-(2*holder.selectedCell.cell_row)
+                    # row = row-(2*holder.selectedCell.cell_row) # holder.selectedCell.cell_row should be 0 anyway
                     gameState.promotePiece(holder.selectedCell, promoteOptions[row][col])
                     return True
         drawGame(mainScreen, gameState, holder)
@@ -220,9 +246,7 @@ def mainGUI():
             if event.type == pygame.QUIT:
                 running = False
             if event.type == pygame.MOUSEBUTTONDOWN and not holder.winner:
-                col, row = pygame.mouse.get_pos()
-                col = col // CELL_SIZE[0]
-                row = row // CELL_SIZE[1]
+                col, row = getMouseCell()
                 piece = gameState.getPiece(col, row)
                 print("Selected:", piece, col, row)
                 if not holder.selectedCell:
