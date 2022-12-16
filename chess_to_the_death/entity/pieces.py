@@ -4,7 +4,6 @@ from chess_to_the_death.util.loader import loadImage
 class Piece:
     image = None
     firstMove = True
-    image = None
 
     def __init__(self, name, cell_col, cell_row, player, image_size=None):
         self._name = name

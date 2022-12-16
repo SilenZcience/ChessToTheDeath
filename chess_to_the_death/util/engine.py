@@ -1,6 +1,6 @@
 import numpy as np
-from chess_to_the_death.util.pieces import *
-from chess_to_the_death.util.player import Player
+from chess_to_the_death.entity.pieces import *
+from chess_to_the_death.entity.player import Player
 
 
 def bothWayDic(dic: dict) -> dict:

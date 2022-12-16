@@ -4,7 +4,7 @@ from itertools import product
 import chess_to_the_death.util.engine as engine
 import chess_to_the_death.util.fpsClock as fpsClock
 from chess_to_the_death.util.loader import loadImage
-from chess_to_the_death.util.pieces import Piece # only for type-hints
+from chess_to_the_death.entity.pieces import Piece # only for type-hints
 
 BOARD_SIZE = (1024, 1024)
 CELL_SIZE = (BOARD_SIZE[0] // engine.DIMENSION[0],
