@@ -19,6 +19,7 @@ pieceTranslateDic = bothWayDic({'p': 1, 'b': 2, 'n': 3, 'r': 4, 'q': 5, 'k': 6})
 
 class GameState:
     player_turn = True # True -> 'white', False -> 'black'
+    board_flipped = False
     board: np.ndarray = None
     white_casualties, black_casualties = [], []
 
@@ -243,12 +244,16 @@ class GameState:
                 return ((piece.cell_col+2, piece.cell_row), self.getPiece(piece.cell_col+4, piece.cell_row))
         return (None, None)
 
+    def isBoardFlipped(self) -> bool:
+        return self.board_flipped
+
     def flipBoard(self) -> None:
         """
         flips the gameboard, by mirroring the
         x,y coordinates of all pieces at the center
         of the board.
         """
+        self.board_flipped = not self.board_flipped
         for piece in self.pieces:
             piece.cell_col = flipDic[piece.cell_col]
             piece.cell_row = flipDic[piece.cell_row]

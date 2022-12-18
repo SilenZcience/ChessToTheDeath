@@ -6,9 +6,10 @@ import chess_to_the_death.util.fpsClock as fpsClock
 from chess_to_the_death.util.loader import loadImage
 from chess_to_the_death.entity.pieces import Piece # only for type-hints
 
-BOARD_SIZE = (1024, 1024)
-CELL_SIZE = (BOARD_SIZE[0] // engine.DIMENSION[0],
-             BOARD_SIZE[1] // engine.DIMENSION[1])
+BOARD_OFFSET = (20, 20)
+BOARD_SIZE = (1024 + BOARD_OFFSET[0], 1024 + BOARD_OFFSET[1])
+CELL_SIZE = ((BOARD_SIZE[0] - BOARD_OFFSET[0])// engine.DIMENSION[0],
+             (BOARD_SIZE[1] - BOARD_OFFSET[1]) // engine.DIMENSION[1])
 HALF_CELL_SIZE = (CELL_SIZE[0]//2, CELL_SIZE[1]//2)
 IMAGE_OFFSET = 24
 IMG_SIZE = tuple([size - (2*IMAGE_OFFSET) for size in CELL_SIZE])
@@ -87,7 +88,8 @@ def highlightCells(mainScreen: pygame.Surface, piece: Piece, options_move: list,
                       option[1] * CELL_SIZE[1],
                       *CELL_SIZE, COLORS[5])
     col, row = getMouseCell()
-    highlightCell(mainScreen, col * CELL_SIZE[0], row * CELL_SIZE[1], *CELL_SIZE, COLORS[1 - ((col+row) % 2)])
+    if 0 <= col < engine.DIMENSION[0] and 0 <= row < engine.DIMENSION[1]:
+        highlightCell(mainScreen, col * CELL_SIZE[0], row * CELL_SIZE[1], *CELL_SIZE, COLORS[1 - ((col+row) % 2)])
 
 
 def drawPieces(mainScreen: pygame.Surface, gameState: engine.GameState, attack_icon: pygame.Surface) -> None:
@@ -134,6 +136,42 @@ def drawWinner(mainScreen: pygame.Surface, winner: str) -> None:
     text_location = pygame.Rect(0, 0, *BOARD_SIZE).move(BOARD_SIZE[0] / 2 - text.get_width() / 2,
                                                         BOARD_SIZE[1] / 2 + text_size[1] / 2)
     mainScreen.blit(text, text_location)
+
+
+def drawIdentifiers(mainScreen: pygame.Surface, gameState: engine.GameState):
+    """
+    Draw the letters and numbers to identify a single cell.
+    Only needs to happen once a move.
+    """
+    x_offset = engine.DIMENSION[0] * CELL_SIZE[0]
+    y_offset = engine.DIMENSION[1] * CELL_SIZE[1]
+    pygame.draw.rect(mainScreen, COLORS[1],
+                         pygame.Rect(x_offset, 0,
+                                     BOARD_OFFSET[0], BOARD_SIZE[1]))
+    pygame.draw.rect(mainScreen, COLORS[1],
+                         pygame.Rect(0, y_offset,
+                                     BOARD_SIZE[0], BOARD_OFFSET[1]))
+    font = pygame.font.SysFont("Verdana", 16)
+    numbers_identifiers = list(map(str, range(1, engine.DIMENSION[1]+1)))
+    alpha_identifiers = list(map(chr, range(65, 91)))[:engine.DIMENSION[0]]
+    if gameState.isBoardFlipped():
+        alpha_identifiers.reverse()
+    else:
+        numbers_identifiers.reverse()
+    for i in range(0, engine.DIMENSION[1]):
+        text = font.render(numbers_identifiers[i], True, COLORS[6])
+        text_size = (text.get_width(), text.get_height())
+        print(text_size)
+        text_location = pygame.Rect(x_offset + (BOARD_OFFSET[0] - text_size[0]) // 2,
+                                    i * CELL_SIZE[1] + CELL_SIZE[1] // 2 - text_size[1] // 2,
+                                    BOARD_OFFSET[0], CELL_SIZE[1])
+        mainScreen.blit(text, text_location)
+    for i in range(0, engine.DIMENSION[0]):
+        text = font.render(alpha_identifiers[i], True, COLORS[6])
+        text_size = (text.get_width(), text.get_height())
+        text_location = pygame.Rect(i * CELL_SIZE[0] + CELL_SIZE[0] // 2 - text_size[0] // 2,
+                                    y_offset, BOARD_OFFSET[0], CELL_SIZE[1])
+        mainScreen.blit(text, text_location)
 
 
 def drawGame(mainScreen: pygame.Surface, gameState: engine.GameState, holder: Holder) -> None:
@@ -236,10 +274,11 @@ def mainGUI():
     pygame.display.set_icon(loadImage("blackp", (20, 20)))
     mainScreen = pygame.display.set_mode(BOARD_SIZE)
 
-    holder.fps = fpsClock.FPS(MAX_FPS, BOARD_SIZE[0]-30, 0)
+    holder.fps = fpsClock.FPS(MAX_FPS, BOARD_SIZE[0]-30-BOARD_OFFSET[0], 0)
     gameState = newGame(holder)
     holder.attack_icon = loadImage("damage", (20, 20))
-
+    drawIdentifiers(mainScreen, gameState)
+    
     running = True
     while running:
         renderGame(mainScreen, gameState, holder)
@@ -271,6 +310,7 @@ def mainGUI():
                                 renderGame(mainScreen, gameState, holder)
                                 pygame.time.delay(250)
                                 gameState.nextTurn()
+                                drawIdentifiers(mainScreen, gameState)
                     elif piece and gameState.selectablePiece(piece):
                         if piece == holder.selectedCell:
                             piece = None
