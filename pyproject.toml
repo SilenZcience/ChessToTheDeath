@@ -20,7 +20,8 @@ classifiers = [
 ]
 dependencies = [
     "numpy>=1.22.0",
-	"pygame>=2.0.0"
+	"pygame>=2.0.0",
+	"requests>=2.26.0"
 ]
 dynamic = [
     "version",
