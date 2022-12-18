@@ -1,5 +1,9 @@
+from os import environ
+environ['PYGAME_HIDE_SUPPORT_PROMPT'] = 'hide' # sorry, pygame
+
 import pygame
 from itertools import product
+from argparse import Namespace # only for type-hints
 
 import chess_to_the_death.util.engine as engine
 import chess_to_the_death.util.fpsClock as fpsClock
@@ -161,7 +165,6 @@ def drawIdentifiers(mainScreen: pygame.Surface, gameState: engine.GameState):
     for i in range(0, engine.DIMENSION[1]):
         text = font.render(numbers_identifiers[i], True, COLORS[6])
         text_size = (text.get_width(), text.get_height())
-        print(text_size)
         text_location = pygame.Rect(x_offset + (BOARD_OFFSET[0] - text_size[0]) // 2,
                                     i * CELL_SIZE[1] + CELL_SIZE[1] // 2 - text_size[1] // 2,
                                     BOARD_OFFSET[0], CELL_SIZE[1])
@@ -267,7 +270,14 @@ def newGame(holder: Holder) -> engine.GameState:
     return engine.GameState(IMG_SIZE)
 
 
-def mainGUI():
+def workParams(argParam: Namespace) -> None:
+    global MAX_FPS
+    MAX_FPS = getattr(argParam, 'fps')
+
+
+def mainGUI(argParam: Namespace):
+    workParams(argParam)
+    
     holder = Holder()
     pygame.init()
     pygame.display.set_caption('Chess to the Death')
