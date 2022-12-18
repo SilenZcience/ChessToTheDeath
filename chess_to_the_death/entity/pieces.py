@@ -124,7 +124,7 @@ class Pawn(Piece):
 
     def getOptions(self, board):
         options_move, options_attack = [], []
-        if self.cell_col-1 >= 0 >= 0 and self.cell_row-1:
+        if self.cell_col-1 >= 0 and self.cell_row-1 >= 0:
             if super().isEnemy(self.cell_col-1, self.cell_row-1, board):
                 options_attack.append((self.cell_col-1, self.cell_row-1))
         if self.cell_col+1 < board.shape[1] and self.cell_row-1 >= 0:

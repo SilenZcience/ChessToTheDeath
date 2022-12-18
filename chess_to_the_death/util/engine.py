@@ -133,12 +133,11 @@ class GameState:
             return False
         if not (to_col, to_row) in options_move:
             return False
-        leftCastle, rook = self.getCastleOptionLeft(piece)
-        if leftCastle == (to_col, to_row):
-            rook.move(to_col+1, to_row)
-        rightCastle, rook = self.getCastleOptionRight(piece)
-        if rightCastle == (to_col, to_row):
-            rook.move(to_col-1, to_row)
+        castleOptions = self.getCastleOptionLeft(piece)
+        for castleOption, rookPosition, rook in castleOptions:
+            if castleOption == (to_col, to_row):
+                rook.move(rookPosition[0], rookPosition[1])
+
         piece.move(to_col, to_row)
         return True
 
@@ -185,64 +184,41 @@ class GameState:
         if not piece:
             return ([], [])
         options_move, options_attack = piece.getOptions(self.board)
-        leftCastle, _ = self.getCastleOptionLeft(piece)
-        rightCastle, _ = self.getCastleOptionRight(piece)
-        if leftCastle:
-            options_move.append(leftCastle)
-        if rightCastle:
-            options_move.append(rightCastle)
+        castleOptions = self.getCastleOptionLeft(piece)
+        for castleOption, _, _ in castleOptions:
+            options_move.append(castleOption)
 
         return (options_move, options_attack)
 
-    def getCastleOptionLeft(self, piece: Piece) -> tuple:
+    def getCastleOptionLeft(self, piece: Piece) -> list:
         """
         Takes a 'piece' and checks if it has
-        the option to castle of the left side.
-        If so the function returns a tuple containing the position
-        to which the piece can castle, aswell as the rook included
-        in the move.
+        the option to castle.
+        If so the function returns a list containing tuples.
+        Each tuple contains the target-position for the king to castle,
+        the target-position for the rook, aswell as the rook itself.
         """
+        options = []
         if piece._name != 'k' or not piece.firstMove:
-            return (None, None)
-        if (self.board[piece.cell_row, piece.cell_col-1] != 0) or (
-                self.board[piece.cell_row, piece.cell_col-2] != 0):
-            return (None, None)
-        if (self.currentPlayer() == Player.PLAYER_W):
-            if (self.board[piece.cell_row, piece.cell_col-3] != 0):
-                return (None, None)
-            if (self.board[piece.cell_row, piece.cell_col-4] == pieceTranslateDic['r']) and (
-                    self.getPiece(piece.cell_col-4, piece.cell_row).firstMove):
-                return ((piece.cell_col-2, piece.cell_row), self.getPiece(piece.cell_col-4, piece.cell_row))
-        if (self.currentPlayer() == Player.PLAYER_B):
-            if (self.board[piece.cell_row, piece.cell_col-3] == -pieceTranslateDic['r']) and (
-                    self.getPiece(piece.cell_col-3, piece.cell_row).firstMove):
-                return ((piece.cell_col-2, piece.cell_row), self.getPiece(piece.cell_col-3, piece.cell_row))
-        return (None, None)
-
-    def getCastleOptionRight(self, piece: Piece):
-        """
-        Takes a 'piece' and checks if it has
-        the option to castle of the right side.
-        If so the function returns a tuple containing the position
-        to which the piece can castle, aswell as the rook included
-        in the move.
-        """
-        if piece._name != 'k' or not piece.firstMove:
-            return (None, None)
-        if (self.board[piece.cell_row, piece.cell_col+1] != 0) or (
-                self.board[piece.cell_row, piece.cell_col+1] != 0):
-            return (None, None)
-        if (self.currentPlayer() == Player.PLAYER_W):
-            if (self.board[piece.cell_row, piece.cell_col+3] == pieceTranslateDic['r']) and (
-                    self.getPiece(piece.cell_col+3, piece.cell_row).firstMove):
-                return ((piece.cell_col+2, piece.cell_row), self.getPiece(piece.cell_col+3, piece.cell_row))
-        if (self.currentPlayer() == Player.PLAYER_B):
-            if (self.board[piece.cell_row, piece.cell_col+3] != 0):
-                return (None, None)
-            if (self.board[piece.cell_row, piece.cell_col+4] == -pieceTranslateDic['r']) and (
-                    self.getPiece(piece.cell_col+4, piece.cell_row).firstMove):
-                return ((piece.cell_col+2, piece.cell_row), self.getPiece(piece.cell_col+4, piece.cell_row))
-        return (None, None)
+            return options
+        print(self.board[piece.cell_row])
+        print(self.board[piece.cell_row, :piece.cell_col+1])
+        print(self.board[piece.cell_row, piece.cell_col:])
+        if abs(self.board[piece.cell_row, 0]) == pieceTranslateDic['r']:
+            rook = self.getPiece(0, piece.cell_row)
+            if (rook.firstMove) and (
+                (np.array_equal(self.board[piece.cell_row, :piece.cell_col+1], [4, 0, 0, 0, 6])) or (  # white left
+                np.array_equal(self.board[piece.cell_row, :piece.cell_col+1], [-4, 0, 0, 0, -6])) or ( # black left (noflip)
+                np.array_equal(self.board[piece.cell_row, :piece.cell_col+1], [-4, 0, 0, -6]))):       # black left (flip)
+                options.append(((piece.cell_col-2, piece.cell_row), (piece.cell_col-1, piece.cell_row), rook))
+        if abs(self.board[piece.cell_row, DIMENSION[1]-1]) == pieceTranslateDic['r']:
+            rook = self.getPiece(DIMENSION[1]-1, piece.cell_row)
+            if (rook.firstMove) and (
+                (np.array_equal(self.board[piece.cell_row, piece.cell_col:], [6, 0, 0, 4])) or (  # white right
+                np.array_equal(self.board[piece.cell_row, piece.cell_col:], [-6, 0, 0, -4])) or ( # black right (noflip)
+                np.array_equal(self.board[piece.cell_row, piece.cell_col:], [-6, 0, 0, 0, -4]))): # black right (flip)
+                options.append(((piece.cell_col+2, piece.cell_row), (piece.cell_col+1, piece.cell_row), rook))
+        return options
 
     def isBoardFlipped(self) -> bool:
         return self.board_flipped
@@ -253,6 +229,8 @@ class GameState:
         x,y coordinates of all pieces at the center
         of the board.
         """
+        if not self.flip_board:
+            return
         self.board_flipped = not self.board_flipped
         for piece in self.pieces:
             piece.cell_col = flipDic[piece.cell_col]
