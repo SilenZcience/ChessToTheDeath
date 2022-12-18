@@ -24,6 +24,8 @@ class ArgsHandler:
                             const=True, dest="version", help="show program's version number and exit")
         parser.add_argument("-fps", "--fps", action="store", default=20, type=int,
                             dest="fps", help="set max fps (a lower value will improve performance)")
+        parser.add_argument("-nohighlight", action="store_const", default=True, dest="highlight",
+                            const=False, help="disable cell-highlighting on mouse hover")
         
         self.params = parser.parse_args()
     

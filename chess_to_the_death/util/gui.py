@@ -18,6 +18,7 @@ HALF_CELL_SIZE = (CELL_SIZE[0]//2, CELL_SIZE[1]//2)
 IMAGE_OFFSET = 24
 IMG_SIZE = tuple([size - (2*IMAGE_OFFSET) for size in CELL_SIZE])
 MAX_FPS = 20
+HIGHLIGHT_CELLS = True
 COLORS = [(230, 230, 230), #"#E6E6E6" -> WHITE / CELL + HOVER
           ( 32,  33,  36), #"#202124" -> DARK_GRAY / CELL + HOVER
           (255,   0,   0), #"#FF0000" -> RED / HEALTH
@@ -83,14 +84,16 @@ def highlightCells(mainScreen: pygame.Surface, piece: Piece, options_move: list,
         highlightCell(mainScreen, piece.cell_col * CELL_SIZE[0],
                       piece.cell_row * CELL_SIZE[1],
                       *CELL_SIZE, COLORS[3])
-    for option in options_move:
-        highlightCell(mainScreen, option[0] * CELL_SIZE[0],
-                      option[1] * CELL_SIZE[1],
-                      *CELL_SIZE, COLORS[4])
-    for option in options_attack:
-        highlightCell(mainScreen, option[0] * CELL_SIZE[0],
-                      option[1] * CELL_SIZE[1],
-                      *CELL_SIZE, COLORS[5])
+        for option in options_move:
+            highlightCell(mainScreen, option[0] * CELL_SIZE[0],
+                        option[1] * CELL_SIZE[1],
+                        *CELL_SIZE, COLORS[4])
+        for option in options_attack:
+            highlightCell(mainScreen, option[0] * CELL_SIZE[0],
+                        option[1] * CELL_SIZE[1],
+                        *CELL_SIZE, COLORS[5])
+    if not HIGHLIGHT_CELLS:
+        return
     col, row = getMouseCell()
     if 0 <= col < engine.DIMENSION[0] and 0 <= row < engine.DIMENSION[1]:
         highlightCell(mainScreen, col * CELL_SIZE[0], row * CELL_SIZE[1], *CELL_SIZE, COLORS[1 - ((col+row) % 2)])
@@ -273,6 +276,8 @@ def newGame(holder: Holder) -> engine.GameState:
 def workParams(argParam: Namespace) -> None:
     global MAX_FPS
     MAX_FPS = getattr(argParam, 'fps')
+    global HIGHLIGHT_CELLS
+    HIGHLIGHT_CELLS = getattr(argParam, 'highlight')
 
 
 def mainGUI(argParam: Namespace):
