@@ -26,6 +26,8 @@ class ArgsHandler:
                             dest="fps", help="set max fps (a lower value will improve performance)")
         parser.add_argument("-nohighlight", action="store_const", default=True, dest="highlight",
                             const=False, help="disable cell-highlighting on mouse hover")
+        parser.add_argument("-noflip", action="store_const", default=True, dest="flip",
+                            const=False, help="disable board flipping")
         
         self.params = parser.parse_args()
     

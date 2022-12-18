@@ -19,6 +19,7 @@ IMAGE_OFFSET = 24
 IMG_SIZE = tuple([size - (2*IMAGE_OFFSET) for size in CELL_SIZE])
 MAX_FPS = 20
 HIGHLIGHT_CELLS = True
+FLIP_BOARD = True
 COLORS = [(230, 230, 230), #"#E6E6E6" -> WHITE / CELL + HOVER
           ( 32,  33,  36), #"#202124" -> DARK_GRAY / CELL + HOVER
           (255,   0,   0), #"#FF0000" -> RED / HEALTH
@@ -255,7 +256,8 @@ def choosePromoteOptions(mainScreen: pygame.Surface, gameState: engine.GameState
                 if (col//2 == holder.selectedCell.cell_col) and (
                         row//2 == holder.selectedCell.cell_row):
                     col = col-(2*holder.selectedCell.cell_col)
-                    # row = row-(2*holder.selectedCell.cell_row) # holder.selectedCell.cell_row should be 0 anyway
+                    row = row-(2*holder.selectedCell.cell_row)
+                    print(col, row)
                     gameState.promotePiece(holder.selectedCell, promoteOptions[row][col])
                     return True
         drawGame(mainScreen, gameState, holder)
@@ -270,7 +272,7 @@ def newGame(holder: Holder) -> engine.GameState:
     """
     holder.selectedCell, holder.winner = None, None
     holder.options_move, holder.options_attack = [], []
-    return engine.GameState(IMG_SIZE)
+    return engine.GameState(IMG_SIZE, FLIP_BOARD)
 
 
 def workParams(argParam: Namespace) -> None:
@@ -278,6 +280,8 @@ def workParams(argParam: Namespace) -> None:
     MAX_FPS = getattr(argParam, 'fps')
     global HIGHLIGHT_CELLS
     HIGHLIGHT_CELLS = getattr(argParam, 'highlight')
+    global FLIP_BOARD
+    FLIP_BOARD = getattr(argParam, 'flip')
 
 
 def mainGUI(argParam: Namespace):
@@ -312,13 +316,13 @@ def mainGUI(argParam: Namespace):
                 else:
                     if (gameState.move(holder.selectedCell, col, row, holder.options_move)) or (
                             gameState.attack(holder.selectedCell, col, row, holder.options_attack)):
+                        holder.options_move, holder.options_attack = [], []
                         if gameState.promotePawnOption(holder.selectedCell):
                             print("Choose Pawn Promotion...")
                             running = choosePromoteOptions(mainScreen, gameState, holder)
                             print("Pawn promoted!")
                         if running:
                             holder.selectedCell = None
-                            holder.options_move, holder.options_attack = [], []
                             holder.winner = gameState.playerWon()
                             if not holder.winner:
                                 gameState.createBoard()

@@ -20,11 +20,13 @@ pieceTranslateDic = bothWayDic({'p': 1, 'b': 2, 'n': 3, 'r': 4, 'q': 5, 'k': 6})
 class GameState:
     player_turn = True # True -> 'white', False -> 'black'
     board_flipped = False
+    flip_board = True
     board: np.ndarray = None
     white_casualties, black_casualties = [], []
 
-    def __init__(self, image_size):
+    def __init__(self, image_size, flip_board):
         self.image_size = image_size
+        self.flip_board = flip_board
         
         white_pieces = []
         white_pieces.append(Rook(  'r', 0, 7, Player.PLAYER_W, image_size))
@@ -121,7 +123,9 @@ class GameState:
         It has to be a pawn and it has to have reached the top
         of the board.
         """
-        return piece._name == 'p' and piece.cell_row == 0
+        promotable = piece._name == 'p' and \
+                    (piece.cell_row == 0 or piece.cell_row == DIMENSION[1]-1)
+        return promotable
 
     def move(self, piece: Piece, to_col: int, to_row: int, options_move: list) -> bool:
         """
@@ -133,7 +137,7 @@ class GameState:
             return False
         if not (to_col, to_row) in options_move:
             return False
-        castleOptions = self.getCastleOptionLeft(piece)
+        castleOptions = self.getCastleOptions(piece)
         for castleOption, rookPosition, rook in castleOptions:
             if castleOption == (to_col, to_row):
                 rook.move(rookPosition[0], rookPosition[1])
@@ -183,14 +187,14 @@ class GameState:
         """
         if not piece:
             return ([], [])
-        options_move, options_attack = piece.getOptions(self.board)
-        castleOptions = self.getCastleOptionLeft(piece)
+        options_move, options_attack = piece.getOptions(self.board, self.flip_board or self.player_turn)
+        castleOptions = self.getCastleOptions(piece)
         for castleOption, _, _ in castleOptions:
             options_move.append(castleOption)
 
         return (options_move, options_attack)
 
-    def getCastleOptionLeft(self, piece: Piece) -> list:
+    def getCastleOptions(self, piece: Piece) -> list:
         """
         Takes a 'piece' and checks if it has
         the option to castle.
