@@ -1,10 +1,10 @@
 <div id="top"></div>
 
 <p>
-   <a href="https://pepy.tech/project/ChessToTheDeath" alt="Downloads">
+   <a href="https://pypi.org/project/ChessToTheDeath/" alt="Downloads">
       <img src="https://static.pepy.tech/personalized-badge/chesstothedeath?period=total&units=international_system&left_color=grey&right_color=orange&left_text=Downloads" align="right">
    </a>
-   <a href="https://pepy.tech/project/ChessToTheDeath" alt="Visitors">
+   <a href="https://pypi.org/project/ChessToTheDeath/" alt="Visitors">
       <img src="https://visitor-badge.laobi.icu/badge?page_id=SilenZcience.ChessToTheDeath" align="right">
    </a>
 </p>
