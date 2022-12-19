@@ -23,6 +23,8 @@ class GameState:
     flip_board = True
     board: np.ndarray = None
     white_casualties, black_casualties = [], []
+    alpha_identifiers = list(map(chr, range(65, 65+DIMENSION[0])))
+    numbers_identifiers = list(map(str, range(DIMENSION[1], 0, -1)))
 
     def __init__(self, image_size, flip_board):
         self.image_size = image_size
@@ -68,6 +70,14 @@ class GameState:
         self.createBoard()
         
         print(self.__repr__())
+
+    def printAction(self, from_col: int, from_row: int, to_col: int, to_row: int, action: str) -> None:
+        print("\x1b[32m", end='')
+        print(self.alpha_identifiers[from_col], self.numbers_identifiers[from_row], sep='', end='')
+        print('-', end='')
+        print(self.alpha_identifiers[to_col], self.numbers_identifiers[to_row], sep='', end=' ')
+        print(action)
+        print("\x1b[m", end='')
 
     def currentPlayer(self) -> str:
         """
@@ -141,6 +151,10 @@ class GameState:
         for castleOption, rookPosition, rook in castleOptions:
             if castleOption == (to_col, to_row):
                 rook.move(rookPosition[0], rookPosition[1])
+                self.printAction(piece.cell_col, piece.cell_row, to_col, to_row, 'castles')
+                break
+        else:
+            self.printAction(piece.cell_col, piece.cell_row, to_col, to_row, 'moves')
 
         piece.move(to_col, to_row)
         return True
@@ -158,6 +172,7 @@ class GameState:
         attacked_piece = self.getPiece(to_col, to_row)
         attacked_piece.health -= piece.damage
         if attacked_piece.health <= 0:
+            self.printAction(piece.cell_col, piece.cell_row, to_col, to_row, 'takes')
             piece.move(attacked_piece.cell_col, attacked_piece.cell_row)
             self.pieces.remove(attacked_piece)
             print("Dead:", attacked_piece)
@@ -165,6 +180,8 @@ class GameState:
                 self.white_casualties.append(attacked_piece)
             else:
                 self.black_casualties.append(attacked_piece)
+        else:
+            self.printAction(piece.cell_col, piece.cell_row, to_col, to_row, 'attackes')
         return True
 
     def playerWon(self) -> str:
@@ -236,6 +253,8 @@ class GameState:
         if not self.flip_board:
             return
         self.board_flipped = not self.board_flipped
+        self.alpha_identifiers.reverse()
+        self.numbers_identifiers.reverse()
         for piece in self.pieces:
             piece.cell_col = flipDic[piece.cell_col]
             piece.cell_row = flipDic[piece.cell_row]

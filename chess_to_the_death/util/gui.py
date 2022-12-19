@@ -160,21 +160,15 @@ def drawIdentifiers(mainScreen: pygame.Surface, gameState: engine.GameState):
                          pygame.Rect(0, y_offset,
                                      BOARD_SIZE[0], BOARD_OFFSET[1]))
     font = pygame.font.SysFont("Verdana", 16)
-    numbers_identifiers = list(map(str, range(1, engine.DIMENSION[1]+1)))
-    alpha_identifiers = list(map(chr, range(65, 91)))[:engine.DIMENSION[0]]
-    if gameState.isBoardFlipped():
-        alpha_identifiers.reverse()
-    else:
-        numbers_identifiers.reverse()
-    for i in range(0, engine.DIMENSION[1]):
-        text = font.render(numbers_identifiers[i], True, COLORS[6])
+    for i in range(engine.DIMENSION[1]):
+        text = font.render(gameState.numbers_identifiers[i], True, COLORS[6])
         text_size = (text.get_width(), text.get_height())
         text_location = pygame.Rect(x_offset + (BOARD_OFFSET[0] - text_size[0]) // 2,
                                     i * CELL_SIZE[1] + CELL_SIZE[1] // 2 - text_size[1] // 2,
                                     BOARD_OFFSET[0], CELL_SIZE[1])
         mainScreen.blit(text, text_location)
-    for i in range(0, engine.DIMENSION[0]):
-        text = font.render(alpha_identifiers[i], True, COLORS[6])
+    for i in range(engine.DIMENSION[0]):
+        text = font.render(gameState.alpha_identifiers[i], True, COLORS[6])
         text_size = (text.get_width(), text.get_height())
         text_location = pygame.Rect(i * CELL_SIZE[0] + CELL_SIZE[0] // 2 - text_size[0] // 2,
                                     y_offset, BOARD_OFFSET[0], CELL_SIZE[1])
