@@ -132,7 +132,7 @@ class Pawn(Piece):
             x, y = self.cell_col + option_a[0], self.cell_row + option_a[1]
             if not ((0 <= x < board.shape[1]) and (
                     0 <= y < board.shape[0])):
-                break
+                continue
             if board[y, x] != 0:
                 if super().isEnemy(x, y, board):
                     options_attack.append((x, y))
