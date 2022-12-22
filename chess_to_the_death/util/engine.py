@@ -181,9 +181,14 @@ class GameState:
             else:
                 self.black_casualties.append(attacked_piece)
         else:
-            self.printAction(piece.cell_col, piece.cell_row, to_col, to_row, 'attackes')
+            self.printAction(piece.cell_col, piece.cell_row, to_col, to_row, 'attacks')
         return True
 
+    def action(self, piece: Piece, to_col: int, to_row: int, options_move: list, options_attack: list) -> bool:
+        moves = self.move(piece, to_col, to_row, options_move)
+        attacks = self.attack(piece, to_col, to_row, options_attack)
+        return moves or attacks
+    
     def playerWon(self) -> str:
         """
         Checks if a player has won, by successfully defeating the

@@ -308,8 +308,7 @@ def mainGUI(argParam: Namespace):
                         holder.selectedCell = piece
                         holder.options_move, holder.options_attack = gameState.getOptions(piece)
                 else:
-                    if (gameState.move(holder.selectedCell, col, row, holder.options_move)) or (
-                            gameState.attack(holder.selectedCell, col, row, holder.options_attack)):
+                    if gameState.action(holder.selectedCell, col, row, holder.options_move, holder.options_attack):
                         holder.options_move, holder.options_attack = [], []
                         if gameState.promotePawnOption(holder.selectedCell):
                             print("Choose Pawn Promotion...")
