@@ -125,7 +125,7 @@ class Pawn(Piece):
     def getOptions(self, board, flip):
         options_move, options_attack = [], []
         options_m, options_a = [(0, -1), (0, -2)], [(-1, -1), (1, -1)]
-        if not flip:
+        if flip:
             options_a = [(-x, -y) for x,y in options_a]
             options_m = [(-x, -y) for x,y in options_m]
         for option_a in options_a:

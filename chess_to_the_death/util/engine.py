@@ -200,7 +200,7 @@ class GameState:
         self.writeActionLog(piece.cell_col, piece.cell_row, to_col, to_row)
         attacked_piece = self.getPiece(to_col, to_row)
         if enPassant:
-            attacked_piece = self.getPiece(to_col, to_row+1)
+            attacked_piece = self.getPiece(to_col, to_row - (1 if self.flippedAction() else -1))
         attacked_piece.health -= piece.damage
         if attacked_piece.health <= 0:
             self.printAction(-1, 'takes')
@@ -240,7 +240,7 @@ class GameState:
         """
         if not piece:
             return ([], [])
-        options_move, options_attack = piece.getOptions(self.board, self.flip_board or self.player_turn)
+        options_move, options_attack = piece.getOptions(self.board, self.flippedAction())
         options_attack.extend(self.getEnPassantOptions(piece))
         castleOptions = self.getCastleOptions(piece)
         for castleOption, _, _ in castleOptions:
@@ -300,8 +300,16 @@ class GameState:
             # enemy pawn at correct position
             if (to_col, to_row) == (piece.cell_col-1, piece.cell_row) or \
                 (to_col, to_row) == (piece.cell_col+1, piece.cell_row):
-                options.append((to_col, to_row-1))
+                options.append((to_col, to_row + (1 if self.flippedAction() else -1)))
         return options
+
+    def flippedAction(self) -> bool:
+        """
+        Some actions are upside down if the current player is black
+        and the board is not flipped.
+        e.g.: Pawn moves/attacks + enPassant
+        """
+        return not (self.flip_board or self.player_turn)
 
     def isBoardFlipped(self) -> bool:
         return self.board_flipped
