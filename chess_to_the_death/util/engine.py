@@ -23,6 +23,7 @@ class GameState:
     flip_board = True
     board: np.ndarray = None
     white_casualties, black_casualties = [], []
+    action_log = []
     alpha_identifiers = list(map(chr, range(65, 65+DIMENSION[0])))
     numbers_identifiers = list(map(str, range(DIMENSION[1], 0, -1)))
 
@@ -71,13 +72,29 @@ class GameState:
         
         print(self.__repr__())
 
+    def getActionRepr(self, from_col: int, from_row: int, to_col: int, to_row: int) -> str:
+        """
+        Take the column and row of start- and target position of any action.
+        Returns a String representation of said action. e.g.:(C1-G5)
+        """
+        fromRepr = self.alpha_identifiers[from_col] + self.numbers_identifiers[from_row]
+        toRepr = self.alpha_identifiers[to_col] + self.numbers_identifiers[to_row]
+        return fromRepr + '-' + toRepr
+    
     def printAction(self, from_col: int, from_row: int, to_col: int, to_row: int, action: str) -> None:
+        """
+        Print the last action taken colored to the console.
+        """
         print("\x1b[32m", end='')
-        print(self.alpha_identifiers[from_col], self.numbers_identifiers[from_row], sep='', end='')
-        print('-', end='')
-        print(self.alpha_identifiers[to_col], self.numbers_identifiers[to_row], sep='', end=' ')
-        print(action)
+        print(self.getActionRepr(from_col, from_row, to_col, to_row), action, end=' ')
         print("\x1b[m", end='')
+
+    def writeActionLog(self, from_col: int, from_row: int, to_col: int, to_row: int) -> None:
+        """
+        Save the lat action taken to the action_log list. Usefull for later analysis, undo
+        functionality and possibly EnPassant attacks.
+        """
+        self.action_log.append(self.getActionRepr(from_col, from_row, to_col, to_row))
 
     def currentPlayer(self) -> str:
         """
@@ -147,6 +164,7 @@ class GameState:
             return False
         if not (to_col, to_row) in options_move:
             return False
+        self.writeActionLog(piece.cell_col, piece.cell_row, to_col, to_row)
         castleOptions = self.getCastleOptions(piece)
         for castleOption, rookPosition, rook in castleOptions:
             if castleOption == (to_col, to_row):
@@ -169,6 +187,7 @@ class GameState:
             return False
         if not (to_col, to_row) in options_attack:
             return False
+        self.writeActionLog(piece.cell_col, piece.cell_row, to_col, to_row)
         attacked_piece = self.getPiece(to_col, to_row)
         attacked_piece.health -= piece.damage
         if attacked_piece.health <= 0:
