@@ -4,7 +4,7 @@ from chess_to_the_death.util.loader import loadImage
 class Piece:
     image = None
     firstMove = True
-
+    
     def __init__(self, name, cell_col, cell_row, player, image_size=None):
         self._name = name
         self.cell_col = cell_col
@@ -36,7 +36,7 @@ class Piece:
         and valid attack-moves.
         """
         return ([], [])
-
+    
     def __repr__(self) -> str:
         return self._player + self._name + " (" + hex(id(self)) + ")"
 
@@ -122,7 +122,7 @@ class Pawn(Piece):
         self.maxHealth = self.health = 120
         self.damage = 120
 
-    def getOptions(self, board, flip=True):
+    def getOptions(self, board, flip):
         options_move, options_attack = [], []
         options_m, options_a = [(0, -1), (0, -2)], [(-1, -1), (1, -1)]
         if not flip:

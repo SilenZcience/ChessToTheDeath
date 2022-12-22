@@ -72,29 +72,38 @@ class GameState:
         
         print(self.__repr__())
 
-    def getActionRepr(self, from_col: int, from_row: int, to_col: int, to_row: int) -> str:
+    def translateActionRepr(self, actionRepr: tuple) -> tuple:
         """
-        Take the column and row of start- and target position of any action.
-        Returns a String representation of said action. e.g.:(C1-G5)
+        Takes an action-representation tuple and reverts it to row and column
+        numbers.
+        Returns a tuple with original starting and target position.
+        Depends on current board flip!
         """
-        fromRepr = self.alpha_identifiers[from_col] + self.numbers_identifiers[from_row]
-        toRepr = self.alpha_identifiers[to_col] + self.numbers_identifiers[to_row]
-        return fromRepr + '-' + toRepr
+        from_col = self.alpha_identifiers.index(actionRepr[0])
+        from_row = self.numbers_identifiers.index(actionRepr[1])
+        to_col = self.alpha_identifiers.index(actionRepr[3])
+        to_row = self.numbers_identifiers.index(actionRepr[4])
+        
+        return (from_col, from_row, to_col, to_row)
     
-    def printAction(self, from_col: int, from_row: int, to_col: int, to_row: int, action: str) -> None:
+    def printAction(self, actionLogIndex: int = -1, action: str = '', color: str = '32') -> None:
         """
-        Print the last action taken colored to the console.
+        Print the last action taken ANSI-colored to the console.
         """
-        print("\x1b[32m", end='')
-        print(self.getActionRepr(from_col, from_row, to_col, to_row), action, end=' ')
-        print("\x1b[m", end='')
+        print("\x1b[" + color + "m", end='')
+        print(''.join(self.action_log[actionLogIndex]), action, end=' ')
+        print("\x1b[m")
 
     def writeActionLog(self, from_col: int, from_row: int, to_col: int, to_row: int) -> None:
         """
-        Save the lat action taken to the action_log list. Usefull for later analysis, undo
-        functionality and possibly EnPassant attacks.
+        Take the column and row of start- and target position of any action.
+        Creates a tuple representation of said action. e.g.:(C1-G5)
+        Save the action taken to the action_log list. Usefull for later analysis, undo
+        functionality and EnPassant attacks.
         """
-        self.action_log.append(self.getActionRepr(from_col, from_row, to_col, to_row))
+        actionRepr = (self.alpha_identifiers[from_col], self.numbers_identifiers[from_row], \
+            '-', self.alpha_identifiers[to_col], self.numbers_identifiers[to_row])
+        self.action_log.append(actionRepr)
 
     def currentPlayer(self) -> str:
         """
@@ -169,10 +178,10 @@ class GameState:
         for castleOption, rookPosition, rook in castleOptions:
             if castleOption == (to_col, to_row):
                 rook.move(rookPosition[0], rookPosition[1])
-                self.printAction(piece.cell_col, piece.cell_row, to_col, to_row, 'castles')
+                self.printAction(-1, 'castles')
                 break
         else:
-            self.printAction(piece.cell_col, piece.cell_row, to_col, to_row, 'moves')
+            self.printAction(-1, 'moves')
 
         piece.move(to_col, to_row)
         return True
@@ -183,16 +192,19 @@ class GameState:
             if it is a valid attack. 
             Returns True if the attack is valid and has been taken.
         """
-        if self.isEmptyCell(to_col, to_row):
+        enPassant = (self.getEnPassantOptions(piece) == [(to_col, to_row)])
+        if self.isEmptyCell(to_col, to_row) and not enPassant:
             return False
         if not (to_col, to_row) in options_attack:
             return False
         self.writeActionLog(piece.cell_col, piece.cell_row, to_col, to_row)
         attacked_piece = self.getPiece(to_col, to_row)
+        if enPassant:
+            attacked_piece = self.getPiece(to_col, to_row+1)
         attacked_piece.health -= piece.damage
         if attacked_piece.health <= 0:
-            self.printAction(piece.cell_col, piece.cell_row, to_col, to_row, 'takes')
-            piece.move(attacked_piece.cell_col, attacked_piece.cell_row)
+            self.printAction(-1, 'takes')
+            piece.move(to_col, to_row)
             self.pieces.remove(attacked_piece)
             print("Dead:", attacked_piece)
             if attacked_piece._player == Player.PLAYER_W:
@@ -200,7 +212,7 @@ class GameState:
             else:
                 self.black_casualties.append(attacked_piece)
         else:
-            self.printAction(piece.cell_col, piece.cell_row, to_col, to_row, 'attacks')
+            self.printAction(-1, 'attacks')
         return True
 
     def action(self, piece: Piece, to_col: int, to_row: int, options_move: list, options_attack: list) -> bool:
@@ -229,6 +241,7 @@ class GameState:
         if not piece:
             return ([], [])
         options_move, options_attack = piece.getOptions(self.board, self.flip_board or self.player_turn)
+        options_attack.extend(self.getEnPassantOptions(piece))
         castleOptions = self.getCastleOptions(piece)
         for castleOption, _, _ in castleOptions:
             options_move.append(castleOption)
@@ -244,25 +257,50 @@ class GameState:
         the target-position for the rook, aswell as the rook itself.
         """
         options = []
+        # current piece must be king
         if piece._name != 'k' or not piece.firstMove:
             return options
-        print(self.board[piece.cell_row])
-        print(self.board[piece.cell_row, :piece.cell_col+1])
-        print(self.board[piece.cell_row, piece.cell_col:])
+        # left castle demands rook at left-most position
         if abs(self.board[piece.cell_row, 0]) == pieceTranslateDic['r']:
             rook = self.getPiece(0, piece.cell_row)
+            # rook must never have moved
             if (rook.firstMove) and (
                 (np.array_equal(self.board[piece.cell_row, :piece.cell_col+1], [4, 0, 0, 0, 6])) or (  # white left
                 np.array_equal(self.board[piece.cell_row, :piece.cell_col+1], [-4, 0, 0, 0, -6])) or ( # black left (noflip)
                 np.array_equal(self.board[piece.cell_row, :piece.cell_col+1], [-4, 0, 0, -6]))):       # black left (flip)
                 options.append(((piece.cell_col-2, piece.cell_row), (piece.cell_col-1, piece.cell_row), rook))
+        # right castle demands rook at right-most position
         if abs(self.board[piece.cell_row, DIMENSION[1]-1]) == pieceTranslateDic['r']:
             rook = self.getPiece(DIMENSION[1]-1, piece.cell_row)
+            # rook must never have moved
             if (rook.firstMove) and (
                 (np.array_equal(self.board[piece.cell_row, piece.cell_col:], [6, 0, 0, 4])) or (  # white right
                 np.array_equal(self.board[piece.cell_row, piece.cell_col:], [-6, 0, 0, -4])) or ( # black right (noflip)
                 np.array_equal(self.board[piece.cell_row, piece.cell_col:], [-6, 0, 0, 0, -4]))): # black right (flip)
                 options.append(((piece.cell_col+2, piece.cell_row), (piece.cell_col+1, piece.cell_row), rook))
+        return options
+
+    def getEnPassantOptions(self, piece: Piece) -> list:
+        """
+        Takes a 'piece' and checks if it has the option to
+        en Passant attack.
+        If so the function returns a list containing the position-
+        tuple (x, y) representing the target cell.
+        """
+        options = []
+        # current piece must be Pawn
+        if not self.action_log or piece._name != 'p':
+            return options 
+        from_col, from_row, to_col, to_row = self.translateActionRepr(self.action_log[-1])
+        # last move must be 2-square move forward
+        if abs(from_row - to_row) != 2 or (from_col - to_col) != 0:
+            return options 
+        # last Piece must be enemy Pawn
+        if self.board[piece.cell_row, piece.cell_col] == -self.board[to_row, to_col]:
+            # enemy pawn at correct position
+            if (to_col, to_row) == (piece.cell_col-1, piece.cell_row) or \
+                (to_col, to_row) == (piece.cell_col+1, piece.cell_row):
+                options.append((to_col, to_row-1))
         return options
 
     def isBoardFlipped(self) -> bool:

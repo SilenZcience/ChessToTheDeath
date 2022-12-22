@@ -299,7 +299,9 @@ def mainGUI(argParam: Namespace):
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
-                print("Log:\n", gameState.action_log)
+                print("Log:")
+                for i in range(len(gameState.action_log)):
+                    gameState.printAction(i, '', '33')
             if event.type == pygame.MOUSEBUTTONDOWN and not holder.winner:
                 col, row = getMouseCell()
                 piece = gameState.getPiece(col, row)
