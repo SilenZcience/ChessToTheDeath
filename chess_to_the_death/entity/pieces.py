@@ -154,17 +154,13 @@ class Queen(Piece):
         self.damage = 60
 
     def getOptions(self, board, _=True):
-        options_move, options_attack = [], []
-        m, a = Bishop('b', self.cell_col, self.cell_row,
-                      self._player, None).getOptions(board)
-        options_move += m
-        options_attack += a
-        m, a = Rook('r', self.cell_col, self.cell_row,
+        return tuple([a+b for a,b in \
+            list(zip(
+                Bishop('b', self.cell_col, self.cell_row,
+                      self._player, None).getOptions(board),
+                Rook('r', self.cell_col, self.cell_row,
                     self._player, None).getOptions(board)
-        options_move += m
-        options_attack += a
-
-        return (options_move, options_attack)
+            ))])
 
 
 class King(Piece):
