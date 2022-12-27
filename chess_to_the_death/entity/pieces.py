@@ -26,8 +26,7 @@ class Piece:
         Checks whether a piece on the numpy-array board
         on the coordinates x,y is an enemy or not.
         """
-        return (self._player == 'white' and board[y, x] < 0) or (
-            self._player == 'black' and board[y, x] > 0)
+        return ((board[y, x] * board[self.cell_row, self.cell_col]) < 0)
 
     def getOptions(self, board, flip=True) -> tuple:
         """
