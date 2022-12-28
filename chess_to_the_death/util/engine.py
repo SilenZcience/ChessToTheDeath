@@ -17,6 +17,22 @@ flipDic = bothWayDic({0: 7, 1: 6, 2: 5, 3: 4})
 pieceTranslateDic = bothWayDic({'p': 1, 'b': 2, 'n': 3, 'r': 4, 'q': 5, 'k': 6})
 
 
+def createPiece(name: str, col: int, row: int, player: str, image_size):
+    if name == 'p':
+        return Pawn(  name, col, row, player, image_size)
+    if name == 'b':
+        return Bishop(name, col, row, player, image_size)
+    if name == 'n':
+        return Knight(name, col, row, player, image_size)
+    if name == 'r':
+        return Rook(  name, col, row, player, image_size)
+    if name == 'q':
+        return Queen( name, col, row, player, image_size)
+    if name == 'k':
+        return King(  name, col, row, player, image_size)
+    return None
+
+
 class GameState:
     player_turn = True # True -> 'white', False -> 'black'
     board_flipped = False
@@ -29,46 +45,46 @@ class GameState:
     alpha_identifiers = list(map(chr, range(65, 65+DIMENSION[0])))
     numbers_identifiers = list(map(str, range(DIMENSION[1], 0, -1)))
 
-    def __init__(self, image_size, flip_board, default):
+    def __init__(self, image_size: tuple, flip_board: bool, default: bool):
         self.image_size = image_size
         self.flip_board = flip_board
         self.default = default
         
         white_pieces = []
-        white_pieces.append(Rook(  'r', 0, 7, Player.PLAYER_W, image_size))
-        white_pieces.append(Rook(  'r', 7, 7, Player.PLAYER_W, image_size))
-        white_pieces.append(Knight('n', 1, 7, Player.PLAYER_W, image_size))
-        white_pieces.append(Knight('n', 6, 7, Player.PLAYER_W, image_size))
-        white_pieces.append(Bishop('b', 2, 7, Player.PLAYER_W, image_size))
-        white_pieces.append(Bishop('b', 5, 7, Player.PLAYER_W, image_size))
-        white_pieces.append(Queen( 'q', 3, 7, Player.PLAYER_W, image_size))
-        self.king_pieces[1] = King(  'k', 4, 7, Player.PLAYER_W, image_size)
-        white_pieces.append(Pawn(  'p', 0, 6, Player.PLAYER_W, image_size))
-        white_pieces.append(Pawn(  'p', 1, 6, Player.PLAYER_W, image_size))
-        white_pieces.append(Pawn(  'p', 2, 6, Player.PLAYER_W, image_size))
-        white_pieces.append(Pawn(  'p', 3, 6, Player.PLAYER_W, image_size))
-        white_pieces.append(Pawn(  'p', 4, 6, Player.PLAYER_W, image_size))
-        white_pieces.append(Pawn(  'p', 5, 6, Player.PLAYER_W, image_size))
-        white_pieces.append(Pawn(  'p', 6, 6, Player.PLAYER_W, image_size))
-        white_pieces.append(Pawn(  'p', 7, 6, Player.PLAYER_W, image_size))
+        white_pieces.append(createPiece('r', 0, 7, Player.PLAYER_W, image_size))
+        white_pieces.append(createPiece('r', 7, 7, Player.PLAYER_W, image_size))
+        white_pieces.append(createPiece('n', 1, 7, Player.PLAYER_W, image_size))
+        white_pieces.append(createPiece('n', 6, 7, Player.PLAYER_W, image_size))
+        white_pieces.append(createPiece('b', 2, 7, Player.PLAYER_W, image_size))
+        white_pieces.append(createPiece('b', 5, 7, Player.PLAYER_W, image_size))
+        white_pieces.append(createPiece('q', 3, 7, Player.PLAYER_W, image_size))
+        self.king_pieces[1]=createPiece('k', 4, 7, Player.PLAYER_W, image_size)
+        white_pieces.append(createPiece('p', 0, 6, Player.PLAYER_W, image_size))
+        white_pieces.append(createPiece('p', 1, 6, Player.PLAYER_W, image_size))
+        white_pieces.append(createPiece('p', 2, 6, Player.PLAYER_W, image_size))
+        white_pieces.append(createPiece('p', 3, 6, Player.PLAYER_W, image_size))
+        white_pieces.append(createPiece('p', 4, 6, Player.PLAYER_W, image_size))
+        white_pieces.append(createPiece('p', 5, 6, Player.PLAYER_W, image_size))
+        white_pieces.append(createPiece('p', 6, 6, Player.PLAYER_W, image_size))
+        white_pieces.append(createPiece('p', 7, 6, Player.PLAYER_W, image_size))
 
         black_pieces = []
-        black_pieces.append(Rook(  'r', 0, 0, Player.PLAYER_B, image_size))
-        black_pieces.append(Rook(  'r', 7, 0, Player.PLAYER_B, image_size))
-        black_pieces.append(Knight('n', 1, 0, Player.PLAYER_B, image_size))
-        black_pieces.append(Knight('n', 6, 0, Player.PLAYER_B, image_size))
-        black_pieces.append(Bishop('b', 2, 0, Player.PLAYER_B, image_size))
-        black_pieces.append(Bishop('b', 5, 0, Player.PLAYER_B, image_size))
-        black_pieces.append(Queen( 'q', 3, 0, Player.PLAYER_B, image_size))
-        self.king_pieces[0] = King(  'k', 4, 0, Player.PLAYER_B, image_size)
-        black_pieces.append(Pawn(  'p', 0, 1, Player.PLAYER_B, image_size))
-        black_pieces.append(Pawn(  'p', 1, 1, Player.PLAYER_B, image_size))
-        black_pieces.append(Pawn(  'p', 2, 1, Player.PLAYER_B, image_size))
-        black_pieces.append(Pawn(  'p', 3, 1, Player.PLAYER_B, image_size))
-        black_pieces.append(Pawn(  'p', 4, 1, Player.PLAYER_B, image_size))
-        black_pieces.append(Pawn(  'p', 5, 1, Player.PLAYER_B, image_size))
-        black_pieces.append(Pawn(  'p', 6, 1, Player.PLAYER_B, image_size))
-        black_pieces.append(Pawn(  'p', 7, 1, Player.PLAYER_B, image_size))
+        black_pieces.append(createPiece('r', 0, 0, Player.PLAYER_B, image_size))
+        black_pieces.append(createPiece('r', 7, 0, Player.PLAYER_B, image_size))
+        black_pieces.append(createPiece('n', 1, 0, Player.PLAYER_B, image_size))
+        black_pieces.append(createPiece('n', 6, 0, Player.PLAYER_B, image_size))
+        black_pieces.append(createPiece('b', 2, 0, Player.PLAYER_B, image_size))
+        black_pieces.append(createPiece('b', 5, 0, Player.PLAYER_B, image_size))
+        black_pieces.append(createPiece('q', 3, 0, Player.PLAYER_B, image_size))
+        self.king_pieces[0]=createPiece('k', 4, 0, Player.PLAYER_B, image_size)
+        black_pieces.append(createPiece('p', 0, 1, Player.PLAYER_B, image_size))
+        black_pieces.append(createPiece('p', 1, 1, Player.PLAYER_B, image_size))
+        black_pieces.append(createPiece('p', 2, 1, Player.PLAYER_B, image_size))
+        black_pieces.append(createPiece('p', 3, 1, Player.PLAYER_B, image_size))
+        black_pieces.append(createPiece('p', 4, 1, Player.PLAYER_B, image_size))
+        black_pieces.append(createPiece('p', 5, 1, Player.PLAYER_B, image_size))
+        black_pieces.append(createPiece('p', 6, 1, Player.PLAYER_B, image_size))
+        black_pieces.append(createPiece('p', 7, 1, Player.PLAYER_B, image_size))
 
         self.pieces: list[Piece] = white_pieces + black_pieces + self.king_pieces
         if self.default:
@@ -156,18 +172,7 @@ class GameState:
         (e.g. promotePiece(Pawn(...), 'q') replaces the Pawn with a new Queen)
         This should only happen to Pawn-pieces, checks havee to be made beforehand.
         """
-        if newPieceName == 'r':
-            promotedPiece = Rook(
-                'r', piece.cell_col, piece.cell_row, piece._player, self.image_size)
-        elif newPieceName == 'n':
-            promotedPiece = Knight(
-                'n', piece.cell_col, piece.cell_row, piece._player, self.image_size)
-        elif newPieceName == 'b':
-            promotedPiece = Bishop(
-                'b', piece.cell_col, piece.cell_row, piece._player, self.image_size)
-        else:
-            promotedPiece = Queen(
-                'q', piece.cell_col, piece.cell_row, piece._player, self.image_size)
+        promotedPiece = createPiece(newPieceName, piece.cell_col, piece.cell_row, piece._player, self.image_size)
         if self.default:
             promotedPiece.maxHealth = promotedPiece.health = 1
             promotedPiece.damage = 1
@@ -246,13 +251,13 @@ class GameState:
         Checks if a player has won, by successfully defeating the
         enemy king.
         Returns 'white' or 'black' according to the team that won,
-        or returns an empty string no team has won yet.
+        or returns an empty string if no team has won yet.
         """
-        currentEnemyPlayer = Player.OPTIONS[not self.player_turn]
-        for piece in self.pieces:
-            if piece._player == currentEnemyPlayer and piece._name == 'k':
-                return ''
-        return self.currentPlayer()
+        # currentEnemyPlayer = Player.OPTIONS[not self.player_turn]
+        # for piece in self.pieces:
+        #     if piece._player == currentEnemyPlayer and piece._name == 'k':
+        #         return ''
+        return self.currentPlayer() if (self.king_pieces[not self.player_turn].health <= 0) else ''
 
     def checkPinnedOptions(self, piece: Piece, options_move: list, options_attack: list) -> tuple:
         backup_values = (piece.cell_col, piece.cell_row, self.board[piece.cell_row, piece.cell_col])

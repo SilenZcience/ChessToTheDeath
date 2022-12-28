@@ -5,7 +5,7 @@ class Piece:
     image = None
     firstMove = True
     
-    def __init__(self, name, cell_col, cell_row, player, image_size=None):
+    def __init__(self, name: str, cell_col: int, cell_row: int, player: str, image_size: tuple = None):
         self._name = name
         self.cell_col = cell_col
         self.cell_row = cell_row
@@ -28,7 +28,7 @@ class Piece:
         """
         return ((board[y, x] * board[self.cell_row, self.cell_col]) < 0)
 
-    def getOptions(self, board, flip=True) -> tuple:
+    def getOptions(self, board, flip: bool = True) -> tuple:
         """
         Takes a numpy-array board and returns a tuple containing
         two lists. The lists contain tuples of valid movement-moves
