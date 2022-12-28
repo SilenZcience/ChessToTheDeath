@@ -292,10 +292,12 @@ def mainGUI(argParam: Namespace):
     holder.attack_icon = loadImage("damage", (20, 20))
     drawIdentifiers(mainScreen, gameState)
     
+    renderGame(mainScreen, gameState, holder)
     running = True
     while running:
-        renderGame(mainScreen, gameState, holder)
-        
+        if HIGHLIGHT_CELLS:
+            renderGame(mainScreen, gameState, holder)
+        pygame.time.delay(25) # relieve the CPU a bit ...
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
@@ -331,9 +333,12 @@ def mainGUI(argParam: Namespace):
                             piece = None
                         holder.selectedCell = piece
                         holder.options_move, holder.options_attack = gameState.getOptions(piece)
+                renderGame(mainScreen, gameState, holder)
             if event.type == pygame.KEYDOWN and holder.winner:
                 if pygame.key.name(event.key) == 'r':
                     print("Restarting...")
                     gameState = newGame(holder)
+                    renderGame(mainScreen, gameState, holder)
+                    
 
     print("GoodBye!")
