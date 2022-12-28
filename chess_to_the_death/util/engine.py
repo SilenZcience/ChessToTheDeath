@@ -36,6 +36,7 @@ def createPiece(name: str, col: int, row: int, player: str, image_size):
 class GameState:
     player_turn = True # True -> 'white', False -> 'black'
     board_flipped = False
+    checkmate_check = False
     flip_board = True
     default = False
     board: np.ndarray = None
@@ -85,7 +86,7 @@ class GameState:
         black_pieces.append(createPiece('p', 5, 1, Player.PLAYER_B, image_size))
         black_pieces.append(createPiece('p', 6, 1, Player.PLAYER_B, image_size))
         black_pieces.append(createPiece('p', 7, 1, Player.PLAYER_B, image_size))
-
+        
         self.pieces: list[Piece] = white_pieces + black_pieces + self.king_pieces
         if self.default:
             for piece in self.pieces:
@@ -161,7 +162,7 @@ class GameState:
             if piece._player == self.currentPlayer():
                 continue
             options_move, options_attack = piece.getOptions(self.board, not self.flippedAction())
-            if cellTuple in options_move + options_attack:
+            if cellTuple in (options_move + options_attack):
                 return True
         return False
 
@@ -246,6 +247,31 @@ class GameState:
         attacks = self.attack(piece, to_col, to_row, options_attack)
         return moves or attacks
     
+    def playerWonDefault(self) -> str:
+        """
+        Check for default Checkmate.
+        """
+        self.checkmate_check = True
+        self.player_turn = not self.player_turn
+        enemyKing = self.king_pieces[self.player_turn]
+        if self.isCellAttacked(enemyKing.cell_col, enemyKing.cell_row):
+            options_move, options_attack = self.checkPinnedOptions(enemyKing, *enemyKing.getOptions(self.board))
+            if not (options_move + options_attack):
+                for piece in self.pieces:
+                    if not piece._player == self.currentPlayer():
+                        continue
+                    options_move, options_attack = self.checkPinnedOptions(piece, *piece.getOptions(self.board, self.flippedAction()))
+                    if (options_move + options_attack):
+                        break
+                else:
+                    self.player_turn = not self.player_turn
+                    self.checkmate_check = False
+                    return self.currentPlayer()
+        
+        self.player_turn = not self.player_turn
+        self.checkmate_check = False
+        return ''
+    
     def playerWon(self) -> str:
         """
         Checks if a player has won, by successfully defeating the
@@ -253,10 +279,8 @@ class GameState:
         Returns 'white' or 'black' according to the team that won,
         or returns an empty string if no team has won yet.
         """
-        # currentEnemyPlayer = Player.OPTIONS[not self.player_turn]
-        # for piece in self.pieces:
-        #     if piece._player == currentEnemyPlayer and piece._name == 'k':
-        #         return ''
+        if self.default:
+            return self.playerWonDefault()
         return self.currentPlayer() if (self.king_pieces[not self.player_turn].health <= 0) else ''
 
     def checkPinnedOptions(self, piece: Piece, options_move: list, options_attack: list) -> tuple:
@@ -374,9 +398,30 @@ class GameState:
         """
         Some actions are upside down if the current player is black
         and the board is not flipped.
-        e.g.: Pawn moves/attacks + enPassant
+        e.g.: Pawn moves/attacks + enPassant + checkmate checking
         """
-        return not (self.flip_board or self.player_turn)
+        # a = player_turn (1 = white, 0 = black)
+        # b = flip_board (should generally be flipped)
+        # c = board_flipped (is currently flipped)
+        # a b c :
+        # 0 1 1 0
+        # 1 1 0 0
+        # 1 0 0 0
+        # 0 0 0 1 -> needed for Pawn movement
+        # 0 0 0 1
+        # 0 1 0 1
+        # 1 0 0 0
+        # 1 1 1 1 -> needed for checkmate-check
+        # Results in Table:
+        # 0 0 0 1
+        # 0 0 1 -
+        # 0 1 0 1
+        # 0 1 1 0
+        # 1 0 0 0
+        # 1 0 1 -
+        # 1 1 0 0
+        # 1 1 1 1
+        return ((not self.board_flipped and not self.player_turn) or (self.board_flipped and self.player_turn))
 
     def isBoardFlipped(self) -> bool:
         return self.board_flipped

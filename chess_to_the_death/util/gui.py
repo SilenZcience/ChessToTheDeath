@@ -325,9 +325,9 @@ def mainGUI(argParam: Namespace):
                             print("Pawn promoted!")
                         if running:
                             holder.selectedCell = None
+                            gameState.createBoard()
                             holder.winner = gameState.playerWon()
                             if not holder.winner:
-                                gameState.createBoard()
                                 renderGame(mainScreen, gameState, holder)
                                 pygame.time.delay(250)
                                 gameState.nextTurn()
