@@ -1,7 +1,7 @@
 import numpy as np
 from chess_to_the_death.entity.pieces import *
 from chess_to_the_death.entity.player import Player
-
+from chess_to_the_death.util.action import Action, ActionLog
 
 def bothWayDic(dic: dict) -> dict:
     """
@@ -36,13 +36,13 @@ def createPiece(name: str, col: int, row: int, player: str, image_size):
 class GameState:
     player_turn = True # True -> 'white', False -> 'black'
     board_flipped = False
-    checkmate_check = False
     flip_board = True
     default = False
     board: np.ndarray = None
     white_casualties, black_casualties = [], []
+    white_pieces, black_pieces = [], []
     king_pieces = [None, None]
-    action_log = []
+    action_log: ActionLog = ActionLog()
     alpha_identifiers = list(map(chr, range(65, 65+DIMENSION[0])))
     numbers_identifiers = list(map(str, range(DIMENSION[1], 0, -1)))
 
@@ -52,41 +52,59 @@ class GameState:
         self.default = default
         
         white_pieces = []
-        white_pieces.append(createPiece('r', 0, 7, Player.PLAYER_W, image_size))
-        white_pieces.append(createPiece('r', 7, 7, Player.PLAYER_W, image_size))
-        white_pieces.append(createPiece('n', 1, 7, Player.PLAYER_W, image_size))
-        white_pieces.append(createPiece('n', 6, 7, Player.PLAYER_W, image_size))
-        white_pieces.append(createPiece('b', 2, 7, Player.PLAYER_W, image_size))
-        white_pieces.append(createPiece('b', 5, 7, Player.PLAYER_W, image_size))
-        white_pieces.append(createPiece('q', 3, 7, Player.PLAYER_W, image_size))
-        self.king_pieces[1]=createPiece('k', 4, 7, Player.PLAYER_W, image_size)
-        white_pieces.append(createPiece('p', 0, 6, Player.PLAYER_W, image_size))
-        white_pieces.append(createPiece('p', 1, 6, Player.PLAYER_W, image_size))
-        white_pieces.append(createPiece('p', 2, 6, Player.PLAYER_W, image_size))
-        white_pieces.append(createPiece('p', 3, 6, Player.PLAYER_W, image_size))
-        white_pieces.append(createPiece('p', 4, 6, Player.PLAYER_W, image_size))
-        white_pieces.append(createPiece('p', 5, 6, Player.PLAYER_W, image_size))
-        white_pieces.append(createPiece('p', 6, 6, Player.PLAYER_W, image_size))
-        white_pieces.append(createPiece('p', 7, 6, Player.PLAYER_W, image_size))
-
-        black_pieces = []
-        black_pieces.append(createPiece('r', 0, 0, Player.PLAYER_B, image_size))
-        black_pieces.append(createPiece('r', 7, 0, Player.PLAYER_B, image_size))
-        black_pieces.append(createPiece('n', 1, 0, Player.PLAYER_B, image_size))
-        black_pieces.append(createPiece('n', 6, 0, Player.PLAYER_B, image_size))
-        black_pieces.append(createPiece('b', 2, 0, Player.PLAYER_B, image_size))
-        black_pieces.append(createPiece('b', 5, 0, Player.PLAYER_B, image_size))
-        black_pieces.append(createPiece('q', 3, 0, Player.PLAYER_B, image_size))
-        self.king_pieces[0]=createPiece('k', 4, 0, Player.PLAYER_B, image_size)
-        black_pieces.append(createPiece('p', 0, 1, Player.PLAYER_B, image_size))
-        black_pieces.append(createPiece('p', 1, 1, Player.PLAYER_B, image_size))
-        black_pieces.append(createPiece('p', 2, 1, Player.PLAYER_B, image_size))
-        black_pieces.append(createPiece('p', 3, 1, Player.PLAYER_B, image_size))
-        black_pieces.append(createPiece('p', 4, 1, Player.PLAYER_B, image_size))
-        black_pieces.append(createPiece('p', 5, 1, Player.PLAYER_B, image_size))
-        black_pieces.append(createPiece('p', 6, 1, Player.PLAYER_B, image_size))
-        black_pieces.append(createPiece('p', 7, 1, Player.PLAYER_B, image_size))
+        # white_pieces.append(createPiece('r', 0, 7, Player.PLAYER_W, image_size))
+        # white_pieces.append(createPiece('r', 7, 7, Player.PLAYER_W, image_size))
+        # white_pieces.append(createPiece('n', 1, 7, Player.PLAYER_W, image_size))
+        # white_pieces.append(createPiece('n', 6, 7, Player.PLAYER_W, image_size))
+        # white_pieces.append(createPiece('b', 2, 7, Player.PLAYER_W, image_size))
+        # white_pieces.append(createPiece('b', 5, 7, Player.PLAYER_W, image_size))
+        # white_pieces.append(createPiece('q', 3, 7, Player.PLAYER_W, image_size))
+        # self.king_pieces[1]=createPiece('k', 4, 7, Player.PLAYER_W, image_size)
+        # white_pieces.append(createPiece('p', 0, 6, Player.PLAYER_W, image_size))
+        # white_pieces.append(createPiece('p', 1, 6, Player.PLAYER_W, image_size))
+        # white_pieces.append(createPiece('p', 2, 6, Player.PLAYER_W, image_size))
+        # white_pieces.append(createPiece('p', 3, 6, Player.PLAYER_W, image_size))
+        # white_pieces.append(createPiece('p', 4, 6, Player.PLAYER_W, image_size))
+        # white_pieces.append(createPiece('p', 5, 6, Player.PLAYER_W, image_size))
+        # white_pieces.append(createPiece('p', 6, 6, Player.PLAYER_W, image_size))
+        # white_pieces.append(createPiece('p', 7, 6, Player.PLAYER_W, image_size))
         
+        black_pieces = []
+        # black_pieces.append(createPiece('r', 0, 0, Player.PLAYER_B, image_size))
+        # black_pieces.append(createPiece('r', 7, 0, Player.PLAYER_B, image_size))
+        # black_pieces.append(createPiece('n', 1, 0, Player.PLAYER_B, image_size))
+        # black_pieces.append(createPiece('n', 6, 0, Player.PLAYER_B, image_size))
+        # black_pieces.append(createPiece('b', 2, 0, Player.PLAYER_B, image_size))
+        # black_pieces.append(createPiece('b', 5, 0, Player.PLAYER_B, image_size))
+        # black_pieces.append(createPiece('q', 3, 0, Player.PLAYER_B, image_size))
+        # self.king_pieces[0]=createPiece('k', 4, 0, Player.PLAYER_B, image_size)
+        # black_pieces.append(createPiece('p', 0, 1, Player.PLAYER_B, image_size))
+        # black_pieces.append(createPiece('p', 1, 1, Player.PLAYER_B, image_size))
+        # black_pieces.append(createPiece('p', 2, 1, Player.PLAYER_B, image_size))
+        # black_pieces.append(createPiece('p', 3, 1, Player.PLAYER_B, image_size))
+        # black_pieces.append(createPiece('p', 4, 1, Player.PLAYER_B, image_size))
+        # black_pieces.append(createPiece('p', 5, 1, Player.PLAYER_B, image_size))
+        # black_pieces.append(createPiece('p', 6, 1, Player.PLAYER_B, image_size))
+        # black_pieces.append(createPiece('p', 7, 1, Player.PLAYER_B, image_size))
+        
+        
+        self.king_pieces[0]=createPiece('k', 4, 0, Player.PLAYER_B, image_size)
+        white_pieces.append(createPiece('p', 4, 1, Player.PLAYER_W, image_size))
+        white_pieces.append(createPiece('r', 3, 7, Player.PLAYER_W, image_size))
+        self.king_pieces[1]=createPiece('k', 4, 7, Player.PLAYER_W, image_size)
+        white_pieces.append(createPiece('b', 1, 4, Player.PLAYER_W, image_size))
+        black_pieces.append(createPiece('p', 5, 1, Player.PLAYER_B, image_size))
+        
+        # self.king_pieces[0]=createPiece('k', 4, 0, Player.PLAYER_B, image_size)
+        # self.king_pieces[1]=createPiece('k', 4, 7, Player.PLAYER_W, image_size)
+        # black_pieces.append(createPiece('p', 4, 6, Player.PLAYER_B, image_size))
+        # black_pieces.append(createPiece('b', 2, 4, Player.PLAYER_B, image_size))
+        # black_pieces.append(createPiece('r', 5, 0, Player.PLAYER_B, image_size))
+        # white_pieces.append(createPiece('p', 3, 6, Player.PLAYER_W, image_size))
+        # white_pieces.append(createPiece('p', 0, 5, Player.PLAYER_W, image_size))
+        
+        self.white_pieces = white_pieces
+        self.black_pieces = black_pieces
         self.pieces: list[Piece] = white_pieces + black_pieces + self.king_pieces
         if self.default:
             for piece in self.pieces:
@@ -97,38 +115,28 @@ class GameState:
         
         print(self.__repr__())
 
-    def translateActionRepr(self, actionRepr: tuple) -> tuple:
+    def translateActionRepr(self, actionRepr: Action) -> tuple:
         """
-        Takes an action-representation tuple and reverts it to row and column
+        Takes an action-object and reverts it to row and column
         numbers.
         Returns a tuple with original starting and target position.
         Depends on current board flip!
         """
-        from_col = self.alpha_identifiers.index(actionRepr[0])
-        from_row = self.numbers_identifiers.index(actionRepr[1])
-        to_col = self.alpha_identifiers.index(actionRepr[3])
-        to_row = self.numbers_identifiers.index(actionRepr[4])
+        from_col = self.alpha_identifiers.index(actionRepr.from_col)
+        from_row = self.numbers_identifiers.index(actionRepr.from_row)
+        to_col = self.alpha_identifiers.index(actionRepr.to_col)
+        to_row = self.numbers_identifiers.index(actionRepr.to_row)
         
         return (from_col, from_row, to_col, to_row)
-    
-    def printAction(self, actionLogIndex: int = -1, action: str = '', color: str = '32') -> None:
-        """
-        Print the last action taken ANSI-colored to the console.
-        """
-        print("\x1b[" + color + "m", end='')
-        print(''.join(self.action_log[actionLogIndex]), action, end=' ')
-        print("\x1b[m")
 
-    def writeActionLog(self, from_col: int, from_row: int, to_col: int, to_row: int) -> None:
+    def writeActionLog(self, from_col: int, from_row: int, to_col: int, to_row: int, action: str = '') -> None:
         """
         Take the column and row of start- and target position of any action.
-        Creates a tuple representation of said action. e.g.:(C1-G5)
-        Save the action taken to the action_log list. Usefull for later analysis, undo
-        functionality and EnPassant attacks.
+        Saves an action object of said action. e.g.:(C1-G5) to the action_log list.
+        Usefull for later analysis, undo functionality and EnPassant attacks.
         """
-        actionRepr = (self.alpha_identifiers[from_col], self.numbers_identifiers[from_row], \
-            '-', self.alpha_identifiers[to_col], self.numbers_identifiers[to_row])
-        self.action_log.append(actionRepr)
+        self.action_log.add(self.board, self.alpha_identifiers[from_col], self.numbers_identifiers[from_row],
+                self.alpha_identifiers[to_col], self.numbers_identifiers[to_row], action)
 
     def currentPlayer(self) -> str:
         """
@@ -178,7 +186,12 @@ class GameState:
             promotedPiece.maxHealth = promotedPiece.health = 1
             promotedPiece.damage = 1
         self.pieces.append(promotedPiece)
+        if promotedPiece._player == Player.PLAYER_W:
+            self.white_pieces.append(promotedPiece)
+        else:
+            self.black_pieces.append(promotedPiece)
         self.pieces.remove(piece)
+        self.createBoard()
 
     def promotePawnOption(self, piece: Piece) -> bool:
         """
@@ -190,87 +203,108 @@ class GameState:
                     (piece.cell_row == 0 or piece.cell_row == DIMENSION[1]-1)
         return promotable
 
-    def move(self, piece: Piece, to_col: int, to_row: int, options_move: list) -> bool:
+    def move(self, piece: Piece, to_col: int, to_row: int, options_move: list) -> str:
         """
             moves a 'piece' to the new coordinates 'to_col','to_row'
             if it is a valid move. Also checks for castling.
-            Returns True if the move is valid and has been taken.
+            Returns an action string describing the action performed.
         """
+        action = ''
         if not self.isEmptyCell(to_col, to_row):
-            return False
+            return action
         if not (to_col, to_row) in options_move:
-            return False
-        self.writeActionLog(piece.cell_col, piece.cell_row, to_col, to_row)
+            return action
+        action = 'moves'
         castleOptions = self.getCastleOptions(piece)
         for castleOption, rookPosition, rook in castleOptions:
             if castleOption == (to_col, to_row):
                 rook.move(rookPosition[0], rookPosition[1])
-                self.printAction(-1, 'castles')
+                action = 'castles'
                 break
-        else:
-            self.printAction(-1, 'moves')
 
         piece.move(to_col, to_row)
-        return True
+        return action
 
-    def attack(self, piece: Piece, to_col: int, to_row: int, options_attack: list) -> bool:
+    def attack(self, piece: Piece, to_col: int, to_row: int, options_attack: list) -> str:
         """
             'piece' attacks another piece at the coordinates 'to_col','to_row'
             if it is a valid attack. 
-            Returns True if the attack is valid and has been taken.
+            Returns an action string describing the action performed.
         """
+        action = ''
         enPassant = (self.getEnPassantOptions(piece) == [(to_col, to_row)])
         if self.isEmptyCell(to_col, to_row) and not enPassant:
-            return False
+            return action
         if not (to_col, to_row) in options_attack:
-            return False
-        self.writeActionLog(piece.cell_col, piece.cell_row, to_col, to_row)
+            return action
+        action = 'attacks'
         attacked_piece = self.getPiece(to_col, to_row)
         if enPassant:
             attacked_piece = self.getPiece(to_col, to_row - (1 if self.flippedAction() else -1))
         attacked_piece.health -= piece.damage
         if attacked_piece.health <= 0:
-            self.printAction(-1, 'takes')
+            action = 'takes'
             piece.move(to_col, to_row)
             self.pieces.remove(attacked_piece)
             print("Dead:", attacked_piece)
             if attacked_piece._player == Player.PLAYER_W:
+                self.white_pieces.remove(attacked_piece)
                 self.white_casualties.append(attacked_piece)
             else:
+                self.black_pieces.remove(attacked_piece)
                 self.black_casualties.append(attacked_piece)
-        else:
-            self.printAction(-1, 'attacks')
-        return True
+
+        return action
 
     def action(self, piece: Piece, to_col: int, to_row: int, options_move: list, options_attack: list) -> bool:
+        from_cell = (piece.cell_col, piece.cell_row)
         moves = self.move(piece, to_col, to_row, options_move)
         attacks = self.attack(piece, to_col, to_row, options_attack)
-        return moves or attacks
+        self.createBoard()
+        if moves or attacks:
+            self.writeActionLog(*from_cell, to_col, to_row, moves + attacks)
+            self.action_log.printAction(-1)
+            return True
+        return False
     
     def playerWonDefault(self) -> str:
         """
         Check for default Checkmate.
         """
-        self.checkmate_check = True
+        won = ''
         self.player_turn = not self.player_turn
         enemyKing = self.king_pieces[self.player_turn]
-        if self.isCellAttacked(enemyKing.cell_col, enemyKing.cell_row):
-            options_move, options_attack = self.checkPinnedOptions(enemyKing, *enemyKing.getOptions(self.board))
-            if not (options_move + options_attack):
-                for piece in self.pieces:
-                    if not piece._player == self.currentPlayer():
-                        continue
-                    options_move, options_attack = self.checkPinnedOptions(piece, *piece.getOptions(self.board, self.flippedAction()))
-                    if (options_move + options_attack):
-                        break
-                else:
-                    self.player_turn = not self.player_turn
-                    self.checkmate_check = False
-                    return self.currentPlayer()
+        options_move, options_attack = self.checkPinnedOptions(enemyKing, *enemyKing.getOptions(self.board))
+        if not (options_move + options_attack):
+            for piece in self.pieces:
+                if piece._player != self.currentPlayer():
+                    continue
+                options_move, options_attack = self.checkPinnedOptions(piece, *piece.getOptions(self.board, self.flippedAction()))
+                if (options_move + options_attack):
+                    break
+            else:
+                won = "STALEMATE!"
+                if self.isCellAttacked(enemyKing.cell_col, enemyKing.cell_row):
+                    won = (Player.OPTIONS[not self.player_turn] + " WON!")
+                
         
         self.player_turn = not self.player_turn
-        self.checkmate_check = False
-        return ''
+        return won
+    
+    def gameIsDraw(self):
+        #by repitition
+        # TODO: 
+            
+        #insufficient material
+        if len(self.white_pieces) > 1 or len(self.black_pieces) > 1:
+            return ''
+        if self.white_pieces:
+            if not self.white_pieces[0]._name in ['b', 'n']:
+                return ''
+        if self.black_pieces:
+            if not self.black_pieces[0]._name in ['b', 'n']:
+                return ''
+        return 'DRAW'
     
     def playerWon(self) -> str:
         """
@@ -280,8 +314,8 @@ class GameState:
         or returns an empty string if no team has won yet.
         """
         if self.default:
-            return self.playerWonDefault()
-        return self.currentPlayer() if (self.king_pieces[not self.player_turn].health <= 0) else ''
+            return self.playerWonDefault() + self.gameIsDraw()
+        return (self.currentPlayer() + " WON!") if (self.king_pieces[not self.player_turn].health <= 0) else ''
 
     def checkPinnedOptions(self, piece: Piece, options_move: list, options_attack: list) -> tuple:
         backup_values = (piece.cell_col, piece.cell_row, self.board[piece.cell_row, piece.cell_col])
@@ -380,9 +414,9 @@ class GameState:
         """
         options = []
         # current piece must be Pawn
-        if not self.action_log or piece._name != 'p':
+        if not self.action_log.actions or piece._name != 'p':
             return options 
-        from_col, from_row, to_col, to_row = self.translateActionRepr(self.action_log[-1])
+        from_col, from_row, to_col, to_row = self.translateActionRepr(self.action_log.get(-1))
         # last move must be 2-square move forward
         if abs(from_row - to_row) != 2 or (from_col - to_col) != 0:
             return options 
@@ -420,8 +454,8 @@ class GameState:
         # 1 0 0 0
         # 1 0 1 -
         # 1 1 0 0
-        # 1 1 1 1
-        return ((not self.board_flipped and not self.player_turn) or (self.board_flipped and self.player_turn))
+        # 1 1 1 1 -> ~a~c + ac -> a == c
+        return self.board_flipped == self.player_turn
 
     def isBoardFlipped(self) -> bool:
         return self.board_flipped
@@ -458,7 +492,7 @@ class GameState:
         self.board = np.zeros(DIMENSION)
         for piece in self.pieces:
             self.board[piece.cell_row, piece.cell_col] = pieceTranslateDic[piece._name] * (
-                1 if piece._player == "white" else -1
+                1 if piece._player == Player.PLAYER_W else -1
             )
 
     def nextTurn(self):

@@ -137,7 +137,7 @@ def drawWinner(mainScreen: pygame.Surface, winner: str) -> None:
     if not winner:
         return
     font = pygame.font.SysFont("Verdana", 64)
-    text = font.render(winner.upper() + " WON!", True, COLORS[6])
+    text = font.render(winner.upper(), True, COLORS[6])
     text_size = (text.get_width(), text.get_height())
     text_location = pygame.Rect(0, 0, *BOARD_SIZE).move(BOARD_SIZE[0] / 2 - text_size[0] / 2,
                                                         BOARD_SIZE[1] / 2 - text_size[1] / 2)
@@ -306,8 +306,7 @@ def mainGUI(argParam: Namespace):
             if event.type == pygame.QUIT:
                 running = False
                 print("Log:")
-                for i in range(len(gameState.action_log)):
-                    gameState.printAction(i, '', '33')
+                print(gameState.action_log)
             if event.type == pygame.MOUSEBUTTONDOWN and not holder.winner:
                 col, row = getMouseCell()
                 piece = gameState.getPiece(col, row)
@@ -325,7 +324,6 @@ def mainGUI(argParam: Namespace):
                             print("Pawn promoted!")
                         if running:
                             holder.selectedCell = None
-                            gameState.createBoard()
                             holder.winner = gameState.playerWon()
                             if not holder.winner:
                                 renderGame(mainScreen, gameState, holder)
