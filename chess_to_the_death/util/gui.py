@@ -20,6 +20,7 @@ IMG_SIZE = tuple([size - (2*IMAGE_OFFSET) for size in CELL_SIZE])
 MAX_FPS = 20
 HIGHLIGHT_CELLS = True
 FLIP_BOARD = True
+DEFAULT_MODE = False
 COLORS = [(230, 230, 230), #"#E6E6E6" -> WHITE / CELL + HOVER
           ( 32,  33,  36), #"#202124" -> DARK_GRAY / CELL + HOVER
           (255,   0,   0), #"#FF0000" -> RED / HEALTH
@@ -109,6 +110,8 @@ def drawPieces(mainScreen: pygame.Surface, gameState: engine.GameState, attack_i
                         pygame.Rect(piece.cell_col * CELL_SIZE[0] + IMAGE_OFFSET,
                                     piece.cell_row * CELL_SIZE[1] + IMAGE_OFFSET,
                                     *IMG_SIZE))
+        if DEFAULT_MODE:
+            continue
         mainScreen.blit(attack_icon, (piece.cell_col * CELL_SIZE[0], piece.cell_row * CELL_SIZE[1]))
         font = pygame.font.SysFont("Verdana", 16)
         mainScreen.blit(font.render(str(piece.damage), True, COLORS[6]),
@@ -251,7 +254,6 @@ def choosePromoteOptions(mainScreen: pygame.Surface, gameState: engine.GameState
                         row//2 == holder.selectedCell.cell_row):
                     col = col-(2*holder.selectedCell.cell_col)
                     row = row-(2*holder.selectedCell.cell_row)
-                    print(col, row)
                     gameState.promotePiece(holder.selectedCell, promoteOptions[row][col])
                     return True
         drawGame(mainScreen, gameState, holder)
@@ -266,7 +268,7 @@ def newGame(holder: Holder) -> engine.GameState:
     """
     holder.selectedCell, holder.winner = None, None
     holder.options_move, holder.options_attack = [], []
-    return engine.GameState(IMG_SIZE, FLIP_BOARD)
+    return engine.GameState(IMG_SIZE, FLIP_BOARD, DEFAULT_MODE)
 
 
 def workParams(argParam: Namespace) -> None:
@@ -276,6 +278,8 @@ def workParams(argParam: Namespace) -> None:
     HIGHLIGHT_CELLS = getattr(argParam, 'highlight')
     global FLIP_BOARD
     FLIP_BOARD = getattr(argParam, 'flip')
+    global DEFAULT_MODE
+    DEFAULT_MODE = getattr(argParam, 'default')
 
 
 def mainGUI(argParam: Namespace):

@@ -28,6 +28,8 @@ class ArgsHandler:
                             const=False, help="disable cell-highlighting on mouse hover")
         parser.add_argument("-noflip", action="store_const", default=True, dest="flip",
                             const=False, help="disable board flipping")
+        parser.add_argument("-default", action="store_const", default=False, dest="default",
+                            const=True, help="play the default chess variant.")
         
         self.params = parser.parse_args()
     

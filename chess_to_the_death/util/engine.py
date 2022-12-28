@@ -21,15 +21,18 @@ class GameState:
     player_turn = True # True -> 'white', False -> 'black'
     board_flipped = False
     flip_board = True
+    default = False
     board: np.ndarray = None
     white_casualties, black_casualties = [], []
+    king_pieces = [None, None]
     action_log = []
     alpha_identifiers = list(map(chr, range(65, 65+DIMENSION[0])))
     numbers_identifiers = list(map(str, range(DIMENSION[1], 0, -1)))
 
-    def __init__(self, image_size, flip_board):
+    def __init__(self, image_size, flip_board, default):
         self.image_size = image_size
         self.flip_board = flip_board
+        self.default = default
         
         white_pieces = []
         white_pieces.append(Rook(  'r', 0, 7, Player.PLAYER_W, image_size))
@@ -39,7 +42,7 @@ class GameState:
         white_pieces.append(Bishop('b', 2, 7, Player.PLAYER_W, image_size))
         white_pieces.append(Bishop('b', 5, 7, Player.PLAYER_W, image_size))
         white_pieces.append(Queen( 'q', 3, 7, Player.PLAYER_W, image_size))
-        white_pieces.append(King(  'k', 4, 7, Player.PLAYER_W, image_size))
+        self.king_pieces[1] = King(  'k', 4, 7, Player.PLAYER_W, image_size)
         white_pieces.append(Pawn(  'p', 0, 6, Player.PLAYER_W, image_size))
         white_pieces.append(Pawn(  'p', 1, 6, Player.PLAYER_W, image_size))
         white_pieces.append(Pawn(  'p', 2, 6, Player.PLAYER_W, image_size))
@@ -57,7 +60,7 @@ class GameState:
         black_pieces.append(Bishop('b', 2, 0, Player.PLAYER_B, image_size))
         black_pieces.append(Bishop('b', 5, 0, Player.PLAYER_B, image_size))
         black_pieces.append(Queen( 'q', 3, 0, Player.PLAYER_B, image_size))
-        black_pieces.append(King(  'k', 4, 0, Player.PLAYER_B, image_size))
+        self.king_pieces[0] = King(  'k', 4, 0, Player.PLAYER_B, image_size)
         black_pieces.append(Pawn(  'p', 0, 1, Player.PLAYER_B, image_size))
         black_pieces.append(Pawn(  'p', 1, 1, Player.PLAYER_B, image_size))
         black_pieces.append(Pawn(  'p', 2, 1, Player.PLAYER_B, image_size))
@@ -67,7 +70,12 @@ class GameState:
         black_pieces.append(Pawn(  'p', 6, 1, Player.PLAYER_B, image_size))
         black_pieces.append(Pawn(  'p', 7, 1, Player.PLAYER_B, image_size))
 
-        self.pieces: list[Piece] = white_pieces + black_pieces
+        self.pieces: list[Piece] = white_pieces + black_pieces + self.king_pieces
+        if self.default:
+            for piece in self.pieces:
+                piece.maxHealth = piece.health = 1
+                piece.damage = 1
+        
         self.createBoard()
         
         print(self.__repr__())
@@ -130,6 +138,16 @@ class GameState:
 
     def isEmptyCell(self, col: int, row: int) -> bool:
         return not self.getPiece(col, row)
+    
+    def isCellAttacked(self, col: int, row: int):
+        cellTuple = (col, row)
+        for piece in self.pieces:
+            if piece._player == self.currentPlayer():
+                continue
+            options_move, options_attack = piece.getOptions(self.board, not self.flippedAction())
+            if cellTuple in options_move + options_attack:
+                return True
+        return False
 
     def promotePiece(self, piece: Piece, newPieceName: str) -> None:
         """
@@ -150,6 +168,9 @@ class GameState:
         else:
             promotedPiece = Queen(
                 'q', piece.cell_col, piece.cell_row, piece._player, self.image_size)
+        if self.default:
+            promotedPiece.maxHealth = promotedPiece.health = 1
+            promotedPiece.damage = 1
         self.pieces.append(promotedPiece)
         self.pieces.remove(piece)
 
@@ -268,7 +289,14 @@ class GameState:
                 (np.array_equal(self.board[piece.cell_row, :piece.cell_col+1], [4, 0, 0, 0, 6])) or (  # white left
                 np.array_equal(self.board[piece.cell_row, :piece.cell_col+1], [-4, 0, 0, 0, -6])) or ( # black left (noflip)
                 np.array_equal(self.board[piece.cell_row, :piece.cell_col+1], [-4, 0, 0, -6]))):       # black left (flip)
-                options.append(((piece.cell_col-2, piece.cell_row), (piece.cell_col-1, piece.cell_row), rook))
+                if self.default:
+                    for x in range(0, piece.cell_col+1):
+                        if self.isCellAttacked(x, piece.cell_row):
+                            break
+                    else:
+                        options.append(((piece.cell_col-2, piece.cell_row), (piece.cell_col-1, piece.cell_row), rook))
+                else:
+                    options.append(((piece.cell_col-2, piece.cell_row), (piece.cell_col-1, piece.cell_row), rook))
         # right castle demands rook at right-most position
         if abs(self.board[piece.cell_row, DIMENSION[1]-1]) == pieceTranslateDic['r']:
             rook = self.getPiece(DIMENSION[1]-1, piece.cell_row)
@@ -277,7 +305,14 @@ class GameState:
                 (np.array_equal(self.board[piece.cell_row, piece.cell_col:], [6, 0, 0, 4])) or (  # white right
                 np.array_equal(self.board[piece.cell_row, piece.cell_col:], [-6, 0, 0, -4])) or ( # black right (noflip)
                 np.array_equal(self.board[piece.cell_row, piece.cell_col:], [-6, 0, 0, 0, -4]))): # black right (flip)
-                options.append(((piece.cell_col+2, piece.cell_row), (piece.cell_col+1, piece.cell_row), rook))
+                if self.default:
+                    for x in range(piece.cell_col, DIMENSION[0]):
+                        if self.isCellAttacked(x, piece.cell_row):
+                            break
+                    else:
+                        options.append(((piece.cell_col+2, piece.cell_row), (piece.cell_col+1, piece.cell_row), rook))
+                else:           
+                    options.append(((piece.cell_col+2, piece.cell_row), (piece.cell_col+1, piece.cell_row), rook))
         return options
 
     def getEnPassantOptions(self, piece: Piece) -> list:
