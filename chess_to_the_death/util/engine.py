@@ -254,6 +254,30 @@ class GameState:
                 return ''
         return self.currentPlayer()
 
+    def checkPinnedOptions(self, piece: Piece, options_move: list, options_attack: list) -> tuple:
+        backup_values = (piece.cell_col, piece.cell_row, self.board[piece.cell_row, piece.cell_col])
+        self.board[piece.cell_row, piece.cell_col] = 0
+        for i in range(len(options_move)-1, -1, -1):
+            self.board[options_move[i][1],options_move[i][0]] = backup_values[2]
+            piece.cell_col, piece.cell_row = options_move[i][0], options_move[i][1]
+            if self.isCellAttacked(self.king_pieces[self.player_turn].cell_col, self.king_pieces[self.player_turn].cell_row):
+                self.board[options_move[i][1],options_move[i][0]] = 0
+                del options_move[i]
+                continue
+            self.board[options_move[i][1],options_move[i][0]] = 0
+        for i in range(len(options_attack)-1, -1, -1):
+            prev_value = self.board[options_attack[i][1],options_attack[i][0]]
+            self.board[options_attack[i][1],options_attack[i][0]] = backup_values[2]
+            piece.cell_col, piece.cell_row = options_attack[i][0], options_attack[i][1]
+            if self.isCellAttacked(self.king_pieces[self.player_turn].cell_col, self.king_pieces[self.player_turn].cell_row):
+                self.board[options_attack[i][1],options_attack[i][0]] = prev_value
+                del options_attack[i]
+                continue
+            self.board[options_attack[i][1],options_attack[i][0]] = prev_value
+        piece.cell_col, piece.cell_row = backup_values[0], backup_values[1]
+        self.createBoard()
+        return (options_move, options_attack)
+
     def getOptions(self, piece: Piece) -> tuple:
         """
         Returns a tuple of lists containing all valid moves
@@ -262,6 +286,9 @@ class GameState:
         if not piece:
             return ([], [])
         options_move, options_attack = piece.getOptions(self.board, self.flippedAction())
+        if self.default:
+            options_move, options_attack = self.checkPinnedOptions(piece, options_move, options_attack)
+            
         options_attack.extend(self.getEnPassantOptions(piece))
         castleOptions = self.getCastleOptions(piece)
         for castleOption, _, _ in castleOptions:
