@@ -52,56 +52,40 @@ class GameState:
         self.default = default
         
         white_pieces = []
-        # white_pieces.append(createPiece('r', 0, 7, Player.PLAYER_W, image_size))
-        # white_pieces.append(createPiece('r', 7, 7, Player.PLAYER_W, image_size))
-        # white_pieces.append(createPiece('n', 1, 7, Player.PLAYER_W, image_size))
-        # white_pieces.append(createPiece('n', 6, 7, Player.PLAYER_W, image_size))
-        # white_pieces.append(createPiece('b', 2, 7, Player.PLAYER_W, image_size))
-        # white_pieces.append(createPiece('b', 5, 7, Player.PLAYER_W, image_size))
-        # white_pieces.append(createPiece('q', 3, 7, Player.PLAYER_W, image_size))
-        # self.king_pieces[1]=createPiece('k', 4, 7, Player.PLAYER_W, image_size)
-        # white_pieces.append(createPiece('p', 0, 6, Player.PLAYER_W, image_size))
-        # white_pieces.append(createPiece('p', 1, 6, Player.PLAYER_W, image_size))
-        # white_pieces.append(createPiece('p', 2, 6, Player.PLAYER_W, image_size))
-        # white_pieces.append(createPiece('p', 3, 6, Player.PLAYER_W, image_size))
-        # white_pieces.append(createPiece('p', 4, 6, Player.PLAYER_W, image_size))
-        # white_pieces.append(createPiece('p', 5, 6, Player.PLAYER_W, image_size))
-        # white_pieces.append(createPiece('p', 6, 6, Player.PLAYER_W, image_size))
-        # white_pieces.append(createPiece('p', 7, 6, Player.PLAYER_W, image_size))
+        white_pieces.append(createPiece('r', 0, 7, Player.PLAYER_W, image_size))
+        white_pieces.append(createPiece('r', 7, 7, Player.PLAYER_W, image_size))
+        white_pieces.append(createPiece('n', 1, 7, Player.PLAYER_W, image_size))
+        white_pieces.append(createPiece('n', 6, 7, Player.PLAYER_W, image_size))
+        white_pieces.append(createPiece('b', 2, 7, Player.PLAYER_W, image_size))
+        white_pieces.append(createPiece('b', 5, 7, Player.PLAYER_W, image_size))
+        white_pieces.append(createPiece('q', 3, 7, Player.PLAYER_W, image_size))
+        self.king_pieces[1]=createPiece('k', 4, 7, Player.PLAYER_W, image_size)
+        white_pieces.append(createPiece('p', 0, 6, Player.PLAYER_W, image_size))
+        white_pieces.append(createPiece('p', 1, 6, Player.PLAYER_W, image_size))
+        white_pieces.append(createPiece('p', 2, 6, Player.PLAYER_W, image_size))
+        white_pieces.append(createPiece('p', 3, 6, Player.PLAYER_W, image_size))
+        white_pieces.append(createPiece('p', 4, 6, Player.PLAYER_W, image_size))
+        white_pieces.append(createPiece('p', 5, 6, Player.PLAYER_W, image_size))
+        white_pieces.append(createPiece('p', 6, 6, Player.PLAYER_W, image_size))
+        white_pieces.append(createPiece('p', 7, 6, Player.PLAYER_W, image_size))
         
         black_pieces = []
-        # black_pieces.append(createPiece('r', 0, 0, Player.PLAYER_B, image_size))
-        # black_pieces.append(createPiece('r', 7, 0, Player.PLAYER_B, image_size))
-        # black_pieces.append(createPiece('n', 1, 0, Player.PLAYER_B, image_size))
-        # black_pieces.append(createPiece('n', 6, 0, Player.PLAYER_B, image_size))
-        # black_pieces.append(createPiece('b', 2, 0, Player.PLAYER_B, image_size))
-        # black_pieces.append(createPiece('b', 5, 0, Player.PLAYER_B, image_size))
-        # black_pieces.append(createPiece('q', 3, 0, Player.PLAYER_B, image_size))
-        # self.king_pieces[0]=createPiece('k', 4, 0, Player.PLAYER_B, image_size)
-        # black_pieces.append(createPiece('p', 0, 1, Player.PLAYER_B, image_size))
-        # black_pieces.append(createPiece('p', 1, 1, Player.PLAYER_B, image_size))
-        # black_pieces.append(createPiece('p', 2, 1, Player.PLAYER_B, image_size))
-        # black_pieces.append(createPiece('p', 3, 1, Player.PLAYER_B, image_size))
-        # black_pieces.append(createPiece('p', 4, 1, Player.PLAYER_B, image_size))
-        # black_pieces.append(createPiece('p', 5, 1, Player.PLAYER_B, image_size))
-        # black_pieces.append(createPiece('p', 6, 1, Player.PLAYER_B, image_size))
-        # black_pieces.append(createPiece('p', 7, 1, Player.PLAYER_B, image_size))
-        
-        
+        black_pieces.append(createPiece('r', 0, 0, Player.PLAYER_B, image_size))
+        black_pieces.append(createPiece('r', 7, 0, Player.PLAYER_B, image_size))
+        black_pieces.append(createPiece('n', 1, 0, Player.PLAYER_B, image_size))
+        black_pieces.append(createPiece('n', 6, 0, Player.PLAYER_B, image_size))
+        black_pieces.append(createPiece('b', 2, 0, Player.PLAYER_B, image_size))
+        black_pieces.append(createPiece('b', 5, 0, Player.PLAYER_B, image_size))
+        black_pieces.append(createPiece('q', 3, 0, Player.PLAYER_B, image_size))
         self.king_pieces[0]=createPiece('k', 4, 0, Player.PLAYER_B, image_size)
-        white_pieces.append(createPiece('p', 4, 1, Player.PLAYER_W, image_size))
-        white_pieces.append(createPiece('r', 3, 7, Player.PLAYER_W, image_size))
-        self.king_pieces[1]=createPiece('k', 4, 7, Player.PLAYER_W, image_size)
-        white_pieces.append(createPiece('b', 1, 4, Player.PLAYER_W, image_size))
+        black_pieces.append(createPiece('p', 0, 1, Player.PLAYER_B, image_size))
+        black_pieces.append(createPiece('p', 1, 1, Player.PLAYER_B, image_size))
+        black_pieces.append(createPiece('p', 2, 1, Player.PLAYER_B, image_size))
+        black_pieces.append(createPiece('p', 3, 1, Player.PLAYER_B, image_size))
+        black_pieces.append(createPiece('p', 4, 1, Player.PLAYER_B, image_size))
         black_pieces.append(createPiece('p', 5, 1, Player.PLAYER_B, image_size))
-        
-        # self.king_pieces[0]=createPiece('k', 4, 0, Player.PLAYER_B, image_size)
-        # self.king_pieces[1]=createPiece('k', 4, 7, Player.PLAYER_W, image_size)
-        # black_pieces.append(createPiece('p', 4, 6, Player.PLAYER_B, image_size))
-        # black_pieces.append(createPiece('b', 2, 4, Player.PLAYER_B, image_size))
-        # black_pieces.append(createPiece('r', 5, 0, Player.PLAYER_B, image_size))
-        # white_pieces.append(createPiece('p', 3, 6, Player.PLAYER_W, image_size))
-        # white_pieces.append(createPiece('p', 0, 5, Player.PLAYER_W, image_size))
+        black_pieces.append(createPiece('p', 6, 1, Player.PLAYER_B, image_size))
+        black_pieces.append(createPiece('p', 7, 1, Player.PLAYER_B, image_size))
         
         self.white_pieces = white_pieces
         self.black_pieces = black_pieces
@@ -431,30 +415,10 @@ class GameState:
     def flippedAction(self) -> bool:
         """
         Some actions are upside down if the current player is black
-        and the board is not flipped.
+        and the board is not flipped or if the current player is white
+        and the board is flipped.
         e.g.: Pawn moves/attacks + enPassant + checkmate checking
         """
-        # a = player_turn (1 = white, 0 = black)
-        # b = flip_board (should generally be flipped)
-        # c = board_flipped (is currently flipped)
-        # a b c :
-        # 0 1 1 0
-        # 1 1 0 0
-        # 1 0 0 0
-        # 0 0 0 1 -> needed for Pawn movement
-        # 0 0 0 1
-        # 0 1 0 1
-        # 1 0 0 0
-        # 1 1 1 1 -> needed for checkmate-check
-        # Results in Table:
-        # 0 0 0 1
-        # 0 0 1 -
-        # 0 1 0 1
-        # 0 1 1 0
-        # 1 0 0 0
-        # 1 0 1 -
-        # 1 1 0 0
-        # 1 1 1 1 -> ~a~c + ac -> a == c
         return self.board_flipped == self.player_turn
 
     def isBoardFlipped(self) -> bool:
@@ -489,7 +453,7 @@ class GameState:
         [ 1.  1.  1.  1.  1.  1.  1.  1.]       
         [ 4.  3.  2.  5.  6.  2.  3.  4.]]
         """
-        self.board = np.zeros(DIMENSION)
+        self.board = np.zeros(DIMENSION, dtype=np.int8)
         for piece in self.pieces:
             self.board[piece.cell_row, piece.cell_col] = pieceTranslateDic[piece._name] * (
                 1 if piece._player == Player.PLAYER_W else -1
@@ -503,7 +467,7 @@ class GameState:
         self.player_turn = not self.player_turn
         self.flipBoard()
         self.createBoard()
-        print(self.__repr__())
+        print(self)
 
     def __str__(self) -> str:
         return self.board.__str__()
