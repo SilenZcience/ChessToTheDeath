@@ -1,20 +1,17 @@
 import numpy as np
+import chess_to_the_death.util.config as config
 from chess_to_the_death.entity.pieces import *
 from chess_to_the_death.entity.player import Player
 from chess_to_the_death.util.action import Action, ActionLog
 
-def bothWayDic(dic: dict) -> dict:
-    """
-    takes a dictionary and adds every (value, key) entry,
-    essentially flipping the given entries.
-    """
-    dic.update(dict(map(reversed, dic.items())))
-    return dic
 
+DIMENSION = config.DIMENSION
+flipDic = {}
+for x in range(max(DIMENSION)):
+    flipDic[x] = max(DIMENSION)-1-x
 
-DIMENSION = (8, 8)
-flipDic = bothWayDic({0: 7, 1: 6, 2: 5, 3: 4})
-pieceTranslateDic = bothWayDic({'p': 1, 'b': 2, 'n': 3, 'r': 4, 'q': 5, 'k': 6})
+pieceTranslateDic = {'p': 1, 'b': 2, 'n': 3, 'r': 4, 'q': 5, 'k': 6,
+                     1: 'p', 2: 'b', 3: 'n', 4: 'r', 5: 'q', 6: 'k'}
 
 
 def createPiece(name: str, col: int, row: int, player: str, image_size):
@@ -51,45 +48,23 @@ class GameState:
         self.flip_board = flip_board
         self.default = default
         
-        white_pieces = []
-        white_pieces.append(createPiece('r', 0, 7, Player.PLAYER_W, image_size))
-        white_pieces.append(createPiece('r', 7, 7, Player.PLAYER_W, image_size))
-        white_pieces.append(createPiece('n', 1, 7, Player.PLAYER_W, image_size))
-        white_pieces.append(createPiece('n', 6, 7, Player.PLAYER_W, image_size))
-        white_pieces.append(createPiece('b', 2, 7, Player.PLAYER_W, image_size))
-        white_pieces.append(createPiece('b', 5, 7, Player.PLAYER_W, image_size))
-        white_pieces.append(createPiece('q', 3, 7, Player.PLAYER_W, image_size))
-        self.king_pieces[1]=createPiece('k', 4, 7, Player.PLAYER_W, image_size)
-        white_pieces.append(createPiece('p', 0, 6, Player.PLAYER_W, image_size))
-        white_pieces.append(createPiece('p', 1, 6, Player.PLAYER_W, image_size))
-        white_pieces.append(createPiece('p', 2, 6, Player.PLAYER_W, image_size))
-        white_pieces.append(createPiece('p', 3, 6, Player.PLAYER_W, image_size))
-        white_pieces.append(createPiece('p', 4, 6, Player.PLAYER_W, image_size))
-        white_pieces.append(createPiece('p', 5, 6, Player.PLAYER_W, image_size))
-        white_pieces.append(createPiece('p', 6, 6, Player.PLAYER_W, image_size))
-        white_pieces.append(createPiece('p', 7, 6, Player.PLAYER_W, image_size))
+        for row in range(config.board.shape[0]):
+            for col in range(config.board.shape[1]):
+                if config.board[row, col] == 0:
+                    continue
+                pieceChar = pieceTranslateDic[abs(config.board[row, col])]
+                if pieceChar == 'k':
+                    if config.board[row, col] < 0:
+                        self.king_pieces[0]=createPiece('k', col, row, Player.PLAYER_B, image_size)
+                    else:
+                        self.king_pieces[1]=createPiece('k', col, row, Player.PLAYER_W, image_size)
+                else:
+                    if config.board[row, col] < 0:
+                        self.black_pieces.append(createPiece(pieceChar, col, row, Player.PLAYER_B, image_size))
+                    else:
+                        self.white_pieces.append(createPiece(pieceChar, col, row, Player.PLAYER_W, image_size))
         
-        black_pieces = []
-        black_pieces.append(createPiece('r', 0, 0, Player.PLAYER_B, image_size))
-        black_pieces.append(createPiece('r', 7, 0, Player.PLAYER_B, image_size))
-        black_pieces.append(createPiece('n', 1, 0, Player.PLAYER_B, image_size))
-        black_pieces.append(createPiece('n', 6, 0, Player.PLAYER_B, image_size))
-        black_pieces.append(createPiece('b', 2, 0, Player.PLAYER_B, image_size))
-        black_pieces.append(createPiece('b', 5, 0, Player.PLAYER_B, image_size))
-        black_pieces.append(createPiece('q', 3, 0, Player.PLAYER_B, image_size))
-        self.king_pieces[0]=createPiece('k', 4, 0, Player.PLAYER_B, image_size)
-        black_pieces.append(createPiece('p', 0, 1, Player.PLAYER_B, image_size))
-        black_pieces.append(createPiece('p', 1, 1, Player.PLAYER_B, image_size))
-        black_pieces.append(createPiece('p', 2, 1, Player.PLAYER_B, image_size))
-        black_pieces.append(createPiece('p', 3, 1, Player.PLAYER_B, image_size))
-        black_pieces.append(createPiece('p', 4, 1, Player.PLAYER_B, image_size))
-        black_pieces.append(createPiece('p', 5, 1, Player.PLAYER_B, image_size))
-        black_pieces.append(createPiece('p', 6, 1, Player.PLAYER_B, image_size))
-        black_pieces.append(createPiece('p', 7, 1, Player.PLAYER_B, image_size))
-        
-        self.white_pieces = white_pieces
-        self.black_pieces = black_pieces
-        self.pieces: list[Piece] = white_pieces + black_pieces + self.king_pieces
+        self.pieces: list[Piece] = self.white_pieces + self.black_pieces + self.king_pieces
         if self.default:
             for piece in self.pieces:
                 piece.maxHealth = piece.health = 1
@@ -288,7 +263,7 @@ class GameState:
         if self.black_pieces:
             if not self.black_pieces[0]._name in ['b', 'n']:
                 return ''
-        return 'DRAW'
+        return 'DRAW (BY INSUFFICIENT MATERIAL)'
     
     def playerWon(self) -> str:
         """
