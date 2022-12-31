@@ -31,47 +31,49 @@ def createPiece(name: str, col: int, row: int, player: str, image_size):
 
 
 class GameState:
-    player_turn = True # True -> 'white', False -> 'black'
-    board_flipped = False
-    flip_board = True
-    default = False
-    board: np.ndarray = None
-    white_casualties, black_casualties = [], []
-    white_pieces, black_pieces = [], []
-    king_pieces = [None, None]
-    action_log: ActionLog = ActionLog()
-    alpha_identifiers = list(map(chr, range(65, 65+DIMENSION[0])))
-    numbers_identifiers = list(map(str, range(DIMENSION[1], 0, -1)))
-
     def __init__(self, image_size: tuple, flip_board: bool, default: bool):
-        self.image_size = image_size
-        self.flip_board = flip_board
-        self.default = default
+        self.alpha_identifiers = list(map(chr, range(65, 65+DIMENSION[0])))
+        self.numbers_identifiers = list(map(str, range(DIMENSION[1], 0, -1)))
         
+        self.image_size: tuple = image_size
+        self.flip_board: bool = flip_board
+        self.default: bool = default
+        self.player_turn: bool = True # True -> 'white', False -> 'black'
+        self.board_flipped: bool = False
+        
+        self.board: np.ndarray = None
+        
+        self.white_pieces: list[Piece] = []
+        self.black_pieces: list[Piece] = []
+        self.king_pieces: list[Piece] = [None, None]
+        self.pieces: list[Piece] = []  
+        
+        self.white_casualties: list[Piece] = []
+        self.black_casualties: list[Piece] = []
+        
+        self.action_log: ActionLog = ActionLog()
+
         for row in range(config.board.shape[0]):
             for col in range(config.board.shape[1]):
                 if config.board[row, col] == 0:
                     continue
                 pieceChar = pieceTranslateDic[abs(config.board[row, col])]
-                if pieceChar == 'k':
-                    if config.board[row, col] < 0:
-                        self.king_pieces[0]=createPiece('k', col, row, Player.PLAYER_B, image_size)
-                    else:
-                        self.king_pieces[1]=createPiece('k', col, row, Player.PLAYER_W, image_size)
+                if config.board[row, col] < 0:
+                    piece = createPiece(pieceChar, col, row, Player.PLAYER_B, image_size)
+                    self.black_pieces.append(piece)
                 else:
-                    if config.board[row, col] < 0:
-                        self.black_pieces.append(createPiece(pieceChar, col, row, Player.PLAYER_B, image_size))
-                    else:
-                        self.white_pieces.append(createPiece(pieceChar, col, row, Player.PLAYER_W, image_size))
+                    piece = createPiece(pieceChar, col, row, Player.PLAYER_W, image_size)
+                    self.white_pieces.append(piece)
+                if pieceChar == 'k':
+                    self.king_pieces[config.board[row, col] > 0] = piece
         
-        self.pieces: list[Piece] = self.white_pieces + self.black_pieces + self.king_pieces
+        self.pieces: list[Piece] = self.white_pieces + self.black_pieces
         if self.default:
             for piece in self.pieces:
                 piece.maxHealth = piece.health = 1
                 piece.damage = 1
         
         self.createBoard()
-        
         print(self.__repr__())
 
     def translateActionRepr(self, actionRepr: Action) -> tuple:
@@ -251,19 +253,20 @@ class GameState:
         return won
     
     def gameIsDraw(self):
+        draw = ''
         #by repitition
-        # TODO: 
+        if np.all(np.all(self.action_log.boards[-1] == self.action_log.boards, axis=-1), axis=1).sum() == 3:
+            draw = 'DRAW (BY REPITITION)'
             
         #insufficient material
-        if len(self.white_pieces) > 1 or len(self.black_pieces) > 1:
-            return ''
-        if self.white_pieces:
-            if not self.white_pieces[0]._name in ['b', 'n']:
-                return ''
-        if self.black_pieces:
-            if not self.black_pieces[0]._name in ['b', 'n']:
-                return ''
-        return 'DRAW (BY INSUFFICIENT MATERIAL)'
+        if len(self.white_pieces) <= 2 and len(self.black_pieces) <= 2:
+            for piece in self.pieces:
+                if piece._name not in ['b', 'n', 'k']:
+                    break
+            else:
+                draw = 'DRAW'
+        
+        return draw
     
     def playerWon(self) -> str:
         """

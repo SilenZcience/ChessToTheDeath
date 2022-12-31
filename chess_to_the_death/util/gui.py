@@ -325,8 +325,8 @@ def mainGUI(argParam: Namespace):
                         if running:
                             holder.selectedCell = None
                             holder.winner = gameState.playerWon()
+                            renderGame(mainScreen, gameState, holder)
                             if not holder.winner:
-                                renderGame(mainScreen, gameState, holder)
                                 pygame.time.delay(250)
                                 gameState.nextTurn()
                                 drawIdentifiers(mainScreen, gameState)

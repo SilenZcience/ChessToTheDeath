@@ -1,8 +1,7 @@
 import numpy as np
 
 class Action:
-    def __init__(self, board: np.ndarray, from_col: str, from_row: str, to_col: str, to_row: str, action: str) -> None:
-        self.board = board.copy()
+    def __init__(self, from_col: str, from_row: str, to_col: str, to_row: str, action: str) -> None:
         self.from_col = from_col
         self.from_row = from_row
         self.to_col = to_col
@@ -13,9 +12,13 @@ class Action:
         return self.from_col + self.from_row + '-' + self.to_col + self.to_row + ' ' + self.action
 
 class ActionLog:
-    actions = []
+    def __init__(self) -> None:
+        self.actions = []
+        self.boards = []
+    
     def add(self, board: np.ndarray, from_col: int, from_row: int, to_col: int, to_row: int, action: str) -> None:
-        self.actions.append(Action(board, from_col, from_row, to_col, to_row, action))
+        self.boards.append(board.copy())
+        self.actions.append(Action(from_col, from_row, to_col, to_row, action))
         
     def get(self, index: int) -> Action:
         return self.actions[index]
