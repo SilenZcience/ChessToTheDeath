@@ -166,9 +166,9 @@ class GameState:
 
     def move(self, piece: Piece, to_col: int, to_row: int, options_move: list) -> str:
         """
-            moves a 'piece' to the new coordinates 'to_col','to_row'
-            if it is a valid move. Also checks for castling.
-            Returns an action string describing the action performed.
+        moves a 'piece' to the new coordinates 'to_col','to_row'
+        if it is a valid move. Also checks for castling.
+        Returns an action string describing the action performed.
         """
         action = ''
         if not self.isEmptyCell(to_col, to_row):
@@ -188,9 +188,9 @@ class GameState:
 
     def attack(self, piece: Piece, to_col: int, to_row: int, options_attack: list) -> str:
         """
-            'piece' attacks another piece at the coordinates 'to_col','to_row'
-            if it is a valid attack. 
-            Returns an action string describing the action performed.
+        'piece' attacks another piece at the coordinates 'to_col','to_row'
+        if it is a valid attack. 
+        Returns an action string describing the action performed.
         """
         action = ''
         enPassant = (self.getEnPassantOptions(piece) == [(to_col, to_row)])
@@ -255,16 +255,21 @@ class GameState:
     def gameIsDraw(self):
         draw = ''
         #by repitition
-        if np.all(np.all(self.action_log.boards[-1] == self.action_log.boards, axis=-1), axis=1).sum() == 3:
+        if np.all(self.action_log.boards[-1] == self.action_log.boards, axis=(-1,1)).sum() == 3:
             draw = 'DRAW (BY REPITITION)'
             
         #insufficient material
-        if len(self.white_pieces) <= 2 and len(self.black_pieces) <= 2:
-            for piece in self.pieces:
-                if piece._name not in ['b', 'n', 'k']:
-                    break
-            else:
+        if len(self.pieces) <= 4:
+            pieceChars = [piece._name for piece in self.pieces]
+            pieceChars.sort()
+            if pieceChars in [['k', 'k'], ['b', 'k', 'k'], ['k', 'k', 'n']]:
                 draw = 'DRAW'
+            elif pieceChars == ['b', 'b', 'k', 'k']:
+                bishops = [piece for piece in self.pieces if piece._name == 'b']
+                # check if bishops are on the same colored cell
+                if (bishops[0].cell_col % 2 == bishops[0].cell_row % 2) == \
+                    (bishops[1].cell_col % 2 == bishops[1].cell_row % 2):
+                        draw = 'DRAW'
         
         return draw
     

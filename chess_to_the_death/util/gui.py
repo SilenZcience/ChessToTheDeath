@@ -338,6 +338,8 @@ def mainGUI(argParam: Namespace):
                 renderGame(mainScreen, gameState, holder)
             if event.type == pygame.KEYDOWN and holder.winner:
                 if pygame.key.name(event.key) == 'r':
+                    print("Log:")
+                    print(gameState.action_log)
                     print("Restarting...")
                     gameState = newGame(holder)
                     renderGame(mainScreen, gameState, holder)
