@@ -7,8 +7,10 @@ from argparse import Namespace # only for type-hints
 
 import chess_to_the_death.util.engine as engine
 import chess_to_the_death.util.fpsClock as fpsClock
+import chess_to_the_death.parser.argparser as argparser
 from chess_to_the_death.util.loader import loadImage
 from chess_to_the_death.entity.pieces import Piece # only for type-hints
+
 
 BOARD_OFFSET = (20, 20)
 BOARD_SIZE = (1024 + BOARD_OFFSET[0], 1024 + BOARD_OFFSET[1])
@@ -17,10 +19,6 @@ CELL_SIZE = ((BOARD_SIZE[0] - BOARD_OFFSET[0])// engine.DIMENSION[0],
 HALF_CELL_SIZE = (CELL_SIZE[0]//2, CELL_SIZE[1]//2)
 IMAGE_OFFSET = 24
 IMG_SIZE = tuple([size - (2*IMAGE_OFFSET) for size in CELL_SIZE])
-MAX_FPS = 20
-HIGHLIGHT_CELLS = True
-FLIP_BOARD = True
-DEFAULT_MODE = False
 COLORS = [(230, 230, 230), #"#E6E6E6" -> WHITE / CELL + HOVER
           ( 32,  33,  36), #"#202124" -> DARK_GRAY / CELL + HOVER
           (255,   0,   0), #"#FF0000" -> RED / HEALTH
@@ -94,7 +92,7 @@ def highlightCells(mainScreen: pygame.Surface, piece: Piece, options_move: list,
             highlightCell(mainScreen, option[0] * CELL_SIZE[0],
                         option[1] * CELL_SIZE[1],
                         *CELL_SIZE, COLORS[5])
-    if not HIGHLIGHT_CELLS:
+    if not argparser.HIGHLIGHT_CELLS:
         return
     col, row = getMouseCell()
     if 0 <= col < engine.DIMENSION[0] and 0 <= row < engine.DIMENSION[1]:
@@ -110,7 +108,7 @@ def drawPieces(mainScreen: pygame.Surface, gameState: engine.GameState, attack_i
                         pygame.Rect(piece.cell_col * CELL_SIZE[0] + IMAGE_OFFSET,
                                     piece.cell_row * CELL_SIZE[1] + IMAGE_OFFSET,
                                     *IMG_SIZE))
-        if DEFAULT_MODE:
+        if argparser.DEFAULT_MODE:
             continue
         mainScreen.blit(attack_icon, (piece.cell_col * CELL_SIZE[0], piece.cell_row * CELL_SIZE[1]))
         font = pygame.font.SysFont("Verdana", 16)
@@ -190,7 +188,8 @@ def renderGame(mainScreen: pygame.Surface, gameState: engine.GameState, holder: 
     Draws the Game, the Fps-display and updates the screen.
     """
     drawGame(mainScreen, gameState, holder)
-    holder.fps.render(mainScreen)
+    if argparser.HIGHLIGHT_CELLS:
+        holder.fps.render(mainScreen)
     pygame.display.flip()
 
 
@@ -268,30 +267,17 @@ def newGame(holder: Holder) -> engine.GameState:
     """
     holder.selectedCell, holder.winner = None, None
     holder.options_move, holder.options_attack = [], []
-    return engine.GameState(IMG_SIZE, FLIP_BOARD, DEFAULT_MODE)
+    return engine.GameState(IMG_SIZE)
 
 
-def workParams(argParam: Namespace) -> None:
-    global MAX_FPS
-    MAX_FPS = getattr(argParam, 'fps')
-    global HIGHLIGHT_CELLS
-    HIGHLIGHT_CELLS = getattr(argParam, 'highlight')
-    global FLIP_BOARD
-    FLIP_BOARD = getattr(argParam, 'flip')
-    global DEFAULT_MODE
-    DEFAULT_MODE = getattr(argParam, 'default')
-
-
-def mainGUI(argParam: Namespace):
-    workParams(argParam)
-    
+def mainGUI():
     holder = Holder()
     pygame.init()
     pygame.display.set_caption('Chess to the Death')
     pygame.display.set_icon(loadImage("blackp", (20, 20)))
     mainScreen = pygame.display.set_mode(BOARD_SIZE)
 
-    holder.fps = fpsClock.FPS(MAX_FPS, BOARD_SIZE[0]-30-BOARD_OFFSET[0], 0)
+    holder.fps = fpsClock.FPS(argparser.MAX_FPS, BOARD_SIZE[0]-30-BOARD_OFFSET[0], 0)
     gameState = newGame(holder)
     holder.attack_icon = loadImage("damage", (20, 20))
     drawIdentifiers(mainScreen, gameState)
@@ -299,7 +285,7 @@ def mainGUI(argParam: Namespace):
     renderGame(mainScreen, gameState, holder)
     running = True
     while running:
-        if HIGHLIGHT_CELLS:
+        if argparser.HIGHLIGHT_CELLS:
             renderGame(mainScreen, gameState, holder)
         pygame.time.delay(25) # relieve the CPU a bit ...
         for event in pygame.event.get():

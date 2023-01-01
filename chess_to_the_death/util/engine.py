@@ -1,5 +1,6 @@
 import numpy as np
 import chess_to_the_death.util.config as config
+import chess_to_the_death.parser.argparser as argparser
 from chess_to_the_death.entity.pieces import *
 from chess_to_the_death.entity.player import Player
 from chess_to_the_death.util.action import Action, ActionLog
@@ -31,13 +32,13 @@ def createPiece(name: str, col: int, row: int, player: str, image_size):
 
 
 class GameState:
-    def __init__(self, image_size: tuple, flip_board: bool, default: bool):
+    def __init__(self, image_size: tuple):
         self.alpha_identifiers = list(map(chr, range(65, 65+DIMENSION[0])))
         self.numbers_identifiers = list(map(str, range(DIMENSION[1], 0, -1)))
         
         self.image_size: tuple = image_size
-        self.flip_board: bool = flip_board
-        self.default: bool = default
+        self.flip_board: bool = argparser.FLIP_BOARD
+        self.default: bool = argparser.DEFAULT_MODE
         self.player_turn: bool = True # True -> 'white', False -> 'black'
         self.board_flipped: bool = False
         

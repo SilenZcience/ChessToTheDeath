@@ -3,7 +3,7 @@ from chess_to_the_death.util.gui import mainGUI
 
 if __name__ == '__main__':
     try:
-        argsHandler = ArgsHandler(__file__)
-        mainGUI(argsHandler.getParams())
+        ArgsHandler(__file__)
+        mainGUI()
     except KeyboardInterrupt:
         print("GoodBye!")

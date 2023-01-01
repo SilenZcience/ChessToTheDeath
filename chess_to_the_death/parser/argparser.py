@@ -5,6 +5,11 @@ from os import path
 from chess_to_the_death.web.UpdateChecker import printUpdateInformation
 from chess_to_the_death import __version__, __sysversion__, __author__
 
+MAX_FPS = 20
+HIGHLIGHT_CELLS = True
+FLIP_BOARD = True
+DEFAULT_MODE = False
+
 
 class ArgsHandler:
     params: argparse.Namespace = None
@@ -34,9 +39,17 @@ class ArgsHandler:
         self.params = parser.parse_args()
     
     def translateArgs(self) -> None:
+        global MAX_FPS
+        global HIGHLIGHT_CELLS
+        global FLIP_BOARD
+        global DEFAULT_MODE
         if getattr(self.params, 'version'):
             self._showVersion()
             sysexit(0)
+        MAX_FPS = getattr(self.params, 'fps')
+        HIGHLIGHT_CELLS = getattr(self.params, 'highlight')
+        FLIP_BOARD = getattr(self.params, 'flip')
+        DEFAULT_MODE = getattr(self.params, 'default')        
         
     def _showVersion(self) -> None:
         print()
@@ -48,4 +61,3 @@ class ArgsHandler:
         print(f"Build time: \t{datetime.fromtimestamp(path.getctime(path.realpath(__file__)))} CET")
         print(f"Author: \t{__author__}")
         printUpdateInformation("ChessToTheDeath", __version__)
-
