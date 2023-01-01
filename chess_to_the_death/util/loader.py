@@ -14,6 +14,8 @@ def loadImage(relPath: str, size: tuple):
     containing the width, height.
     Returns a pygame.Surface image.
     """
+    if not size:
+        return None
     if not (relPath + str(size[0]) + "x" + str(size[1])) in PIECE_IMAGES:
         PIECE_IMAGES[relPath + str(size[0]) + "x" + str(size[1])] = transform.smoothscale(
             image.load(path.join(basePath, relPath + ".png")), size)

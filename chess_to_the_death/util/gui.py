@@ -14,8 +14,8 @@ from chess_to_the_death.entity.pieces import Piece # only for type-hints
 
 BOARD_OFFSET = (20, 20)
 BOARD_SIZE = (1024 + BOARD_OFFSET[0], 1024 + BOARD_OFFSET[1])
-CELL_SIZE = ((BOARD_SIZE[0] - BOARD_OFFSET[0])// engine.DIMENSION[0],
-             (BOARD_SIZE[1] - BOARD_OFFSET[1]) // engine.DIMENSION[1])
+CELL_SIZE = ((BOARD_SIZE[0] - BOARD_OFFSET[0])// engine.DIMENSION[1],
+             (BOARD_SIZE[1] - BOARD_OFFSET[1]) // engine.DIMENSION[0])
 HALF_CELL_SIZE = (CELL_SIZE[0]//2, CELL_SIZE[1]//2)
 IMAGE_OFFSET = 24
 IMG_SIZE = tuple([size - (2*IMAGE_OFFSET) for size in CELL_SIZE])
@@ -55,7 +55,7 @@ def drawBoard(mainScreen: pygame.Surface) -> None:
     """
     Draws the black and white background cells.
     """
-    for x in product(range(engine.DIMENSION[0]), range(engine.DIMENSION[1])):
+    for x in product(range(engine.DIMENSION[1]), range(engine.DIMENSION[0])):
         pygame.draw.rect(mainScreen, COLORS[sum(x) % 2],
                          pygame.Rect(x[0] * CELL_SIZE[0],
                                      x[1] * CELL_SIZE[1],
@@ -95,7 +95,7 @@ def highlightCells(mainScreen: pygame.Surface, piece: Piece, options_move: list,
     if not argparser.HIGHLIGHT_CELLS:
         return
     col, row = getMouseCell()
-    if 0 <= col < engine.DIMENSION[0] and 0 <= row < engine.DIMENSION[1]:
+    if 0 <= col < engine.DIMENSION[1] and 0 <= row < engine.DIMENSION[0]:
         highlightCell(mainScreen, col * CELL_SIZE[0], row * CELL_SIZE[1], *CELL_SIZE, COLORS[1 - ((col+row) % 2)])
 
 
@@ -152,23 +152,23 @@ def drawIdentifiers(mainScreen: pygame.Surface, gameState: engine.GameState):
     Draw the letters and numbers to identify a single cell.
     Only needs to happen once a move.
     """
-    x_offset = engine.DIMENSION[0] * CELL_SIZE[0]
-    y_offset = engine.DIMENSION[1] * CELL_SIZE[1]
+    x_offset = engine.DIMENSION[1] * CELL_SIZE[0]
+    y_offset = engine.DIMENSION[0] * CELL_SIZE[1]
     pygame.draw.rect(mainScreen, COLORS[1],
                          pygame.Rect(x_offset, 0,
-                                     BOARD_OFFSET[0], BOARD_SIZE[1]))
+                                     BOARD_SIZE[0] - x_offset, BOARD_SIZE[1]))
     pygame.draw.rect(mainScreen, COLORS[1],
                          pygame.Rect(0, y_offset,
-                                     BOARD_SIZE[0], BOARD_OFFSET[1]))
+                                     BOARD_SIZE[0], BOARD_SIZE[1] - y_offset))
     font = pygame.font.SysFont("Verdana", 16)
-    for i in range(engine.DIMENSION[1]):
+    for i in range(engine.DIMENSION[0]):
         text = font.render(gameState.numbers_identifiers[i], True, COLORS[6])
         text_size = (text.get_width(), text.get_height())
         text_location = pygame.Rect(x_offset + (BOARD_OFFSET[0] - text_size[0]) // 2,
                                     i * CELL_SIZE[1] + CELL_SIZE[1] // 2 - text_size[1] // 2,
                                     BOARD_OFFSET[0], CELL_SIZE[1])
         mainScreen.blit(text, text_location)
-    for i in range(engine.DIMENSION[0]):
+    for i in range(engine.DIMENSION[1]):
         text = font.render(gameState.alpha_identifiers[i], True, COLORS[6])
         text_size = (text.get_width(), text.get_height())
         text_location = pygame.Rect(i * CELL_SIZE[0] + CELL_SIZE[0] // 2 - text_size[0] // 2,

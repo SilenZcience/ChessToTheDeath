@@ -93,14 +93,15 @@ cd ./ChessToTheDeath
 python -m chess_to_the_death [-h] [-v] [-fps FPS] [-nohighlight] [-noflip]
 ```
 
-| Argument               | Description                                         |
-|------------------------|-----------------------------------------------------|
-| -h, --help             | show help message and exit                          |
-| -v, --version          | show program's version number and exit              |
-| -fps FPS, --fps FPS    | set max fps (a lower value will improve performance)|
-| -nohighlight           | disable cell-highlighting on mouse hover            |
-| -noflip                | disable board flipping                              |
-| -default               | play the default chess variant.                     |
+| Argument               | Description                                          |
+|------------------------|------------------------------------------------------|
+| -h, --help             | show help message and exit                           |
+| -v, --version          | show program's version number and exit               |
+| -fps FPS, --fps FPS    | set max fps (a lower value will improve performance) |
+| -nohighlight           | disable cell-highlighting on mouse hover             |
+| -noflip                | disable board flipping                               |
+| -random                | randomize the health and damage values of all pieces.|
+| -default               | play the default chess variant.                      |
 
 ### Examples
 

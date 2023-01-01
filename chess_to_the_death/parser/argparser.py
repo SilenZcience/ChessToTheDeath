@@ -8,8 +8,8 @@ from chess_to_the_death import __version__, __sysversion__, __author__
 MAX_FPS = 20
 HIGHLIGHT_CELLS = True
 FLIP_BOARD = True
+RANDOM_VALUES = False
 DEFAULT_MODE = False
-
 
 class ArgsHandler:
     params: argparse.Namespace = None
@@ -33,6 +33,8 @@ class ArgsHandler:
                             const=False, help="disable cell-highlighting on mouse hover")
         parser.add_argument("-noflip", action="store_const", default=True, dest="flip",
                             const=False, help="disable board flipping")
+        parser.add_argument("-random", action="store_const", default=False, dest="random",
+                            const=True, help="randomize the health and damage values of all pieces.")
         parser.add_argument("-default", action="store_const", default=False, dest="default",
                             const=True, help="play the default chess variant.")
         
@@ -42,6 +44,7 @@ class ArgsHandler:
         global MAX_FPS
         global HIGHLIGHT_CELLS
         global FLIP_BOARD
+        global RANDOM_VALUES
         global DEFAULT_MODE
         if getattr(self.params, 'version'):
             self._showVersion()
@@ -49,7 +52,8 @@ class ArgsHandler:
         MAX_FPS = getattr(self.params, 'fps')
         HIGHLIGHT_CELLS = getattr(self.params, 'highlight')
         FLIP_BOARD = getattr(self.params, 'flip')
-        DEFAULT_MODE = getattr(self.params, 'default')        
+        RANDOM_VALUES = getattr(self.params, 'random')
+        DEFAULT_MODE = getattr(self.params, 'default')
         
     def _showVersion(self) -> None:
         print()

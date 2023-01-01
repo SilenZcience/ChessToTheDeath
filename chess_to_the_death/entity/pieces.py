@@ -2,16 +2,14 @@ from chess_to_the_death.util.loader import loadImage
 
 
 class Piece:
-    image = None
-    firstMove = True
-    
     def __init__(self, name: str, cell_col: int, cell_row: int, player: str, image_size: tuple = None):
         self._name = name
         self.cell_col = cell_col
         self.cell_row = cell_row
         self._player = player
-        if image_size:
-            self.image = loadImage(player + name, image_size)
+        
+        self.firstMove = True
+        self.image = loadImage(player + name, image_size)
 
     def move(self, x: int, y: int) -> None:
         """

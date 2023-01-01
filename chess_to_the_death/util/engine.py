@@ -7,10 +7,6 @@ from chess_to_the_death.util.action import Action, ActionLog
 
 
 DIMENSION = config.DIMENSION
-flipDic = {}
-for x in range(max(DIMENSION)):
-    flipDic[x] = max(DIMENSION)-1-x
-
 pieceTranslateDic = {'p': 1, 'b': 2, 'n': 3, 'r': 4, 'q': 5, 'k': 6,
                      1: 'p', 2: 'b', 3: 'n', 4: 'r', 5: 'q', 6: 'k'}
 
@@ -33,8 +29,8 @@ def createPiece(name: str, col: int, row: int, player: str, image_size):
 
 class GameState:
     def __init__(self, image_size: tuple):
-        self.alpha_identifiers = list(map(chr, range(65, 65+DIMENSION[0])))
-        self.numbers_identifiers = list(map(str, range(DIMENSION[1], 0, -1)))
+        self.alpha_identifiers = list(map(chr, range(65, 65+DIMENSION[1])))
+        self.numbers_identifiers = list(map(str, range(DIMENSION[0], 0, -1)))
         
         self.image_size: tuple = image_size
         self.flip_board: bool = argparser.FLIP_BOARD
@@ -69,6 +65,14 @@ class GameState:
                     self.king_pieces[config.board[row, col] > 0] = piece
         
         self.pieces: list[Piece] = self.white_pieces + self.black_pieces
+        if argparser.RANDOM_VALUES:
+            from random import randint
+            health_damage_dict = {}
+            for piece in self.pieces:
+                if piece._name not in health_damage_dict:
+                    health_damage_dict[piece._name] = (randint(10, 150), randint(10, 150))
+                piece.maxHealth = piece.health = health_damage_dict[piece._name][0]
+                piece.damage = health_damage_dict[piece._name][1]
         if self.default:
             for piece in self.pieces:
                 piece.maxHealth = piece.health = 1
@@ -420,8 +424,8 @@ class GameState:
         self.alpha_identifiers.reverse()
         self.numbers_identifiers.reverse()
         for piece in self.pieces:
-            piece.cell_col = flipDic[piece.cell_col]
-            piece.cell_row = flipDic[piece.cell_row]
+            piece.cell_col = DIMENSION[1] - piece.cell_col - 1
+            piece.cell_row = DIMENSION[0] - piece.cell_row - 1
 
     def createBoard(self) -> None:
         """

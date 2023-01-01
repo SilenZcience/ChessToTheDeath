@@ -10,4 +10,4 @@ board = np.asarray([[-4, -3, -2, -5, -6, -2, -3, -4],
                     [ 4,  3,  2,  5,  6,  2,  3,  4]], dtype=np.int8)
 
 DIMENSION = board.shape
-assert DIMENSION[0] == DIMENSION[1]
+assert np.count_nonzero(board == 6) == np.count_nonzero(board == -6) == 1, "There can only be one King to each color!"
