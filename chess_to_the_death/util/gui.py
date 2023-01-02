@@ -2,8 +2,8 @@ from os import environ
 environ['PYGAME_HIDE_SUPPORT_PROMPT'] = 'hide' # sorry, pygame
 
 import pygame
+# from pygame.locals import *
 from itertools import product
-from argparse import Namespace # only for type-hints
 
 import chess_to_the_death.util.engine as engine
 import chess_to_the_death.util.fpsClock as fpsClock
@@ -194,9 +194,9 @@ def drawIdentifiers(mainScreen: pygame.Surface, gameState: engine.GameState):
 
 def drawGame(mainScreen: pygame.Surface, gameState: engine.GameState, holder: Holder) -> None:
     drawBoard(mainScreen)
-    highlightCells(mainScreen, holder.selectedCell,  holder.options_move,  holder.options_attack)
-    drawPieces(mainScreen, gameState,  holder.attack_icon)
-    drawWinner(mainScreen,  holder.winner)
+    highlightCells(mainScreen, holder.selectedCell, holder.options_move, holder.options_attack)
+    drawPieces(mainScreen, gameState, holder.attack_icon)
+    drawWinner(mainScreen, holder.winner)
 
 
 def renderGame(mainScreen: pygame.Surface, gameState: engine.GameState, holder: Holder) -> None:
@@ -316,10 +316,10 @@ def newGame(holder: Holder) -> engine.GameState:
 def mainGUI():
     holder = Holder()
     pygame.init()
+    mainScreen = pygame.display.set_mode(BOARD_SIZE, pygame.DOUBLEBUF, pygame.RESIZABLE)
     pygame.display.set_caption('Chess to the Death')
     pygame.display.set_icon(loadImage("blackp", (20, 20)))
-    mainScreen = pygame.display.set_mode(BOARD_SIZE, pygame.RESIZABLE)
-
+    
     holder.fps = fpsClock.FPS(argparser.MAX_FPS, BOARD_SIZE[0]-30-BOARD_OFFSET[0], 0)
     gameState = newGame(holder)
     holder.attack_icon = loadImage("damage", BOARD_OFFSET)
@@ -374,7 +374,7 @@ def mainGUI():
                     renderGame(mainScreen, gameState, holder)
             if event.type == pygame.VIDEORESIZE:
                 rescaleWindow(event.w, event.h, holder, gameState)
-                mainScreen = pygame.display.set_mode(BOARD_SIZE, pygame.RESIZABLE)
+                mainScreen = pygame.display.set_mode(BOARD_SIZE, pygame.DOUBLEBUF, pygame.RESIZABLE)
                 drawIdentifiers(mainScreen, gameState)
                 renderGame(mainScreen, gameState, holder)
     pygame.quit()
