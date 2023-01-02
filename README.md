@@ -90,7 +90,7 @@ cd ./ChessToTheDeath
 ## Usage
 
 ```console
-python -m chess_to_the_death [-h] [-v] [-fps FPS] [-nohighlight] [-noflip]
+python -m chess_to_the_death [-h] [-v] ...
 ```
 
 | Argument               | Description                                          |
