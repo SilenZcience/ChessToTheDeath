@@ -49,6 +49,8 @@ class GameState:
         self.black_casualties: list[Piece] = []
         
         self.action_log: ActionLog = ActionLog()
+        
+        self.health_damage_dict = {}
 
         for row in range(config.board.shape[0]):
             for col in range(config.board.shape[1]):
@@ -67,12 +69,11 @@ class GameState:
         self.pieces: list[Piece] = self.white_pieces + self.black_pieces
         if argparser.RANDOM_VALUES:
             from random import randint
-            health_damage_dict = {}
             for piece in self.pieces:
-                if piece._name not in health_damage_dict:
-                    health_damage_dict[piece._name] = (randint(10, 150), randint(10, 150))
-                piece.maxHealth = piece.health = health_damage_dict[piece._name][0]
-                piece.damage = health_damage_dict[piece._name][1]
+                if piece._name not in self.health_damage_dict:
+                    self.health_damage_dict[piece._name] = (randint(10, 150), randint(10, 150))
+                piece.maxHealth = piece.health = self.health_damage_dict[piece._name][0]
+                piece.damage = self.health_damage_dict[piece._name][1]
         if self.default:
             for piece in self.pieces:
                 piece.maxHealth = piece.health = 1
@@ -148,6 +149,9 @@ class GameState:
         This should only happen to Pawn-pieces, checks havee to be made beforehand.
         """
         promotedPiece = createPiece(newPieceName, piece.cell_col, piece.cell_row, piece._player, self.image_size)
+        if argparser.RANDOM_VALUES:
+            promotedPiece.maxHealth = promotedPiece.health = self.health_damage_dict[promotedPiece._name][0]
+            promotedPiece.damage = self.health_damage_dict[promotedPiece._name][1]           
         if self.default:
             promotedPiece.maxHealth = promotedPiece.health = 1
             promotedPiece.damage = 1
