@@ -9,7 +9,10 @@ class Piece:
         self._player = player
         
         self.firstMove = True
-        self.image = loadImage(player + name, image_size)
+        self.loadImage(image_size)
+
+    def loadImage(self, image_size: tuple = None) -> None:
+        self.image = loadImage(self._player + self._name, image_size)
 
     def move(self, x: int, y: int) -> None:
         """

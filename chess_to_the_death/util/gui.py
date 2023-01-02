@@ -12,13 +12,16 @@ from chess_to_the_death.util.loader import loadImage
 from chess_to_the_death.entity.pieces import Piece # only for type-hints
 
 
-BOARD_OFFSET = (20, 20)
-BOARD_SIZE = (1024 + BOARD_OFFSET[0], 1024 + BOARD_OFFSET[1])
+BOARD_SIZE = (1044, 1044)
+BOARD_OFFSET = (BOARD_SIZE[0] // 50, # 2% for cell identifiers
+                BOARD_SIZE[1] // 50)
 CELL_SIZE = ((BOARD_SIZE[0] - BOARD_OFFSET[0])// engine.DIMENSION[1],
              (BOARD_SIZE[1] - BOARD_OFFSET[1]) // engine.DIMENSION[0])
 HALF_CELL_SIZE = (CELL_SIZE[0]//2, CELL_SIZE[1]//2)
-IMAGE_OFFSET = 24
-IMG_SIZE = tuple([size - (2*IMAGE_OFFSET) for size in CELL_SIZE])
+IMG_SIZE = (int(CELL_SIZE[0] * 0.75), # image is 3/4 the size of the cell
+            int(CELL_SIZE[1] * 0.75))
+IMAGE_OFFSET = (int(CELL_SIZE[0] * 0.125), # half of the remaining 1/4 -> 1/8
+                int(CELL_SIZE[1] * 0.125))
 COLORS = [(230, 230, 230), #"#E6E6E6" -> WHITE / CELL + HOVER
           ( 32,  33,  36), #"#202124" -> DARK_GRAY / CELL + HOVER
           (255,   0,   0), #"#FF0000" -> RED / HEALTH
@@ -105,26 +108,37 @@ def drawPieces(mainScreen: pygame.Surface, gameState: engine.GameState, attack_i
     """
     for piece in gameState.pieces:
         mainScreen.blit(piece.image,
-                        pygame.Rect(piece.cell_col * CELL_SIZE[0] + IMAGE_OFFSET,
-                                    piece.cell_row * CELL_SIZE[1] + IMAGE_OFFSET,
+                        pygame.Rect(piece.cell_col * CELL_SIZE[0] + IMAGE_OFFSET[0],
+                                    piece.cell_row * CELL_SIZE[1] + IMAGE_OFFSET[1],
                                     *IMG_SIZE))
         if argparser.DEFAULT_MODE:
             continue
         mainScreen.blit(attack_icon, (piece.cell_col * CELL_SIZE[0], piece.cell_row * CELL_SIZE[1]))
-        font = pygame.font.SysFont("Verdana", 16)
+        font = pygame.font.SysFont("Verdana", int(16 * ((min(CELL_SIZE)/128))))
         mainScreen.blit(font.render(str(piece.damage), True, COLORS[6]),
-                        (piece.cell_col * CELL_SIZE[0] + 25,
+                        (piece.cell_col * CELL_SIZE[0] + BOARD_OFFSET[0],
                          piece.cell_row * CELL_SIZE[1]))
         pygame.draw.rect(mainScreen, COLORS[2],
                          pygame.Rect(
-                             piece.cell_col * CELL_SIZE[0] + (CELL_SIZE[0]//10),
-                             (piece.cell_row + 1) * CELL_SIZE[1] - IMAGE_OFFSET + (CELL_SIZE[0]//10),
-                             (piece.health * (CELL_SIZE[0] - (CELL_SIZE[0]//5)))//piece.maxHealth,
-                             IMAGE_OFFSET // 3))
-        font = pygame.font.SysFont("Verdana", 8)
-        mainScreen.blit(font.render(str(piece.health) + "/" + str(piece.maxHealth), True, COLORS[6]),
-                        (piece.cell_col * CELL_SIZE[0] + (CELL_SIZE[0]//10),
-                         (piece.cell_row + 1) * CELL_SIZE[1] - IMAGE_OFFSET))
+                             piece.cell_col * CELL_SIZE[0] + (IMAGE_OFFSET[0]//2),
+                             (piece.cell_row + 1) * CELL_SIZE[1] - (IMAGE_OFFSET[1]//2),
+                             (piece.health * (CELL_SIZE[0] - IMAGE_OFFSET[0]))//piece.maxHealth,
+                             IMAGE_OFFSET[1] // 3))
+        font = pygame.font.SysFont("Verdana", int(10 * ((min(CELL_SIZE)/128))))
+        text = font.render(str(piece.health), True, COLORS[6])
+        text_size = (text.get_width(), text.get_height())
+        text_location = pygame.Rect(piece.cell_col * CELL_SIZE[0] + (IMAGE_OFFSET[0]//2),
+                                    (piece.cell_row + 1) * CELL_SIZE[1] - IMAGE_OFFSET[1] - text_size[1] // 2,
+                                    IMAGE_OFFSET[0]//2,
+                                    IMAGE_OFFSET[1]//2)
+        mainScreen.blit(text, text_location)
+        text = font.render(str(piece.maxHealth), True, COLORS[6])
+        text_size = (text.get_width(), text.get_height())
+        text_location = pygame.Rect((piece.cell_col + 1) * CELL_SIZE[0] - IMAGE_OFFSET[0] - text_size[0] // 2,
+                                    (piece.cell_row + 1) * CELL_SIZE[1] - IMAGE_OFFSET[1] - text_size[1] // 2,
+                                    IMAGE_OFFSET[0]//2,
+                                    IMAGE_OFFSET[1]//2)
+        mainScreen.blit(text, text_location)
 
 
 def drawWinner(mainScreen: pygame.Surface, winner: str) -> None:
@@ -134,16 +148,17 @@ def drawWinner(mainScreen: pygame.Surface, winner: str) -> None:
     """
     if not winner:
         return
-    font = pygame.font.SysFont("Verdana", 64)
+    font = pygame.font.SysFont("Verdana", int(64 * ((min(CELL_SIZE)/128))))
     text = font.render(winner.upper(), True, COLORS[6])
     text_size = (text.get_width(), text.get_height())
-    text_location = pygame.Rect(0, 0, *BOARD_SIZE).move(BOARD_SIZE[0] / 2 - text_size[0] / 2,
-                                                        BOARD_SIZE[1] / 2 - text_size[1] / 2)
+    text_location = pygame.Rect(BOARD_SIZE[0] // 2 - text_size[0] // 2,
+                                BOARD_SIZE[1] // 2 - text_size[1] // 2, *text_size)
     mainScreen.blit(text, text_location)
-    font = pygame.font.SysFont("Verdana", 32)
+    font = pygame.font.SysFont("Verdana", int(32 * ((min(CELL_SIZE)/128))))
     text = font.render("Play Again (R)", True, COLORS[7])
-    text_location = pygame.Rect(0, 0, *BOARD_SIZE).move(BOARD_SIZE[0] / 2 - text.get_width() / 2,
-                                                        BOARD_SIZE[1] / 2 + text_size[1] / 2)
+    text_location = pygame.Rect(BOARD_SIZE[0] // 2 - text.get_width() // 2,
+                                BOARD_SIZE[1] // 2 + text_size[1] // 2,
+                                text.get_width(), text.get_height())
     mainScreen.blit(text, text_location)
 
 
@@ -160,19 +175,20 @@ def drawIdentifiers(mainScreen: pygame.Surface, gameState: engine.GameState):
     pygame.draw.rect(mainScreen, COLORS[1],
                          pygame.Rect(0, y_offset,
                                      BOARD_SIZE[0], BOARD_SIZE[1] - y_offset))
-    font = pygame.font.SysFont("Verdana", 16)
+    font = pygame.font.SysFont("Verdana", int(16 * ((min(CELL_SIZE)/128))))
     for i in range(engine.DIMENSION[0]):
         text = font.render(gameState.numbers_identifiers[i], True, COLORS[6])
         text_size = (text.get_width(), text.get_height())
         text_location = pygame.Rect(x_offset + (BOARD_OFFSET[0] - text_size[0]) // 2,
-                                    i * CELL_SIZE[1] + CELL_SIZE[1] // 2 - text_size[1] // 2,
+                                    (i * CELL_SIZE[1]) + (CELL_SIZE[1] // 2) - (text_size[1] // 2),
                                     BOARD_OFFSET[0], CELL_SIZE[1])
         mainScreen.blit(text, text_location)
     for i in range(engine.DIMENSION[1]):
         text = font.render(gameState.alpha_identifiers[i], True, COLORS[6])
         text_size = (text.get_width(), text.get_height())
-        text_location = pygame.Rect(i * CELL_SIZE[0] + CELL_SIZE[0] // 2 - text_size[0] // 2,
-                                    y_offset, BOARD_OFFSET[0], CELL_SIZE[1])
+        text_location = pygame.Rect((i * CELL_SIZE[0]) + (CELL_SIZE[0] // 2) - (text_size[0] // 2),
+                                    y_offset + (BOARD_OFFSET[1] - text_size[1]) // 2,
+                                    BOARD_OFFSET[0], CELL_SIZE[1])
         mainScreen.blit(text, text_location)
 
 
@@ -261,6 +277,33 @@ def choosePromoteOptions(mainScreen: pygame.Surface, gameState: engine.GameState
         pygame.display.flip()
 
 
+def rescaleWindow(newWidth: int, newHeight: int, holder: Holder, gameState: engine.GameState):
+    global BOARD_SIZE
+    global BOARD_OFFSET
+    global CELL_SIZE
+    global HALF_CELL_SIZE
+    global IMAGE_OFFSET
+    global IMG_SIZE
+    
+    
+    BOARD_SIZE = (newWidth, newHeight)
+    BOARD_OFFSET = (BOARD_SIZE[0] // 50, 
+                    BOARD_SIZE[1] // 50)
+    CELL_SIZE = ((BOARD_SIZE[0] - BOARD_OFFSET[0])// engine.DIMENSION[1],
+                (BOARD_SIZE[1] - BOARD_OFFSET[1]) // engine.DIMENSION[0])
+    HALF_CELL_SIZE = (CELL_SIZE[0]//2, CELL_SIZE[1]//2)
+    IMAGE_OFFSET = (int(CELL_SIZE[0] * 0.125),
+                    int(CELL_SIZE[1] * 0.125))
+    IMG_SIZE = (int(CELL_SIZE[0] * 0.75),
+                int(CELL_SIZE[1] * 0.75))
+    
+    holder.fps = fpsClock.FPS(argparser.MAX_FPS, BOARD_SIZE[0]-30-BOARD_OFFSET[0], 0)
+    holder.attack_icon = loadImage("damage", BOARD_OFFSET)
+    
+    for piece in gameState.pieces:
+        piece.loadImage(IMG_SIZE)
+    
+    
 def newGame(holder: Holder) -> engine.GameState:
     """
     Resets all values and starts/returns a new engine.GameState.
@@ -275,11 +318,11 @@ def mainGUI():
     pygame.init()
     pygame.display.set_caption('Chess to the Death')
     pygame.display.set_icon(loadImage("blackp", (20, 20)))
-    mainScreen = pygame.display.set_mode(BOARD_SIZE)
+    mainScreen = pygame.display.set_mode(BOARD_SIZE, pygame.RESIZABLE)
 
     holder.fps = fpsClock.FPS(argparser.MAX_FPS, BOARD_SIZE[0]-30-BOARD_OFFSET[0], 0)
     gameState = newGame(holder)
-    holder.attack_icon = loadImage("damage", (20, 20))
+    holder.attack_icon = loadImage("damage", BOARD_OFFSET)
     drawIdentifiers(mainScreen, gameState)
     
     renderGame(mainScreen, gameState, holder)
@@ -329,6 +372,10 @@ def mainGUI():
                     print("Restarting...")
                     gameState = newGame(holder)
                     renderGame(mainScreen, gameState, holder)
-                    
-
+            if event.type == pygame.VIDEORESIZE:
+                rescaleWindow(event.w, event.h, holder, gameState)
+                mainScreen = pygame.display.set_mode(BOARD_SIZE, pygame.RESIZABLE)
+                drawIdentifiers(mainScreen, gameState)
+                renderGame(mainScreen, gameState, holder)
+    pygame.quit()
     print("GoodBye!")
