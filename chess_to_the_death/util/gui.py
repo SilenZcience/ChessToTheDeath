@@ -331,9 +331,11 @@ def mainGUI():
     holder.fps = fpsClock.FPS(argparser.MAX_FPS, BOARD_SIZE[0]-30-BOARD_OFFSET[0], 0)
     gameState = newGame(holder)
     holder.attack_icon = loadImage("damage", BOARD_OFFSET)
-    drawIdentifiers(mainScreen, gameState)
+    sel_col, sel_row = -1, -1
     
+    drawIdentifiers(mainScreen, gameState)
     renderGame(mainScreen, gameState, holder)
+    
     running = True
     while running:
         if argparser.HIGHLIGHT_CELLS:
@@ -377,6 +379,8 @@ def mainGUI():
                 elif event.button == 3:
                     holder.marked_cells.append((col, row))
                 renderGame(mainScreen, gameState, holder)
+            if event.type == pygame.MOUSEBUTTONUP and not holder.winner:
+                print("lmao")
             if event.type == pygame.KEYDOWN and holder.winner:
                 if pygame.key.name(event.key) == 'r':
                     print("Log:")
