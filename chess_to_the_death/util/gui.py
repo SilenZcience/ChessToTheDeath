@@ -22,14 +22,15 @@ IMG_SIZE = (int(CELL_SIZE[0] * 0.75), # image is 3/4 the size of the cell
             int(CELL_SIZE[1] * 0.75))
 IMAGE_OFFSET = (int(CELL_SIZE[0] * 0.125), # half of the remaining 1/4 -> 1/8
                 int(CELL_SIZE[1] * 0.125))
-COLORS = [(230, 230, 230), #"#E6E6E6" -> WHITE / CELL + HOVER
-          ( 32,  33,  36), #"#202124" -> DARK_GRAY / CELL + HOVER
-          (255,   0,   0), #"#FF0000" -> RED / HEALTH
-          (  0,   0, 255), #"#0000FF" -> BLUE / SELECTED
-          (  0, 255,   0), #"#00FF00" -> GREEN / MOVABLE
-          (255,   0,   0), #"#FF0000" -> RED / ATTACKABLE
-          ( 46, 149, 153), #"#2E9599" -> TEAL / TEXT
-          (  0,   0,   0)] #"#000000" -> BLACK / REDO
+COLORS = [(230, 230, 230, 255), #"#E6E6E6" -> WHITE / CELL + HOVER
+          ( 32,  33,  36, 255), #"#202124" -> DARK_GRAY / CELL + HOVER
+          (255,   0,   0, 255), #"#FF0000" -> RED / HEALTH
+          (  0,   0, 255, 255), #"#0000FF" -> BLUE / SELECTED
+          (  0, 255,   0, 255), #"#00FF00" -> GREEN / MOVABLE
+          (255,   0,   0, 255), #"#FF0000" -> RED / ATTACKABLE
+          ( 46, 149, 153, 255), #"#2E9599" -> TEAL / TEXT
+          (  0,   0,   0, 255), #"#000000" -> BLACK / REDO
+          (255, 165,   0, 150)] # '#FFA500' -> ORANGE / PLANNING_ARROWS
 
 
 class Holder:
@@ -37,6 +38,7 @@ class Holder:
     winner: str = ''
     options_move, options_attack = [], []
     marked_cells = set()
+    planning_arrows = []
     attack_icon: pygame.Surface = None
     fps: fpsClock = None
 
@@ -168,6 +170,53 @@ def drawWinner(mainScreen: pygame.Surface, winner: str) -> None:
     mainScreen.blit(text, text_location)
 
 
+def draw_polygon_alpha(surface, color, points):
+    lx, ly = zip(*points)
+    min_x, min_y, max_x, max_y = min(lx), min(ly), max(lx), max(ly)
+    target_rect = pygame.Rect(min_x, min_y, max_x - min_x, max_y - min_y)
+    shape_surf = pygame.Surface(target_rect.size, pygame.SRCALPHA)
+    pygame.draw.polygon(shape_surf, color, [(x - min_x, y - min_y) for x, y in points])
+    surface.blit(shape_surf, target_rect)
+
+
+def drawArrow(surface: pygame.Surface, start: pygame.Vector2, end: pygame.Vector2,
+        color: tuple, body_width: int = 2, head_width: int = 4, head_height: int = 2):
+    arrow = start - end
+    angle = arrow.angle_to(pygame.Vector2(0, -1))
+    body_length = arrow.length() - head_height
+
+    # Create the triangle head around the origin
+    head_verts = [
+        pygame.Vector2(0, head_height / 2),  # Center
+        pygame.Vector2(head_width / 2, -head_height / 2),  # Bottomright
+        pygame.Vector2(-head_width / 2, -head_height / 2),  # Bottomleft
+    ]
+    # Rotate and translate the head into place
+    translation = pygame.Vector2(0, arrow.length() - (head_height / 2)).rotate(-angle)
+    for i in range(len(head_verts)):
+        head_verts[i].rotate_ip(-angle)
+        head_verts[i] += translation
+        head_verts[i] += start
+
+    draw_polygon_alpha(surface, color, head_verts)
+
+    # Stop weird shapes when the arrow is shorter than arrow head
+    if arrow.length() >= head_height:
+        # Calculate the body rect, rotate and translate into place
+        body_verts = [
+            pygame.Vector2(-body_width / 2, body_length / 2),  # Topleft
+            pygame.Vector2(body_width / 2, body_length / 2),  # Topright
+            pygame.Vector2(body_width / 2, -body_length / 2),  # Bottomright
+            pygame.Vector2(-body_width / 2, -body_length / 2),  # Bottomleft
+        ]
+        translation = pygame.Vector2(0, body_length / 2).rotate(-angle)
+        for i in range(len(body_verts)):
+            body_verts[i].rotate_ip(-angle)
+            body_verts[i] += translation
+            body_verts[i] += start
+        draw_polygon_alpha(surface, color, body_verts)
+
+
 def drawIdentifiers(mainScreen: pygame.Surface, gameState: engine.GameState):
     """
     Draw the letters and numbers to identify a single cell.
@@ -212,6 +261,9 @@ def renderGame(mainScreen: pygame.Surface, gameState: engine.GameState, holder: 
     drawGame(mainScreen, gameState, holder)
     if argparser.HIGHLIGHT_CELLS:
         holder.fps.render(mainScreen)
+    arrow_thickness = 2 * min(IMAGE_OFFSET)
+    for arrow in holder.planning_arrows:
+        drawArrow(mainScreen, arrow[0], arrow[1], COLORS[8], arrow_thickness, 2 * arrow_thickness, arrow_thickness)
     pygame.display.flip()
 
 
@@ -291,7 +343,7 @@ def rescaleWindow(newWidth: int, newHeight: int, holder: Holder, gameState: engi
     global IMAGE_OFFSET
     global IMG_SIZE
     
-    
+    CELL_SIZE_OLD = CELL_SIZE
     BOARD_SIZE = (newWidth, newHeight)
     BOARD_OFFSET = (BOARD_SIZE[0] // 50, 
                     BOARD_SIZE[1] // 50)
@@ -308,6 +360,17 @@ def rescaleWindow(newWidth: int, newHeight: int, holder: Holder, gameState: engi
     
     for piece in gameState.pieces:
         piece.loadImage(IMG_SIZE)
+        
+    for arrow in holder.planning_arrows:
+        arrow[0][0] = (arrow[0][0] - (CELL_SIZE_OLD[0] // 2)) // CELL_SIZE_OLD[0]
+        arrow[0][1] = (arrow[0][1] - (CELL_SIZE_OLD[1] // 2)) // CELL_SIZE_OLD[1]
+        arrow[1][0] = (arrow[1][0] - (CELL_SIZE_OLD[0] // 2)) // CELL_SIZE_OLD[0]
+        arrow[1][1] = (arrow[1][1] - (CELL_SIZE_OLD[1] // 2)) // CELL_SIZE_OLD[1]
+        
+        arrow[0][0] = arrow[0][0] * CELL_SIZE[0] + (CELL_SIZE[0] // 2)
+        arrow[0][1] = arrow[0][1] * CELL_SIZE[1] + (CELL_SIZE[1] // 2)
+        arrow[1][0] = arrow[1][0] * CELL_SIZE[0] + (CELL_SIZE[0] // 2)
+        arrow[1][1] = arrow[1][1] * CELL_SIZE[1] + (CELL_SIZE[1] // 2)
     
     
 def newGame(holder: Holder) -> engine.GameState:
@@ -322,7 +385,7 @@ def newGame(holder: Holder) -> engine.GameState:
 def mainGUI():
     holder = Holder()
     pygame.init()
-    mainScreen = pygame.display.set_mode(BOARD_SIZE, pygame.DOUBLEBUF, pygame.RESIZABLE)
+    mainScreen = pygame.display.set_mode(BOARD_SIZE, pygame.DOUBLEBUF | pygame.RESIZABLE)
     pygame.display.set_caption('Chess to the Death')
     pygame.display.set_icon(loadImage("blackp", (20, 20)))
     pygame.event.set_allowed([pygame.QUIT, pygame.MOUSEBUTTONDOWN, pygame.MOUSEBUTTONUP,
@@ -331,7 +394,7 @@ def mainGUI():
     holder.fps = fpsClock.FPS(argparser.MAX_FPS, BOARD_SIZE[0]-30-BOARD_OFFSET[0], 0)
     gameState = newGame(holder)
     holder.attack_icon = loadImage("damage", BOARD_OFFSET)
-    # sel_col, sel_row = -1, -1
+    sel_col, sel_row = -1, -1
     
     drawIdentifiers(mainScreen, gameState)
     renderGame(mainScreen, gameState, holder)
@@ -350,6 +413,7 @@ def mainGUI():
                 col, row = getMouseCell()
                 if event.button == 1:
                     holder.marked_cells.clear()
+                    holder.planning_arrows.clear()
                     piece = gameState.getPiece(col, row)
                     print("Selected:", piece, col, row)
                     if not holder.selectedCell:
@@ -376,9 +440,22 @@ def mainGUI():
                                 piece = None
                             holder.selectedCell = piece
                             holder.options_move, holder.options_attack = gameState.getOptions(piece)
+                    renderGame(mainScreen, gameState, holder)
                 elif event.button == 3:
-                    holder.marked_cells.add((col, row))
-                renderGame(mainScreen, gameState, holder)
+                    sel_col, sel_row = col, row
+            if event.type == pygame.MOUSEBUTTONUP and not holder.winner:
+                if event.button == 3:
+                    col, row = getMouseCell()
+                    if sel_col == col and sel_row == row:
+                        holder.marked_cells.add((col, row))
+                    else:
+                        newArrow = (pygame.Vector2(sel_col * CELL_SIZE[0] + CELL_SIZE[0]//2,
+                                                   sel_row * CELL_SIZE[1] + CELL_SIZE[1]//2),
+                                    pygame.Vector2(col * CELL_SIZE[0] + CELL_SIZE[0]//2,
+                                                   row * CELL_SIZE[1] + CELL_SIZE[1]//2))
+                        if not newArrow in holder.planning_arrows:
+                            holder.planning_arrows.append(newArrow)
+                    renderGame(mainScreen, gameState, holder)
             if event.type == pygame.KEYDOWN and holder.winner:
                 if pygame.key.name(event.key) == 'r':
                     print("Log:")
@@ -388,7 +465,7 @@ def mainGUI():
                     renderGame(mainScreen, gameState, holder)
             if event.type == pygame.VIDEORESIZE:
                 rescaleWindow(event.w, event.h, holder, gameState)
-                mainScreen = pygame.display.set_mode(BOARD_SIZE, pygame.DOUBLEBUF, pygame.RESIZABLE)
+                mainScreen = pygame.display.set_mode(BOARD_SIZE, pygame.DOUBLEBUF | pygame.RESIZABLE)
                 drawIdentifiers(mainScreen, gameState)
                 renderGame(mainScreen, gameState, holder)
     pygame.quit()
