@@ -36,6 +36,7 @@ class Holder:
     selectedCell: Piece = None
     winner: str = ''
     options_move, options_attack = [], []
+    marked_cells = []
     attack_icon: pygame.Surface = None
     fps: fpsClock = None
 
@@ -65,19 +66,19 @@ def drawBoard(mainScreen: pygame.Surface) -> None:
                                      *CELL_SIZE))
 
 
-def highlightCell(mainScreen: pygame.Surface, x: int, y: int, w: int, h: int, color: tuple) -> None:
+def highlightCell(mainScreen: pygame.Surface, x: int, y: int, w: int, h: int, color: tuple, alpha: int = 75) -> None:
     """
     Highlights a single cell at the coordinates x,y
     with the width 'w' and height 'h' and
     with the 'color' given as a tuple (R, G, B).
     """
     highlight = pygame.Surface((w, h))
-    highlight.set_alpha(75)
+    highlight.set_alpha(alpha)
     highlight.fill(color)
     mainScreen.blit(highlight, (x, y))
 
 
-def highlightCells(mainScreen: pygame.Surface, piece: Piece, options_move: list, options_attack: list) -> None:
+def highlightCells(mainScreen: pygame.Surface, piece: Piece, options_move: list, options_attack: list, marked_cells: list) -> None:
     """
     Highlights the selected cell.
     Highlights the valid moves of the selected cell.
@@ -95,6 +96,11 @@ def highlightCells(mainScreen: pygame.Surface, piece: Piece, options_move: list,
             highlightCell(mainScreen, option[0] * CELL_SIZE[0],
                         option[1] * CELL_SIZE[1],
                         *CELL_SIZE, COLORS[5])
+    for cell in marked_cells:
+        highlightCell(mainScreen, cell[0] * CELL_SIZE[0],
+                        cell[1] * CELL_SIZE[1],
+                        *CELL_SIZE, COLORS[2], 150)
+    
     if not argparser.HIGHLIGHT_CELLS:
         return
     col, row = getMouseCell()
@@ -194,7 +200,7 @@ def drawIdentifiers(mainScreen: pygame.Surface, gameState: engine.GameState):
 
 def drawGame(mainScreen: pygame.Surface, gameState: engine.GameState, holder: Holder) -> None:
     drawBoard(mainScreen)
-    highlightCells(mainScreen, holder.selectedCell, holder.options_move, holder.options_attack)
+    highlightCells(mainScreen, holder.selectedCell, holder.options_move, holder.options_attack, holder.marked_cells)
     drawPieces(mainScreen, gameState, holder.attack_icon)
     drawWinner(mainScreen, holder.winner)
 
@@ -319,6 +325,8 @@ def mainGUI():
     mainScreen = pygame.display.set_mode(BOARD_SIZE, pygame.DOUBLEBUF, pygame.RESIZABLE)
     pygame.display.set_caption('Chess to the Death')
     pygame.display.set_icon(loadImage("blackp", (20, 20)))
+    pygame.event.set_allowed([pygame.QUIT, pygame.MOUSEBUTTONDOWN, pygame.MOUSEBUTTONUP,
+                              pygame.KEYDOWN, pygame.VIDEORESIZE])
     
     holder.fps = fpsClock.FPS(argparser.MAX_FPS, BOARD_SIZE[0]-30-BOARD_OFFSET[0], 0)
     gameState = newGame(holder)
@@ -338,32 +346,36 @@ def mainGUI():
                 print(gameState.action_log)
             if event.type == pygame.MOUSEBUTTONDOWN and not holder.winner:
                 col, row = getMouseCell()
-                piece = gameState.getPiece(col, row)
-                print("Selected:", piece, col, row)
-                if not holder.selectedCell:
-                    if piece and gameState.selectablePiece(piece):
-                        holder.selectedCell = piece
-                        holder.options_move, holder.options_attack = gameState.getOptions(piece)
-                else:
-                    if gameState.action(holder.selectedCell, col, row, holder.options_move, holder.options_attack):
-                        holder.options_move, holder.options_attack = [], []
-                        if gameState.promotePawnOption(holder.selectedCell):
-                            print("Choose Pawn Promotion...")
-                            running = choosePromoteOptions(mainScreen, gameState, holder)
-                            print("Pawn promoted!")
-                        if running:
-                            holder.selectedCell = None
-                            holder.winner = gameState.playerWon()
-                            renderGame(mainScreen, gameState, holder)
-                            if not holder.winner:
-                                pygame.time.delay(250)
-                                gameState.nextTurn()
-                                drawIdentifiers(mainScreen, gameState)
-                    elif piece and gameState.selectablePiece(piece):
-                        if piece == holder.selectedCell:
-                            piece = None
-                        holder.selectedCell = piece
-                        holder.options_move, holder.options_attack = gameState.getOptions(piece)
+                if event.button == 1:
+                    holder.marked_cells.clear()
+                    piece = gameState.getPiece(col, row)
+                    print("Selected:", piece, col, row)
+                    if not holder.selectedCell:
+                        if piece and gameState.selectablePiece(piece):
+                            holder.selectedCell = piece
+                            holder.options_move, holder.options_attack = gameState.getOptions(piece)
+                    else:
+                        if gameState.action(holder.selectedCell, col, row, holder.options_move, holder.options_attack):
+                            holder.options_move, holder.options_attack = [], []
+                            if gameState.promotePawnOption(holder.selectedCell):
+                                print("Choose Pawn Promotion...")
+                                running = choosePromoteOptions(mainScreen, gameState, holder)
+                                print("Pawn promoted!")
+                            if running:
+                                holder.selectedCell = None
+                                holder.winner = gameState.playerWon()
+                                renderGame(mainScreen, gameState, holder)
+                                if not holder.winner:
+                                    pygame.time.delay(250)
+                                    gameState.nextTurn()
+                                    drawIdentifiers(mainScreen, gameState)
+                        elif piece and gameState.selectablePiece(piece):
+                            if piece == holder.selectedCell:
+                                piece = None
+                            holder.selectedCell = piece
+                            holder.options_move, holder.options_attack = gameState.getOptions(piece)
+                elif event.button == 3:
+                    holder.marked_cells.append((col, row))
                 renderGame(mainScreen, gameState, holder)
             if event.type == pygame.KEYDOWN and holder.winner:
                 if pygame.key.name(event.key) == 'r':
