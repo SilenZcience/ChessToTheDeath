@@ -36,7 +36,7 @@ class Holder:
     selectedCell: Piece = None
     winner: str = ''
     options_move, options_attack = [], []
-    marked_cells = []
+    marked_cells = set()
     attack_icon: pygame.Surface = None
     fps: fpsClock = None
 
@@ -78,7 +78,7 @@ def highlightCell(mainScreen: pygame.Surface, x: int, y: int, w: int, h: int, co
     mainScreen.blit(highlight, (x, y))
 
 
-def highlightCells(mainScreen: pygame.Surface, piece: Piece, options_move: list, options_attack: list, marked_cells: list) -> None:
+def highlightCells(mainScreen: pygame.Surface, piece: Piece, options_move: list, options_attack: list, marked_cells: set) -> None:
     """
     Highlights the selected cell.
     Highlights the valid moves of the selected cell.
@@ -331,7 +331,7 @@ def mainGUI():
     holder.fps = fpsClock.FPS(argparser.MAX_FPS, BOARD_SIZE[0]-30-BOARD_OFFSET[0], 0)
     gameState = newGame(holder)
     holder.attack_icon = loadImage("damage", BOARD_OFFSET)
-    sel_col, sel_row = -1, -1
+    # sel_col, sel_row = -1, -1
     
     drawIdentifiers(mainScreen, gameState)
     renderGame(mainScreen, gameState, holder)
@@ -377,10 +377,8 @@ def mainGUI():
                             holder.selectedCell = piece
                             holder.options_move, holder.options_attack = gameState.getOptions(piece)
                 elif event.button == 3:
-                    holder.marked_cells.append((col, row))
+                    holder.marked_cells.add((col, row))
                 renderGame(mainScreen, gameState, holder)
-            if event.type == pygame.MOUSEBUTTONUP and not holder.winner:
-                print("lmao")
             if event.type == pygame.KEYDOWN and holder.winner:
                 if pygame.key.name(event.key) == 'r':
                     print("Log:")
