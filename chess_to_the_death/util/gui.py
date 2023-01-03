@@ -464,9 +464,11 @@ def mainGUI():
                     sel_col, sel_row = col, row
             elif event.type == pygame.MOUSEBUTTONUP and not holder.winner:
                 col, row = getMouseCell()
-                if event.button == 3 and \
-                    sel_col < engine.DIMENSION[1] and sel_row < engine.DIMENSION[0] and \
-                    col < engine.DIMENSION[1] and row < engine.DIMENSION[0]:
+                if event.button == 3:
+                    sel_col = min(sel_col, engine.DIMENSION[1]-1)
+                    sel_row = min(sel_row, engine.DIMENSION[0]-1)
+                    col = min(col, engine.DIMENSION[1]-1)
+                    row = min(row, engine.DIMENSION[0]-1)
                     
                     planningBlit = None
                     if sel_col == col and sel_row == row:
@@ -481,11 +483,11 @@ def mainGUI():
                                                    sel_row * CELL_SIZE[1] + CELL_SIZE[1]//2),
                                     pygame.Vector2(col * CELL_SIZE[0] + CELL_SIZE[0]//2,
                                                    row * CELL_SIZE[1] + CELL_SIZE[1]//2))
-                        if not newArrow in holder.planning_arrows:
-                            holder.planning_arrows.append(newArrow)
-                            arrow_thickness = 2 * min(IMAGE_OFFSET)
-                            planningBlit = drawArrow(mainScreen, newArrow[0], newArrow[1], COLORS[8],
-                                                     arrow_thickness, 2 * arrow_thickness, arrow_thickness)
+                        # if not newArrow in holder.planning_arrows:
+                        holder.planning_arrows.append(newArrow)
+                        arrow_thickness = 2 * min(IMAGE_OFFSET)
+                        planningBlit = drawArrow(mainScreen, newArrow[0], newArrow[1], COLORS[8],
+                                                    arrow_thickness, 2 * arrow_thickness, arrow_thickness)
                     pygame.display.update(planningBlit)
             elif event.type == pygame.KEYDOWN and holder.winner:
                 if pygame.key.name(event.key) == 'r':
