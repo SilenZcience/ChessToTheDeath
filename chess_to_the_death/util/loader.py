@@ -20,3 +20,7 @@ def loadImage(relPath: str, size: tuple):
         PIECE_IMAGES[relPath + str(size[0]) + "x" + str(size[1])] = transform.smoothscale(
             image.load(path.join(basePath, relPath + ".png")).convert_alpha(), size)
     return PIECE_IMAGES[relPath + str(size[0]) + "x" + str(size[1])]
+
+def clearPieceImageCache():
+    global PIECE_IMAGES
+    PIECE_IMAGES = {}

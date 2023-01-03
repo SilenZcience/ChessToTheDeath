@@ -13,17 +13,17 @@ pieceTranslateDic = {'p': 1, 'b': 2, 'n': 3, 'r': 4, 'q': 5, 'k': 6,
 
 def createPiece(name: str, col: int, row: int, player: str, image_size):
     if name == 'p':
-        return Pawn(  name, col, row, player, image_size)
+        return Pawn(  col, row, player, image_size)
     if name == 'b':
-        return Bishop(name, col, row, player, image_size)
+        return Bishop(col, row, player, image_size)
     if name == 'n':
-        return Knight(name, col, row, player, image_size)
+        return Knight(col, row, player, image_size)
     if name == 'r':
-        return Rook(  name, col, row, player, image_size)
+        return Rook(  col, row, player, image_size)
     if name == 'q':
-        return Queen( name, col, row, player, image_size)
+        return Queen( col, row, player, image_size)
     if name == 'k':
-        return King(  name, col, row, player, image_size)
+        return King(  col, row, player, image_size)
     return None
 
 
@@ -146,7 +146,7 @@ class GameState:
         Takes an existing Piece and promotes it to another Piece-Type
         corresponding to the given 'newPieceName' identifier.
         (e.g. promotePiece(Pawn(...), 'q') replaces the Pawn with a new Queen)
-        This should only happen to Pawn-pieces, checks havee to be made beforehand.
+        This should only happen to Pawn-pieces, checks have to be made beforehand.
         """
         promotedPiece = createPiece(newPieceName, piece.cell_col, piece.cell_row, piece._player, self.image_size)
         if argparser.RANDOM_VALUES:
