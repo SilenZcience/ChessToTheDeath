@@ -52,6 +52,7 @@ class GameState:
         
         self.health_damage_dict = {}
 
+        # generate the pieces of the default gameBoard defined in config.py
         for row in range(config.board.shape[0]):
             for col in range(config.board.shape[1]):
                 if config.board[row, col] == 0:
@@ -67,6 +68,9 @@ class GameState:
                     self.king_pieces[config.board[row, col] > 0] = piece
         
         self.pieces: list[Piece] = self.white_pieces + self.black_pieces
+        # assign each piece type a random health- and damage value
+        # save the value in health_damage_dict for possible pawn promotions
+        # if the random parameter is given
         if argparser.RANDOM_VALUES:
             from random import randint
             for piece in self.pieces:
@@ -74,6 +78,8 @@ class GameState:
                     self.health_damage_dict[piece._name] = (randint(10, 150), randint(10, 150))
                 piece.maxHealth = piece.health = self.health_damage_dict[piece._name][0]
                 piece.damage = self.health_damage_dict[piece._name][1]
+        # the default parameters actually sets all health- an damage values to 1
+        # since 0 might throw division error
         if self.default:
             for piece in self.pieces:
                 piece.maxHealth = piece.health = 1
@@ -84,8 +90,7 @@ class GameState:
 
     def translateActionRepr(self, actionRepr: Action) -> tuple:
         """
-        Takes an action-object and reverts it to row and column
-        numbers.
+        Takes an action-object and reverts it to row and column numbers.
         Returns a tuple with original starting and target position.
         Depends on current board flip!
         """
@@ -113,7 +118,7 @@ class GameState:
 
     def getPiece(self, col: int, row: int) -> Piece:
         """
-        Takes x,y (col,row) coordinates andd returns
+        Takes x,y (col,row) coordinates and returns
         the corresponding piece standing on that position.
         """
         for piece in self.pieces:
@@ -131,7 +136,10 @@ class GameState:
     def isEmptyCell(self, col: int, row: int) -> bool:
         return not self.getPiece(col, row)
     
-    def isCellAttacked(self, col: int, row: int):
+    def isCellAttacked(self, col: int, row: int) -> bool:
+        """
+        Check if a given cell is threatened by any enemy piece.
+        """
         cellTuple = (col, row)
         for piece in self.pieces:
             if piece._player == self.currentPlayer():
@@ -149,6 +157,7 @@ class GameState:
         This should only happen to Pawn-pieces, checks have to be made beforehand.
         """
         promotedPiece = createPiece(newPieceName, piece.cell_col, piece.cell_row, piece._player, self.image_size)
+        # set health- and damage values corresponding to the given argv parameters
         if argparser.RANDOM_VALUES:
             promotedPiece.maxHealth = promotedPiece.health = self.health_damage_dict[promotedPiece._name][0]
             promotedPiece.damage = self.health_damage_dict[promotedPiece._name][1]           
@@ -166,7 +175,7 @@ class GameState:
     def promotePawnOption(self, piece: Piece) -> bool:
         """
         Checks whether or not a piece can be promoted.
-        It has to be a pawn and it has to have reached the top
+        It has to be a pawn and it has to have reached the top/bottom
         of the board.
         """
         promotable = piece._name == 'p' and \
@@ -226,16 +235,27 @@ class GameState:
 
         return action
 
-    def action(self, piece: Piece, to_col: int, to_row: int, options_move: list, options_attack: list) -> bool:
+    def action(self, piece: Piece, to_col: int, to_row: int, options_move: list, options_attack: list) -> str:
+        """
+        Return an empty string if the action could not be performed (should generally not happen).
+        Returns the action taken or in special cases an identifying string for promotion or game-end.
+        """
+        gameStateAction = ''
+        if not piece:
+            return gameStateAction
         from_cell = (piece.cell_col, piece.cell_row)
         moves = self.move(piece, to_col, to_row, options_move)
         attacks = self.attack(piece, to_col, to_row, options_attack)
+        gameStateAction = moves + attacks
         self.createBoard()
-        if moves or attacks:
+        if gameStateAction:
             self.writeActionLog(*from_cell, to_col, to_row, moves + attacks)
             self.action_log.printAction(-1)
-            return True
-        return False
+            if self.playerWon():
+                return 'GAMEFINISHED'
+            if self.promotePawnOption(piece):
+                return 'PROMOTION'
+        return gameStateAction
     
     def playerWonDefault(self) -> str:
         """
@@ -294,6 +314,9 @@ class GameState:
         return (self.currentPlayer() + " WON!") if (self.king_pieces[not self.player_turn].health <= 0) else ''
 
     def checkPinnedOptions(self, piece: Piece, options_move: list, options_attack: list) -> tuple:
+        """
+        check if a piece is pinned such that it cannot move without exposing the king to attacks.
+        """
         backup_values = (piece.cell_col, piece.cell_row, self.board[piece.cell_row, piece.cell_col])
         self.board[piece.cell_row, piece.cell_col] = 0
         for i in range(len(options_move)-1, -1, -1):
@@ -337,8 +360,7 @@ class GameState:
 
     def getCastleOptions(self, piece: Piece) -> list:
         """
-        Takes a 'piece' and checks if it has
-        the option to castle.
+        Takes a 'piece' and checks if it has the option to castle.
         If so the function returns a list containing tuples.
         Each tuple contains the target-position for the king to castle,
         the target-position for the rook, aswell as the rook itself.
@@ -451,7 +473,7 @@ class GameState:
                 1 if piece._player == Player.PLAYER_W else -1
             )
 
-    def nextTurn(self):
+    def nextTurn(self) -> None:
         """
         flips the board at switches to thee team whose
         turn it is at the moment.

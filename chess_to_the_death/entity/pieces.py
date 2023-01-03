@@ -13,6 +13,9 @@ class Piece:
         self.loadImage(image_size)
 
     def loadImage(self, image_size: tuple = None) -> None:
+        """
+        load the image to diplay the piece
+        """
         self.image = loadImage(self._player + self._name, image_size)
 
     def move(self, x: int, y: int) -> None:

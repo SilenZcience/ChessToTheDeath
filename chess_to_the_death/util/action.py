@@ -17,13 +17,23 @@ class ActionLog:
         self.boards = []
     
     def add(self, board: np.ndarray, from_col: int, from_row: int, to_col: int, to_row: int, action: str) -> None:
+        """
+        add an action to the log by saving the from- and to-position of the action taken aswell
+        as the entire board
+        """
         self.boards.append(board.copy())
         self.actions.append(Action(from_col, from_row, to_col, to_row, action))
         
     def get(self, index: int) -> Action:
+        """
+        return the action at log position 'index'
+        """
         return self.actions[index]
     
     def getPrintActionString(self, actionLogIndex: int = -1, color: str = '32') -> str:
+        """
+        generate a string to represent an action
+        """
         action = self.get(actionLogIndex)
         actionRepr = "\x1b[" + color + "m"
         actionRepr += str(action)

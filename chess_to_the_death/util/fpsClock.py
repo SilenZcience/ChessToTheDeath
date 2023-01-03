@@ -10,12 +10,9 @@ class FPS:
         self.clock = pygame.time.Clock()
         self.font = pygame.font.SysFont('Verdana', 14)
 
-    def render(self, screen: pygame.Surface) -> None:
+    def getFps(self) -> None:
         """
-        takes a pygame.Surface mainscreen and renders the current
-        fps on the initialized x,y coordinates.
+        ticks the pygame.time.Clock and returns the current fps as string
         """
         self.clock.tick(self.fps)
-        self.text = self.font.render(
-            str(int(self.clock.get_fps())), True, (255, 255, 255))
-        screen.blit(self.text, self.pos)
+        return str(int(self.clock.get_fps()))
