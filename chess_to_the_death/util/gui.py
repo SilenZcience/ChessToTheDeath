@@ -32,13 +32,16 @@ COLORS = [(230, 230, 230, 255), #"#E6E6E6" -> WHITE / CELL + HOVER
           (255,   0,   0, 255), #"#FF0000" -> RED / ATTACKABLE
           ( 46, 149, 153, 255), #"#2E9599" -> TEAL / TEXT
           (  0,   0,   0, 255), #"#000000" -> BLACK / REDO
-          (255, 165,   0, 150)] # '#FFA500' -> ORANGE / PLANNING_ARROWS
+          (255, 165,   0, 150), #"#FFA500" -> ORANGE / PLANNING_ARROWS
+          (218, 112, 214, 255)] #"#DA70D6" -> PINK / LAST MOVE
 
-
+# define a holder object to hold variables bundled in a global spectrum
+# and instantiate it
 class Holder:
     selectedCell: Piece = None
     winner: str = ''
     options_move, options_attack = [], []
+    last_move = []
     marked_cells = []
     planning_arrows = []
     attack_icon: pygame.Surface = None
@@ -168,6 +171,16 @@ def highlightCell(mainScreen: pygame.Surface, pos: tuple, size: tuple, color: tu
     mainScreen.blit(highlight, pos)
 
 
+def highlightLastMovedCell(mainScreen: pygame.Surface, cell: tuple) -> None:
+    """
+    highlight the cell that is currently selected.
+    """
+    if not cell in holder.last_move:
+        return
+    highlightCell(mainScreen, (cell[0] * CELL_SIZE[0], cell[1] * CELL_SIZE[1]),
+                  CELL_SIZE, COLORS[9])
+
+
 def highlightSelectedCell(mainScreen: pygame.Surface, cell: tuple) -> None:
     """
     highlight the cell that is currently selected.
@@ -270,6 +283,7 @@ def drawGameCell(mainScreen: pygame.Surface, gameState: engine.GameState, cell: 
                              cell[1] * CELL_SIZE[1],
                              *CELL_SIZE)
     drawBoardCell(mainScreen, cell, cellSquare)
+    highlightLastMovedCell(mainScreen, cell)
     if holder.selectedCell:
         highlightSelectedCell(mainScreen, cell)
         highlightMoveOptions(mainScreen, cell)
@@ -334,6 +348,12 @@ def renderGame(mainScreen: pygame.Surface, gameState: engine.GameState) -> None:
         drawGameCell(mainScreen, gameState, x)
     drawPlanningArrows(mainScreen)
     drawWinner(mainScreen)
+
+
+def setLastMoveCells(gameState: engine.GameState):
+    last_move = gameState.translateActionRepr(gameState.action_log.get(-1))
+    holder.last_move[0] = (last_move[0], last_move[1])
+    holder.last_move[1] = (last_move[2], last_move[3])
 
 
 def drawPromoteOptions(mainScreen: pygame.Surface, piece: Piece, promoteOptions: list) -> None:
@@ -458,6 +478,7 @@ def newGame() -> engine.GameState:
     """
     holder.selectedCell, holder.winner = None, None
     holder.options_move, holder.options_attack = [], []
+    holder.last_move = [(-1, -1), (-1, -1)]
     # new game is tarted so we allow mouse presses again
     pygame.event.set_allowed([pygame.MOUSEBUTTONDOWN, pygame.MOUSEBUTTONUP])
     return engine.GameState(IMG_SIZE)
@@ -575,6 +596,14 @@ def mainGUI():
                                 # until the game is quit or restarted
                                 holder.winner = gameState.playerWon()
                                 pygame.event.set_blocked([pygame.MOUSEBUTTONDOWN, pygame.MOUSEBUTTONUP])
+                                
+                                # update the old and new last move taken cells
+                                last_move_old = holder.last_move[:]
+                                setLastMoveCells(gameState)
+                                for cell in holder.last_move + last_move_old:
+                                    drawGameCell(mainScreen, gameState, cell)
+                                    
+                                # draw the game-finished message
                                 drawWinner(mainScreen)
                             # if a pawn can be promoted
                             elif action == 'PROMOTION':
@@ -591,6 +620,8 @@ def mainGUI():
                                 # switch to the other player and re-render the entire board, because of possible
                                 # board flips
                                 gameState.nextTurn()
+                                
+                                setLastMoveCells(gameState)
                                 renderGame(mainScreen, gameState)
                 # if the secondary (right) mouse button is pressed down we save the location
                 elif event.button == 3:
