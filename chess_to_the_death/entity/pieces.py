@@ -4,9 +4,8 @@ from chess_to_the_death.util.loader import loadImage
 class Piece:
     _name = ''
     
-    def __init__(self, cell_col: int, cell_row: int, player: str, image_size: tuple = None):
-        self.cell_col = cell_col
-        self.cell_row = cell_row
+    def __init__(self, cell_pos: tuple, player: str, image_size: tuple = None):
+        self.setPos(cell_pos)
         self._player = player
         
         self.firstMove = True
@@ -17,14 +16,19 @@ class Piece:
         load the image to diplay the piece
         """
         self.image = loadImage(self._player + self._name, image_size)
+        
+    def getPos(self) -> tuple:
+        return (self.cell_col, self.cell_row)
+    
+    def setPos(self, to_pos: tuple) -> None:
+        self.cell_col, self.cell_row = to_pos
 
-    def move(self, x: int, y: int) -> None:
+    def move(self, to_pos: tuple) -> None:
         """
         move the piece to the new coordinates x,y.
         """
         self.firstMove = False
-        self.cell_col = x
-        self.cell_row = y
+        self.setPos(to_pos)
 
     def isEnemy(self, x: int, y: int, board) -> bool:
         """
@@ -48,8 +52,8 @@ class Piece:
 class Rook(Piece):
     _name = 'r'
     
-    def __init__(self, cell_col, cell_row, player, image_size=None):
-        super().__init__(cell_col, cell_row, player, image_size)
+    def __init__(self, cell_pos, player, image_size=None):
+        super().__init__(cell_pos, player, image_size)
         self.maxHealth = self.health = 90
         self.damage = 15
 
@@ -75,8 +79,8 @@ class Rook(Piece):
 class Knight(Piece):
     _name = 'n'
     
-    def __init__(self, cell_col, cell_row, player, image_size=None):
-        super().__init__(cell_col, cell_row, player, image_size)
+    def __init__(self, cell_pos, player, image_size=None):
+        super().__init__(cell_pos, player, image_size)
         self.maxHealth = self.health = 32
         self.damage = 45
 
@@ -102,8 +106,8 @@ class Knight(Piece):
 class Bishop(Piece):
     _name = 'b'
     
-    def __init__(self, cell_col, cell_row, player, image_size=None):
-        super().__init__(cell_col, cell_row, player, image_size)
+    def __init__(self, cell_pos, player, image_size=None):
+        super().__init__(cell_pos, player, image_size)
         self.maxHealth = self.health = 45
         self.damage = 32
 
@@ -129,8 +133,8 @@ class Bishop(Piece):
 class Pawn(Piece):
     _name = 'p'
     
-    def __init__(self, cell_col, cell_row, player, image_size=None):
-        super().__init__(cell_col, cell_row, player, image_size)
+    def __init__(self, cell_pos, player, image_size=None):
+        super().__init__(cell_pos, player, image_size)
         self.maxHealth = self.health = 120
         self.damage = 120
 
@@ -162,26 +166,24 @@ class Pawn(Piece):
 class Queen(Piece):
     _name = 'q'
     
-    def __init__(self, cell_col, cell_row, player, image_size=None):
-        super().__init__(cell_col, cell_row, player, image_size)
+    def __init__(self, cell_pos, player, image_size=None):
+        super().__init__(cell_pos, player, image_size)
         self.maxHealth = self.health = 10
         self.damage = 60
 
     def getOptions(self, board, _=True):
         return tuple([a+b for a,b in \
             list(zip(
-                Bishop(self.cell_col, self.cell_row,
-                      self._player, None).getOptions(board),
-                Rook(self.cell_col, self.cell_row,
-                    self._player, None).getOptions(board)
+                Bishop(self.getPos(), self._player, None).getOptions(board),
+                Rook(self.getPos(), self._player, None).getOptions(board)
             ))])
 
 
 class King(Piece):
     _name = 'k'
     
-    def __init__(self, cell_col, cell_row, player, image_size=None):
-        super().__init__(cell_col, cell_row, player, image_size)
+    def __init__(self, cell_pos, player, image_size=None):
+        super().__init__(cell_pos, player, image_size)
         self.maxHealth = self.health = 150
         self.damage = 35
 

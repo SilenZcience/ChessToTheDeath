@@ -16,8 +16,10 @@ class ActionLog:
         self.actions = []
         self.boards = []
     
-    def add(self, board: np.ndarray, from_col: int, from_row: int, to_col: int, to_row: int, action: str) -> None:
+    def add(self, board: np.ndarray, from_col: str, from_row: str, to_col: str, to_row: str, action: str) -> None:
         """
+        from_col and to_col expect a char like 'A', 'B', ...
+        from_row and to_row expect a char like '1', '2', ...
         add an action to the log by saving the from- and to-position of the action taken aswell
         as the entire board
         """

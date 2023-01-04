@@ -11,19 +11,22 @@ pieceTranslateDic = {'p': 1, 'b': 2, 'n': 3, 'r': 4, 'q': 5, 'k': 6,
                      1: 'p', 2: 'b', 3: 'n', 4: 'r', 5: 'q', 6: 'k'}
 
 
-def createPiece(name: str, col: int, row: int, player: str, image_size):
+def createPiece(name: str, pos: tuple, player: str, image_size):
+    """
+    return the Piece Object according to the char identifier 'name'
+    """
     if name == 'p':
-        return Pawn(  col, row, player, image_size)
+        return Pawn(  pos, player, image_size)
     if name == 'b':
-        return Bishop(col, row, player, image_size)
+        return Bishop(pos, player, image_size)
     if name == 'n':
-        return Knight(col, row, player, image_size)
+        return Knight(pos, player, image_size)
     if name == 'r':
-        return Rook(  col, row, player, image_size)
+        return Rook(  pos, player, image_size)
     if name == 'q':
-        return Queen( col, row, player, image_size)
+        return Queen( pos, player, image_size)
     if name == 'k':
-        return King(  col, row, player, image_size)
+        return King(  pos, player, image_size)
     return None
 
 
@@ -59,10 +62,10 @@ class GameState:
                     continue
                 pieceChar = pieceTranslateDic[abs(config.board[row, col])]
                 if config.board[row, col] < 0:
-                    piece = createPiece(pieceChar, col, row, Player.PLAYER_B, image_size)
+                    piece = createPiece(pieceChar, (col, row), Player.PLAYER_B, image_size)
                     self.black_pieces.append(piece)
                 else:
-                    piece = createPiece(pieceChar, col, row, Player.PLAYER_W, image_size)
+                    piece = createPiece(pieceChar, (col, row), Player.PLAYER_W, image_size)
                     self.white_pieces.append(piece)
                 if pieceChar == 'k':
                     self.king_pieces[config.board[row, col] > 0] = piece
@@ -88,10 +91,10 @@ class GameState:
         self.createBoard()
         print(self.__repr__())
 
-    def translateActionRepr(self, actionRepr: Action) -> tuple:
+    def translateActionRepr(self, actionRepr: Action) -> list:
         """
         Takes an action-object and reverts it to row and column numbers.
-        Returns a tuple with original starting and target position.
+        Returns a list with original starting and target position tuple.
         Depends on current board flip!
         """
         from_col = self.alpha_identifiers.index(actionRepr.from_col)
@@ -99,16 +102,16 @@ class GameState:
         to_col = self.alpha_identifiers.index(actionRepr.to_col)
         to_row = self.numbers_identifiers.index(actionRepr.to_row)
         
-        return (from_col, from_row, to_col, to_row)
+        return [(from_col, from_row), (to_col, to_row)]
 
-    def writeActionLog(self, from_col: int, from_row: int, to_col: int, to_row: int, action: str = '') -> None:
+    def writeActionLog(self, from_pos: tuple, to_pos: tuple, action: str = '') -> None:
         """
         Take the column and row of start- and target position of any action.
         Saves an action object of said action. e.g.:(C1-G5) to the action_log list.
         Usefull for later analysis, undo functionality and EnPassant attacks.
         """
-        self.action_log.add(self.board, self.alpha_identifiers[from_col], self.numbers_identifiers[from_row],
-                self.alpha_identifiers[to_col], self.numbers_identifiers[to_row], action)
+        self.action_log.add(self.board, self.alpha_identifiers[from_pos[0]], self.numbers_identifiers[from_pos[1]],
+                self.alpha_identifiers[to_pos[0]], self.numbers_identifiers[to_pos[1]], action)
 
     def currentPlayer(self) -> str:
         """
@@ -116,13 +119,13 @@ class GameState:
         """
         return Player.OPTIONS[self.player_turn]
 
-    def getPiece(self, col: int, row: int) -> Piece:
+    def getPiece(self, pos: tuple) -> Piece:
         """
-        Takes x,y (col,row) coordinates and returns
+        Takes a position tuple with (x,y) coordinates and returns
         the corresponding piece standing on that position.
         """
         for piece in self.pieces:
-            if piece.cell_col == col and piece.cell_row == row:
+            if piece.getPos() == pos:
                 return piece
         return None
 
@@ -133,19 +136,18 @@ class GameState:
         """
         return piece._player == self.currentPlayer()
 
-    def isEmptyCell(self, col: int, row: int) -> bool:
-        return not self.getPiece(col, row)
+    def isEmptyCell(self, pos: tuple) -> bool:
+        return not self.getPiece(pos)
     
-    def isCellAttacked(self, col: int, row: int) -> bool:
+    def isCellAttacked(self, pos: tuple) -> bool:
         """
         Check if a given cell is threatened by any enemy piece.
         """
-        cellTuple = (col, row)
         for piece in self.pieces:
             if piece._player == self.currentPlayer():
                 continue
             options_move, options_attack = piece.getOptions(self.board, not self.flippedAction())
-            if cellTuple in (options_move + options_attack):
+            if pos in (options_move + options_attack):
                 return True
         return False
 
@@ -156,7 +158,7 @@ class GameState:
         (e.g. promotePiece(Pawn(...), 'q') replaces the Pawn with a new Queen)
         This should only happen to Pawn-pieces, checks have to be made beforehand.
         """
-        promotedPiece = createPiece(newPieceName, piece.cell_col, piece.cell_row, piece._player, self.image_size)
+        promotedPiece = createPiece(newPieceName, piece.getPos(), piece._player, self.image_size)
         # set health- and damage values corresponding to the given argv parameters
         if argparser.RANDOM_VALUES:
             promotedPiece.maxHealth = promotedPiece.health = self.health_damage_dict[promotedPiece._name][0]
@@ -179,51 +181,51 @@ class GameState:
         of the board.
         """
         promotable = piece._name == 'p' and \
-                    (piece.cell_row == 0 or piece.cell_row == DIMENSION[1]-1)
+                    piece.cell_row in [0, DIMENSION[1]-1]
         return promotable
 
-    def move(self, piece: Piece, to_col: int, to_row: int, options_move: list) -> str:
+    def move(self, piece: Piece, to_pos: tuple, options_move: list) -> str:
         """
-        moves a 'piece' to the new coordinates 'to_col','to_row'
+        moves a 'piece' to the new coordinates of the to_pos tuple
         if it is a valid move. Also checks for castling.
         Returns an action string describing the action performed.
         """
         action = ''
-        if not self.isEmptyCell(to_col, to_row):
+        if not self.isEmptyCell(to_pos):
             return action
-        if not (to_col, to_row) in options_move:
+        if not to_pos in options_move:
             return action
         action = 'moves'
         castleOptions = self.getCastleOptions(piece)
         for castleOption, rookPosition, rook in castleOptions:
-            if castleOption == (to_col, to_row):
-                rook.move(rookPosition[0], rookPosition[1])
+            if castleOption == to_pos:
+                rook.move(rookPosition)
                 action = 'castles'
                 break
 
-        piece.move(to_col, to_row)
+        piece.move(to_pos)
         return action
 
-    def attack(self, piece: Piece, to_col: int, to_row: int, options_attack: list) -> str:
+    def attack(self, piece: Piece, to_pos: tuple, options_attack: list) -> str:
         """
-        'piece' attacks another piece at the coordinates 'to_col','to_row'
+        'piece' attacks another piece at the coordinates of the to_pos tuple
         if it is a valid attack. 
         Returns an action string describing the action performed.
         """
         action = ''
-        enPassant = (self.getEnPassantOptions(piece) == [(to_col, to_row)])
-        if self.isEmptyCell(to_col, to_row) and not enPassant:
+        enPassant = (self.getEnPassantOptions(piece) == [to_pos])
+        if self.isEmptyCell(to_pos) and not enPassant:
             return action
-        if not (to_col, to_row) in options_attack:
+        if not to_pos in options_attack:
             return action
         action = 'attacks'
-        attacked_piece = self.getPiece(to_col, to_row)
+        attacked_piece = self.getPiece(to_pos)
         if enPassant:
-            attacked_piece = self.getPiece(to_col, to_row - (1 if self.flippedAction() else -1))
+            attacked_piece = self.getPiece((to_pos[0], to_pos[1] - (1 if self.flippedAction() else -1)))
         attacked_piece.health -= piece.damage
         if attacked_piece.health <= 0:
             action = 'takes'
-            piece.move(to_col, to_row)
+            piece.move(to_pos)
             self.pieces.remove(attacked_piece)
             print("Dead:", attacked_piece)
             if attacked_piece._player == Player.PLAYER_W:
@@ -235,7 +237,7 @@ class GameState:
 
         return action
 
-    def action(self, piece: Piece, to_col: int, to_row: int, options_move: list, options_attack: list) -> str:
+    def action(self, piece: Piece, to_pos: tuple, options_move: list, options_attack: list) -> str:
         """
         Return an empty string if the action could not be performed (should generally not happen).
         Returns the action taken or in special cases an identifying string for promotion or game-end.
@@ -243,13 +245,13 @@ class GameState:
         gameStateAction = ''
         if not piece:
             return gameStateAction
-        from_cell = (piece.cell_col, piece.cell_row)
-        moves = self.move(piece, to_col, to_row, options_move)
-        attacks = self.attack(piece, to_col, to_row, options_attack)
+        from_pos = piece.getPos()
+        moves = self.move(piece, to_pos, options_move)
+        attacks = self.attack(piece, to_pos, options_attack)
         gameStateAction = moves + attacks
         self.createBoard()
         if gameStateAction:
-            self.writeActionLog(*from_cell, to_col, to_row, moves + attacks)
+            self.writeActionLog(from_pos, to_pos, moves + attacks)
             self.action_log.printAction(-1)
             if self.playerWon():
                 return 'GAMEFINISHED'
@@ -259,7 +261,7 @@ class GameState:
     
     def playerWonDefault(self) -> str:
         """
-        Check for default Checkmate.
+        Check for default Checkmate and Stalemate.
         """
         won = ''
         self.player_turn = not self.player_turn
@@ -274,7 +276,7 @@ class GameState:
                     break
             else:
                 won = "STALEMATE!"
-                if self.isCellAttacked(enemyKing.cell_col, enemyKing.cell_row):
+                if self.isCellAttacked(enemyKing.getPos()):
                     won = (Player.OPTIONS[not self.player_turn] + " WON!")
                 
         
@@ -317,26 +319,26 @@ class GameState:
         """
         check if a piece is pinned such that it cannot move without exposing the king to attacks.
         """
-        backup_values = (piece.cell_col, piece.cell_row, self.board[piece.cell_row, piece.cell_col])
+        backup_values = (piece.getPos(), self.board[piece.cell_row, piece.cell_col])
         self.board[piece.cell_row, piece.cell_col] = 0
         for i in range(len(options_move)-1, -1, -1):
-            self.board[options_move[i][1],options_move[i][0]] = backup_values[2]
-            piece.cell_col, piece.cell_row = options_move[i][0], options_move[i][1]
-            if self.isCellAttacked(self.king_pieces[self.player_turn].cell_col, self.king_pieces[self.player_turn].cell_row):
+            self.board[options_move[i][1],options_move[i][0]] = backup_values[1]
+            piece.setPos(options_move[i])
+            if self.isCellAttacked(self.king_pieces[self.player_turn].getPos()):
                 self.board[options_move[i][1],options_move[i][0]] = 0
                 del options_move[i]
                 continue
             self.board[options_move[i][1],options_move[i][0]] = 0
         for i in range(len(options_attack)-1, -1, -1):
             prev_value = self.board[options_attack[i][1],options_attack[i][0]]
-            self.board[options_attack[i][1],options_attack[i][0]] = backup_values[2]
-            piece.cell_col, piece.cell_row = options_attack[i][0], options_attack[i][1]
-            if self.isCellAttacked(self.king_pieces[self.player_turn].cell_col, self.king_pieces[self.player_turn].cell_row):
+            self.board[options_attack[i][1],options_attack[i][0]] = backup_values[1]
+            piece.setPos(options_attack[i])
+            if self.isCellAttacked(self.king_pieces[self.player_turn].getPos()):
                 self.board[options_attack[i][1],options_attack[i][0]] = prev_value
                 del options_attack[i]
                 continue
             self.board[options_attack[i][1],options_attack[i][0]] = prev_value
-        piece.cell_col, piece.cell_row = backup_values[0], backup_values[1]
+        piece.setPos(backup_values[0])
         self.createBoard()
         return (options_move, options_attack)
 
@@ -371,7 +373,7 @@ class GameState:
             return options
         # left castle demands rook at left-most position
         if abs(self.board[piece.cell_row, 0]) == pieceTranslateDic['r']:
-            rook = self.getPiece(0, piece.cell_row)
+            rook = self.getPiece((0, piece.cell_row))
             # rook must never have moved
             if (rook.firstMove) and (
                 (np.array_equal(self.board[piece.cell_row, :piece.cell_col+1], [4, 0, 0, 0, 6])) or (  # white left
@@ -379,7 +381,7 @@ class GameState:
                 np.array_equal(self.board[piece.cell_row, :piece.cell_col+1], [-4, 0, 0, -6]))):       # black left (flip)
                 if self.default:
                     for x in range(0, piece.cell_col+1):
-                        if self.isCellAttacked(x, piece.cell_row):
+                        if self.isCellAttacked((x, piece.cell_row)):
                             break
                     else:
                         options.append(((piece.cell_col-2, piece.cell_row), (piece.cell_col-1, piece.cell_row), rook))
@@ -387,7 +389,7 @@ class GameState:
                     options.append(((piece.cell_col-2, piece.cell_row), (piece.cell_col-1, piece.cell_row), rook))
         # right castle demands rook at right-most position
         if abs(self.board[piece.cell_row, DIMENSION[1]-1]) == pieceTranslateDic['r']:
-            rook = self.getPiece(DIMENSION[1]-1, piece.cell_row)
+            rook = self.getPiece((DIMENSION[1]-1, piece.cell_row))
             # rook must never have moved
             if (rook.firstMove) and (
                 (np.array_equal(self.board[piece.cell_row, piece.cell_col:], [6, 0, 0, 4])) or (  # white right
@@ -395,7 +397,7 @@ class GameState:
                 np.array_equal(self.board[piece.cell_row, piece.cell_col:], [-6, 0, 0, 0, -4]))): # black right (flip)
                 if self.default:
                     for x in range(piece.cell_col, DIMENSION[0]):
-                        if self.isCellAttacked(x, piece.cell_row):
+                        if self.isCellAttacked((x, piece.cell_row)):
                             break
                     else:
                         options.append(((piece.cell_col+2, piece.cell_row), (piece.cell_col+1, piece.cell_row), rook))
@@ -413,8 +415,10 @@ class GameState:
         options = []
         # current piece must be Pawn
         if not self.action_log.actions or piece._name != 'p':
-            return options 
-        from_col, from_row, to_col, to_row = self.translateActionRepr(self.action_log.get(-1))
+            return options
+        last_move = self.translateActionRepr(self.action_log.get(-1))
+        from_col, from_row = last_move[0]
+        to_col, to_row = last_move[1]
         # last move must be 2-square move forward
         if abs(from_row - to_row) != 2 or (from_col - to_col) != 0:
             return options 

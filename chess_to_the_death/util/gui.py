@@ -42,7 +42,7 @@ class Holder:
     winner: str = ''
     options_move, options_attack = [], []
     last_move = []
-    marked_cells = []
+    marked_cells = set()
     planning_arrows = []
     attack_icon: pygame.Surface = None
     fps: fpsClock = None
@@ -185,7 +185,7 @@ def highlightSelectedCell(mainScreen: pygame.Surface, cell: tuple) -> None:
     """
     highlight the cell that is currently selected.
     """
-    if cell != (holder.selectedCell.cell_col, holder.selectedCell.cell_row):
+    if cell != holder.selectedCell.getPos():
         return
     highlightCell(mainScreen, (cell[0] * CELL_SIZE[0], cell[1] * CELL_SIZE[1]),
                   CELL_SIZE, COLORS[3])
@@ -291,7 +291,7 @@ def drawGameCell(mainScreen: pygame.Surface, gameState: engine.GameState, cell: 
     highlightMarkedCell(mainScreen, cell)
     if argparser.HIGHLIGHT_CELLS:
         highlightHoveredCell(mainScreen, getMouseCell(), cell)
-    drawPiece(mainScreen, gameState.getPiece(*cell), cell)
+    drawPiece(mainScreen, gameState.getPiece(cell), cell)
     pygame.display.update(cellSquare)
 
 
@@ -351,9 +351,7 @@ def renderGame(mainScreen: pygame.Surface, gameState: engine.GameState) -> None:
 
 
 def setLastMoveCells(gameState: engine.GameState):
-    last_move = gameState.translateActionRepr(gameState.action_log.get(-1))
-    holder.last_move[0] = (last_move[0], last_move[1])
-    holder.last_move[1] = (last_move[2], last_move[3])
+    holder.last_move = gameState.translateActionRepr(gameState.action_log.get(-1))
 
 
 def drawPromoteOptions(mainScreen: pygame.Surface, piece: Piece, promoteOptions: list) -> None:
@@ -498,7 +496,7 @@ def mainGUI():
         argparser.MAX_FPS, BOARD_SIZE[0]-30-BOARD_OFFSET[0], 0)
     gameState = newGame()
     holder.attack_icon = loadImage("damage", BOARD_OFFSET)
-    sel_col, sel_row = -1, -1
+    marked_old = (-1, -1)
     # for performance reasons and avoidance of visual glitches we disable
     # cell hover highlighting during planning (arrows, marks)
     # we backup the original HIGHLIGHT_CELLS parameter.
@@ -535,14 +533,14 @@ def mainGUI():
                 print("Log:")
                 print(gameState.action_log)
             elif event.type == pygame.MOUSEBUTTONDOWN:
-                col, row = getMouseCell()
+                mouseHover = getMouseCell()
                 # primary mouse button (left)
                 if event.button == 1:
                     # reset planning and cell highlighting
                     isPlanning = 0
                     argparser.HIGHLIGHT_CELLS = HIGHLIGHT_CELLS
                     # Clear all previous rendered marked cells
-                    old_marks = holder.marked_cells[:]
+                    old_marks = holder.marked_cells.copy()
                     holder.marked_cells.clear()
                     for cell in old_marks:
                         drawGameCell(mainScreen, gameState, cell)
@@ -552,8 +550,8 @@ def mainGUI():
                     holder.planning_arrows.clear()
 
                     # see if there is a piece at the clicked position
-                    piece = gameState.getPiece(col, row)
-                    print("Selected:", piece, col, row)
+                    piece = gameState.getPiece(mouseHover)
+                    print("Selected:", piece, mouseHover)
                     # if it is a valid piece of the current team, we can select it
                     if piece and gameState.selectablePiece(piece):
                         # if it was previously selected we deselect it
@@ -567,20 +565,20 @@ def mainGUI():
                         for cell in options_move_old + options_attack_old + holder.options_move + holder.options_attack:
                             drawGameCell(mainScreen, gameState, cell)
                         if piece:  # render new position
-                            drawGameCell(mainScreen, gameState, (piece.cell_col, piece.cell_row))
+                            drawGameCell(mainScreen, gameState, piece.getPos())
                         if piece_old:  # re-render old position
-                            drawGameCell(mainScreen, gameState, (piece_old.cell_col, piece_old.cell_row))
+                            drawGameCell(mainScreen, gameState, piece_old.getPos())
                     # if there already is a piece selected and now we clicked an empty piece or an empty cell
                     elif holder.selectedCell:
                         # backup old piece and action options, for later re-rendering
                         piece_old = holder.selectedCell
                         options_move_old, options_attack_old = holder.options_move, holder.options_attack
-                        piecePos_old = (piece_old.cell_col, piece_old.cell_row)
+                        piecePos_old = piece_old.getPos()
 
                         # take the action, this will return the type of action taken or if the game is finished or
                         # if a pawn can be promoted
                         action = gameState.action(
-                            holder.selectedCell, col, row, holder.options_move, holder.options_attack)
+                            holder.selectedCell, mouseHover, holder.options_move, holder.options_attack)
                         if action:
                             holder.options_move, holder.options_attack = [], []
                             holder.selectedCell = None
@@ -612,7 +610,7 @@ def mainGUI():
                                 running = choosePromoteOptions(mainScreen, gameState, piece_old)
                                 print("Pawn promoted!")
                                 # render the new promoted piece
-                                drawGameCell(mainScreen, gameState, (col, row))
+                                drawGameCell(mainScreen, gameState, mouseHover)
                             if running and not holder.winner:
                                 # wait a short while, because instant board flip doesnt give the player enough
                                 # feedback, that his action was performed
@@ -625,30 +623,27 @@ def mainGUI():
                                 renderGame(mainScreen, gameState)
                 # if the secondary (right) mouse button is pressed down we save the location
                 elif event.button == 3:
-                    sel_col, sel_row = col, row
+                    marked_old = mouseHover
                     # planning begins
                     isPlanning = 1
             elif event.type == pygame.MOUSEBUTTONUP:
                 if event.button == 3:
-                    col, row = getMouseCell()
-                    sel_col = min(sel_col, engine.DIMENSION[1]-1)
-                    sel_row = min(sel_row, engine.DIMENSION[0]-1)
-                    col = min(col, engine.DIMENSION[1]-1)
-                    row = min(row, engine.DIMENSION[0]-1)
+                    mouseHover = getMouseCell()
+                    mouseHover = (min(mouseHover[0], engine.DIMENSION[1]-1),
+                                  min(mouseHover[1], engine.DIMENSION[0]-1))
+                    marked_old = (min(marked_old[0], engine.DIMENSION[1]-1),
+                                  min(marked_old[1], engine.DIMENSION[0]-1))
 
-                    planningBlit = None
-                    if sel_col == col and sel_row == row:
-                        nextMark = (col, row)
-                        if not nextMark in holder.marked_cells:
-                            holder.marked_cells.append(nextMark)
-                            drawGameCell(mainScreen, gameState, nextMark)
+                    if mouseHover == marked_old:
+                        holder.marked_cells.add(mouseHover)
+                        drawGameCell(mainScreen, gameState, mouseHover)
                         clearPlanningArrows(mainScreen, gameState)
                         drawPlanningArrows(mainScreen)
                     else:
-                        newArrow = (pygame.Vector2(sel_col * CELL_SIZE[0] + CELL_SIZE[0]//2,
-                                                   sel_row * CELL_SIZE[1] + CELL_SIZE[1]//2),
-                                    pygame.Vector2(col * CELL_SIZE[0] + CELL_SIZE[0]//2,
-                                                   row * CELL_SIZE[1] + CELL_SIZE[1]//2))
+                        newArrow = (pygame.Vector2(marked_old[0] * CELL_SIZE[0] + CELL_SIZE[0]//2,
+                                                   marked_old[1] * CELL_SIZE[1] + CELL_SIZE[1]//2),
+                                    pygame.Vector2(mouseHover[0] * CELL_SIZE[0] + CELL_SIZE[0]//2,
+                                                   mouseHover[1] * CELL_SIZE[1] + CELL_SIZE[1]//2))
                         # if not newArrow in holder.planning_arrows:
                         holder.planning_arrows.append(newArrow)
                         arrow_thickness = 2 * min(IMAGE_OFFSET)
