@@ -44,6 +44,7 @@ class Holder:
     attack_icon: pygame.Surface = None
     fps: fpsClock = None
 
+holder = Holder()
 
 def getMouseCell(halfCell: bool = False) -> tuple:
     """
@@ -167,41 +168,41 @@ def highlightCell(mainScreen: pygame.Surface, pos: tuple, size: tuple, color: tu
     mainScreen.blit(highlight, pos)
 
 
-def highlightSelectedCell(mainScreen: pygame.Surface, piece: Piece, cell: tuple) -> None:
+def highlightSelectedCell(mainScreen: pygame.Surface, cell: tuple) -> None:
     """
     highlight the cell that is currently selected.
     """
-    if cell != (piece.cell_col, piece.cell_row):
+    if cell != (holder.selectedCell.cell_col, holder.selectedCell.cell_row):
         return
     highlightCell(mainScreen, (cell[0] * CELL_SIZE[0], cell[1] * CELL_SIZE[1]),
                   CELL_SIZE, COLORS[3])
 
 
-def highlightMoveOptions(mainScreen: pygame.Surface, options_move: list, cell: tuple) -> None:
+def highlightMoveOptions(mainScreen: pygame.Surface, cell: tuple) -> None:
     """
     highlight a cell if it's position is valid for movement
     """
-    if not cell in options_move:
+    if not cell in holder.options_move:
         return
     highlightCell(mainScreen, (cell[0] * CELL_SIZE[0], cell[1] * CELL_SIZE[1]),
                   CELL_SIZE, COLORS[4])
 
 
-def highlightAttackOptions(mainScreen: pygame.Surface, options_attack: list, cell: tuple) -> None:
+def highlightAttackOptions(mainScreen: pygame.Surface, cell: tuple) -> None:
     """
     highlight a cell if it's position is valid for attack
     """
-    if not cell in options_attack:
+    if not cell in holder.options_attack:
         return
     highlightCell(mainScreen, (cell[0] * CELL_SIZE[0], cell[1] * CELL_SIZE[1]),
                   CELL_SIZE, COLORS[5])
 
 
-def highlightMarkedCell(mainScreen: pygame.Surface, marked_cells: list, cell: tuple) -> None:
+def highlightMarkedCell(mainScreen: pygame.Surface, cell: tuple) -> None:
     """
     highlight a cell if it's position is marked
     """
-    if not cell in marked_cells:
+    if not cell in holder.marked_cells:
         return
     highlightCell(mainScreen, (cell[0] * CELL_SIZE[0], cell[1] * CELL_SIZE[1]),
                   CELL_SIZE, COLORS[2], 150)
@@ -217,7 +218,7 @@ def highlightHoveredCell(mainScreen: pygame.Surface, hoveredCell: tuple, cell: t
                   CELL_SIZE, COLORS[1 - (sum(cell) % 2)])
 
 
-def drawPiece(mainScreen: pygame.Surface, piece: Piece, attack_icon: pygame.Surface, cell: tuple) -> None:
+def drawPiece(mainScreen: pygame.Surface, piece: Piece, cell: tuple) -> None:
     """
     draw a single piece.image on the mainScreen, including health- and damage-values
     """
@@ -229,7 +230,7 @@ def drawPiece(mainScreen: pygame.Surface, piece: Piece, attack_icon: pygame.Surf
                                 *IMG_SIZE))
     if argparser.DEFAULT_MODE:
         return
-    mainScreen.blit(attack_icon, (cell[0] * CELL_SIZE[0], cell[1] * CELL_SIZE[1]))
+    mainScreen.blit(holder.attack_icon, (cell[0] * CELL_SIZE[0], cell[1] * CELL_SIZE[1]))
     font = pygame.font.SysFont("Verdana", int(16 * ((min(CELL_SIZE)/128))))
     mainScreen.blit(font.render(str(piece.damage), True, COLORS[6]),
                     (cell[0] * CELL_SIZE[0] + BOARD_OFFSET[0],
@@ -258,7 +259,7 @@ def drawPiece(mainScreen: pygame.Surface, piece: Piece, attack_icon: pygame.Surf
     mainScreen.blit(text, text_location)
 
 
-def drawGameCell(mainScreen: pygame.Surface, gameState: engine.GameState, holder: Holder, cell: tuple) -> None:
+def drawGameCell(mainScreen: pygame.Surface, gameState: engine.GameState, cell: tuple) -> None:
     """
     draw a single cell on the mainScreen, including all it's possible states.
     """
@@ -270,25 +271,25 @@ def drawGameCell(mainScreen: pygame.Surface, gameState: engine.GameState, holder
                              *CELL_SIZE)
     drawBoardCell(mainScreen, cell, cellSquare)
     if holder.selectedCell:
-        highlightSelectedCell(mainScreen, holder.selectedCell, cell)
-        highlightMoveOptions(mainScreen, holder.options_move, cell)
-        highlightAttackOptions(mainScreen, holder.options_attack, cell)
-    highlightMarkedCell(mainScreen, holder.marked_cells, cell)
+        highlightSelectedCell(mainScreen, cell)
+        highlightMoveOptions(mainScreen, cell)
+        highlightAttackOptions(mainScreen, cell)
+    highlightMarkedCell(mainScreen, cell)
     if argparser.HIGHLIGHT_CELLS:
         highlightHoveredCell(mainScreen, getMouseCell(), cell)
-    drawPiece(mainScreen, gameState.getPiece(*cell), holder.attack_icon, cell)
+    drawPiece(mainScreen, gameState.getPiece(*cell), cell)
     pygame.display.update(cellSquare)
 
 
-def drawWinner(mainScreen: pygame.Surface, winner: str) -> None:
+def drawWinner(mainScreen: pygame.Surface) -> None:
     """
     If a player has won this function will display the win-message
     on the 'mainScreen'
     """
-    if not winner:
+    if not holder.winner:
         return
     font = pygame.font.SysFont("Verdana", int(64 * ((min(CELL_SIZE)/128))))
-    text = font.render(winner.upper(), True, COLORS[6])
+    text = font.render(holder.winner.upper(), True, COLORS[6])
     text_size = (text.get_width(), text.get_height())
     text_location = pygame.Rect(BOARD_SIZE[0] // 2 - text_size[0] // 2,
                                 BOARD_SIZE[1] // 2 - text_size[1] // 2, *text_size)
@@ -301,14 +302,15 @@ def drawWinner(mainScreen: pygame.Surface, winner: str) -> None:
     pygame.display.update(mainScreen.blit(text, text_location))
 
 
-def drawPlanningArrows(mainScreen: pygame.Surface, planning_arrows: list) -> None:
+def drawPlanningArrows(mainScreen: pygame.Surface) -> None:
     arrow_thickness = 2 * min(IMAGE_OFFSET)
-    for arrow in planning_arrows:
+    for arrow in holder.planning_arrows:
         drawArrow(mainScreen, arrow[0], arrow[1], COLORS[8],
                   arrow_thickness, 2 * arrow_thickness, arrow_thickness)
 
 
-def clearPlanningArrows(mainScreen: pygame.Surface, gameState: engine.GameState, holder: Holder) -> None:
+def clearPlanningArrows(mainScreen: pygame.Surface, gameState: engine.GameState) -> None:
+    arrowCoveredCells = set()
     for from_pos, to_pos in holder.planning_arrows:
         from_pos_x, from_pos_y = from_pos
         to_pos_x, to_pos_y = to_pos
@@ -318,18 +320,20 @@ def clearPlanningArrows(mainScreen: pygame.Surface, gameState: engine.GameState,
         to_pos_y //= CELL_SIZE[1]
         for x in range(int(min(from_pos_x, to_pos_x)), int(max(from_pos_x, to_pos_x))+1):
             for y in range(int(min(from_pos_y, to_pos_y)), int(max(from_pos_y, to_pos_y))+1):
-                drawGameCell(mainScreen, gameState, holder, (x, y))
+                arrowCoveredCells.add((x, y))
+    for cell in arrowCoveredCells:
+        drawGameCell(mainScreen, gameState, cell)
 
 
-def renderGame(mainScreen: pygame.Surface, gameState: engine.GameState, holder: Holder) -> None:
+def renderGame(mainScreen: pygame.Surface, gameState: engine.GameState) -> None:
     """
     draw every cell on the mainScreen.
     """
     drawIdentifiers(mainScreen, gameState)
     for x in product(range(engine.DIMENSION[1]), range(engine.DIMENSION[0])):
-        drawGameCell(mainScreen, gameState, holder, x)
-    drawPlanningArrows(mainScreen, holder.planning_arrows)
-    drawWinner(mainScreen, holder.winner)
+        drawGameCell(mainScreen, gameState, x)
+    drawPlanningArrows(mainScreen)
+    drawWinner(mainScreen)
 
 
 def drawPromoteOptions(mainScreen: pygame.Surface, piece: Piece, promoteOptions: list) -> None:
@@ -398,7 +402,7 @@ def choosePromoteOptions(mainScreen: pygame.Surface, gameState: engine.GameState
                     return True
 
 
-def rescaleWindow(newWidth: int, newHeight: int, holder: Holder, gameState: engine.GameState):
+def rescaleWindow(newWidth: int, newHeight: int, gameState: engine.GameState):
     """
     change all global size variables according to the rescaled window attributes.
     """
@@ -448,7 +452,7 @@ def rescaleWindow(newWidth: int, newHeight: int, holder: Holder, gameState: engi
         arrow[1][1] = arrow[1][1] * CELL_SIZE[1] + (CELL_SIZE[1] // 2)
 
 
-def newGame(holder: Holder) -> engine.GameState:
+def newGame() -> engine.GameState:
     """
     Resets all values and starts/returns a new engine.GameState.
     """
@@ -460,7 +464,7 @@ def newGame(holder: Holder) -> engine.GameState:
 
 
 def mainGUI():
-    holder = Holder()
+    
     pygame.init()
     mainScreen = pygame.display.set_mode(
         BOARD_SIZE, pygame.DOUBLEBUF | pygame.RESIZABLE)
@@ -471,7 +475,7 @@ def mainGUI():
 
     holder.fps = fpsClock.FPS(
         argparser.MAX_FPS, BOARD_SIZE[0]-30-BOARD_OFFSET[0], 0)
-    gameState = newGame(holder)
+    gameState = newGame()
     holder.attack_icon = loadImage("damage", BOARD_OFFSET)
     sel_col, sel_row = -1, -1
     # for performance reasons and avoidance of visual glitches we disable
@@ -485,7 +489,7 @@ def mainGUI():
     mouseHover_old = (-1, -1)
 
     # first time rendering of the whole board
-    renderGame(mainScreen, gameState, holder)
+    renderGame(mainScreen, gameState)
 
     running = True
     while running:
@@ -496,12 +500,12 @@ def mainGUI():
         if argparser.HIGHLIGHT_CELLS and not holder.winner:
             mouseHover = getMouseCell()
             if isPlanning == 1 and mouseHover != mouseHover_old:
-                drawGameCell(mainScreen, gameState, holder, mouseHover_old)
+                drawGameCell(mainScreen, gameState, mouseHover_old)
                 argparser.HIGHLIGHT_CELLS = False
                 isPlanning = 2
             elif isPlanning == 0:
-                drawGameCell(mainScreen, gameState, holder, mouseHover)
-                drawGameCell(mainScreen, gameState, holder, mouseHover_old)
+                drawGameCell(mainScreen, gameState, mouseHover)
+                drawGameCell(mainScreen, gameState, mouseHover_old)
             mouseHover_old = mouseHover
         pygame.time.delay(25)  # relieve the CPU a bit ...
         for event in pygame.event.get():
@@ -520,10 +524,10 @@ def mainGUI():
                     old_marks = holder.marked_cells[:]
                     holder.marked_cells.clear()
                     for cell in old_marks:
-                        drawGameCell(mainScreen, gameState, holder, cell)
+                        drawGameCell(mainScreen, gameState, cell)
 
                     # clear all previous rendered arrows
-                    clearPlanningArrows(mainScreen, gameState, holder)
+                    clearPlanningArrows(mainScreen, gameState)
                     holder.planning_arrows.clear()
 
                     # see if there is a piece at the clicked position
@@ -540,13 +544,11 @@ def mainGUI():
                         holder.options_move, holder.options_attack = gameState.getOptions(piece)
                         # render all optional actions and re-render all option actions from the previous selection
                         for cell in options_move_old + options_attack_old + holder.options_move + holder.options_attack:
-                            drawGameCell(mainScreen, gameState, holder, cell)
+                            drawGameCell(mainScreen, gameState, cell)
                         if piece:  # render new position
-                            drawGameCell(mainScreen, gameState, holder,
-                                         (piece.cell_col, piece.cell_row))
+                            drawGameCell(mainScreen, gameState, (piece.cell_col, piece.cell_row))
                         if piece_old:  # re-render old position
-                            drawGameCell(mainScreen, gameState, holder,
-                                         (piece_old.cell_col, piece_old.cell_row))
+                            drawGameCell(mainScreen, gameState, (piece_old.cell_col, piece_old.cell_row))
                     # if there already is a piece selected and now we clicked an empty piece or an empty cell
                     elif holder.selectedCell:
                         # backup old piece and action options, for later re-rendering
@@ -564,8 +566,8 @@ def mainGUI():
 
                             # we re-render the old action options and the old piece position
                             for cell in options_move_old + options_attack_old:
-                                drawGameCell(mainScreen, gameState, holder, cell)
-                            drawGameCell(mainScreen, gameState, holder, piecePos_old)
+                                drawGameCell(mainScreen, gameState, cell)
+                            drawGameCell(mainScreen, gameState, piecePos_old)
 
                             # if the game is finished (draw, stalemate, mate ...)
                             if action == 'GAMEFINISHED':
@@ -573,7 +575,7 @@ def mainGUI():
                                 # until the game is quit or restarted
                                 holder.winner = gameState.playerWon()
                                 pygame.event.set_blocked([pygame.MOUSEBUTTONDOWN, pygame.MOUSEBUTTONUP])
-                                drawWinner(mainScreen, holder.winner)
+                                drawWinner(mainScreen)
                             # if a pawn can be promoted
                             elif action == 'PROMOTION':
                                 print("Choose Pawn Promotion...")
@@ -581,7 +583,7 @@ def mainGUI():
                                 running = choosePromoteOptions(mainScreen, gameState, piece_old)
                                 print("Pawn promoted!")
                                 # render the new promoted piece
-                                drawGameCell(mainScreen, gameState, holder, (col, row))
+                                drawGameCell(mainScreen, gameState, (col, row))
                             if running and not holder.winner:
                                 # wait a short while, because instant board flip doesnt give the player enough
                                 # feedback, that his action was performed
@@ -589,7 +591,7 @@ def mainGUI():
                                 # switch to the other player and re-render the entire board, because of possible
                                 # board flips
                                 gameState.nextTurn()
-                                renderGame(mainScreen, gameState, holder)
+                                renderGame(mainScreen, gameState)
                 # if the secondary (right) mouse button is pressed down we save the location
                 elif event.button == 3:
                     sel_col, sel_row = col, row
@@ -608,9 +610,9 @@ def mainGUI():
                         nextMark = (col, row)
                         if not nextMark in holder.marked_cells:
                             holder.marked_cells.append(nextMark)
-                            drawGameCell(mainScreen, gameState, holder, nextMark)
-                        clearPlanningArrows(mainScreen, gameState, holder)
-                        drawPlanningArrows(mainScreen, holder.planning_arrows)
+                            drawGameCell(mainScreen, gameState, nextMark)
+                        clearPlanningArrows(mainScreen, gameState)
+                        drawPlanningArrows(mainScreen)
                     else:
                         newArrow = (pygame.Vector2(sel_col * CELL_SIZE[0] + CELL_SIZE[0]//2,
                                                    sel_row * CELL_SIZE[1] + CELL_SIZE[1]//2),
@@ -629,14 +631,14 @@ def mainGUI():
                     print("Log:")
                     print(gameState.action_log)
                     print("Restarting...")
-                    gameState = newGame(holder)
-                    renderGame(mainScreen, gameState, holder)
+                    gameState = newGame()
+                    renderGame(mainScreen, gameState)
             elif event.type == pygame.VIDEORESIZE:
                 # if the window has been rescaled/resized we need to update all global variables
                 # according to the new size
-                rescaleWindow(event.w, event.h, holder, gameState)
+                rescaleWindow(event.w, event.h, gameState)
                 mainScreen = pygame.display.set_mode(BOARD_SIZE, pygame.DOUBLEBUF | pygame.RESIZABLE)
                 # then we render everything again
-                renderGame(mainScreen, gameState, holder)
+                renderGame(mainScreen, gameState)
     pygame.quit()
     print("GoodBye!")
