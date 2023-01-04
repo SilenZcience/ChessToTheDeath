@@ -4,11 +4,12 @@ environ['PYGAME_HIDE_SUPPORT_PROMPT'] = 'hide'  # sorry, pygame
 import pygame
 from itertools import product
 
-from chess_to_the_death.entity.pieces import Piece  # only for type-hints
-from chess_to_the_death.util.loader import loadImage, clearPieceImageCache
 import chess_to_the_death.parser.argparser as argparser
 import chess_to_the_death.util.fpsClock as fpsClock
 import chess_to_the_death.util.engine as engine
+from chess_to_the_death.entity.pieces import Piece  # only for type-hints
+from chess_to_the_death.util.loader import loadImage, clearPieceImageCache
+from chess_to_the_death.util.definition import Outcome, PieceChar
 
 
 BOARD_SIZE = (1044, 1044)
@@ -303,7 +304,7 @@ def drawWinner(mainScreen: pygame.Surface) -> None:
     if not holder.winner:
         return
     font = pygame.font.SysFont("Verdana", int(64 * ((min(CELL_SIZE)/128))))
-    text = font.render(holder.winner.upper(), True, COLORS[6])
+    text = font.render(holder.winner, True, COLORS[6])
     text_size = (text.get_width(), text.get_height())
     text_location = pygame.Rect(BOARD_SIZE[0] // 2 - text_size[0] // 2,
                                 BOARD_SIZE[1] // 2 - text_size[1] // 2, *text_size)
@@ -384,21 +385,22 @@ def choosePromoteOptions(mainScreen: pygame.Surface, gameState: engine.GameState
     Returns a boolean in case the game is being quit.
     """
     currentPlayer = gameState.currentPlayer()
-    promoteOptions = [['n', 'b'], ['r', 'q']]
-    promoteOptionsDimensions = [[(loadImage(currentPlayer+'n', HALF_CELL_SIZE),
+    promoteOptions = [[PieceChar.KNIGHT, PieceChar.BISHOP],
+                      [PieceChar.ROOK, PieceChar.QUEEN]]
+    promoteOptionsDimensions = [[(loadImage(currentPlayer+PieceChar.KNIGHT, HALF_CELL_SIZE),
                                   (piece.cell_col * CELL_SIZE[0],
                                    piece.cell_row * CELL_SIZE[1],
                                    *HALF_CELL_SIZE)),
-                                 (loadImage(currentPlayer+'b', HALF_CELL_SIZE),
+                                 (loadImage(currentPlayer+PieceChar.BISHOP, HALF_CELL_SIZE),
                                   (piece.cell_col * CELL_SIZE[0] + HALF_CELL_SIZE[0],
                                      piece.cell_row * CELL_SIZE[1],
                                      *HALF_CELL_SIZE))],
-                                [(loadImage(currentPlayer+'r', HALF_CELL_SIZE),
+                                [(loadImage(currentPlayer+PieceChar.ROOK, HALF_CELL_SIZE),
                                   (piece.cell_col * CELL_SIZE[0],
                                     piece.cell_row *
                                    CELL_SIZE[1] + HALF_CELL_SIZE[1],
                                     *HALF_CELL_SIZE)),
-                                 (loadImage(currentPlayer+'q', HALF_CELL_SIZE),
+                                 (loadImage(currentPlayer+PieceChar.QUEEN, HALF_CELL_SIZE),
                                     (piece.cell_col * CELL_SIZE[0] + HALF_CELL_SIZE[0],
                                      piece.cell_row *
                                      CELL_SIZE[1] + HALF_CELL_SIZE[1],
@@ -589,7 +591,7 @@ def mainGUI():
                             drawGameCell(mainScreen, gameState, piecePos_old)
 
                             # if the game is finished (draw, stalemate, mate ...)
-                            if action == 'GAMEFINISHED':
+                            if action == Outcome.GAME_FINISHED:
                                 # we display the winning message and temporarily block mousepresses
                                 # until the game is quit or restarted
                                 holder.winner = gameState.playerWon()
@@ -604,7 +606,7 @@ def mainGUI():
                                 # draw the game-finished message
                                 drawWinner(mainScreen)
                             # if a pawn can be promoted
-                            elif action == 'PROMOTION':
+                            elif action == Outcome.PAWN_PROMOTION:
                                 print("Choose Pawn Promotion...")
                                 # we let the player choose the promotion
                                 running = choosePromoteOptions(mainScreen, gameState, piece_old)

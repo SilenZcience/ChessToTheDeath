@@ -2,6 +2,10 @@ import numpy as np
 
 class Action:
     def __init__(self, from_col: str, from_row: str, to_col: str, to_row: str, action: str) -> None:
+        """
+        from_col and to_col expect a char like 'A', 'B', ...
+        from_row and to_row expect a char like '1', '2', ...
+        """
         self.from_col = from_col
         self.from_row = from_row
         self.to_col = to_col

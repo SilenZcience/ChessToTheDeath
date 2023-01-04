@@ -1,8 +1,8 @@
 from chess_to_the_death.util.loader import loadImage
-
+from chess_to_the_death.util.definition import PieceChar
 
 class Piece:
-    _name = ''
+    _name = PieceChar.UNDEFINED
     
     def __init__(self, cell_pos: tuple, player: str, image_size: tuple = None):
         self.setPos(cell_pos)
@@ -50,7 +50,7 @@ class Piece:
 
 
 class Rook(Piece):
-    _name = 'r'
+    _name = PieceChar.ROOK
     
     def __init__(self, cell_pos, player, image_size=None):
         super().__init__(cell_pos, player, image_size)
@@ -77,7 +77,7 @@ class Rook(Piece):
 
 
 class Knight(Piece):
-    _name = 'n'
+    _name = PieceChar.KNIGHT
     
     def __init__(self, cell_pos, player, image_size=None):
         super().__init__(cell_pos, player, image_size)
@@ -104,7 +104,7 @@ class Knight(Piece):
 
 
 class Bishop(Piece):
-    _name = 'b'
+    _name = PieceChar.BISHOP
     
     def __init__(self, cell_pos, player, image_size=None):
         super().__init__(cell_pos, player, image_size)
@@ -131,7 +131,7 @@ class Bishop(Piece):
 
 
 class Pawn(Piece):
-    _name = 'p'
+    _name = PieceChar.PAWN
     
     def __init__(self, cell_pos, player, image_size=None):
         super().__init__(cell_pos, player, image_size)
@@ -164,7 +164,7 @@ class Pawn(Piece):
 
 
 class Queen(Piece):
-    _name = 'q'
+    _name = PieceChar.QUEEN
     
     def __init__(self, cell_pos, player, image_size=None):
         super().__init__(cell_pos, player, image_size)
@@ -180,7 +180,7 @@ class Queen(Piece):
 
 
 class King(Piece):
-    _name = 'k'
+    _name = PieceChar.KING
     
     def __init__(self, cell_pos, player, image_size=None):
         super().__init__(cell_pos, player, image_size)
