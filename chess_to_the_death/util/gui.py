@@ -97,20 +97,21 @@ def drawArrow(mainScreen: pygame.Surface, start: pygame.Vector2, end: pygame.Vec
 
     draw_polygon_alpha(mainScreen, color, head_verts)
     # Stop weird shapes when the arrow is shorter than arrow head
-    if arrow.length() >= head_height:
-        # Calculate the body rect, rotate and translate into place
-        body_verts = [
-            pygame.Vector2(-body_width / 2, body_length / 2),  # Topleft
-            pygame.Vector2(body_width / 2, body_length / 2),  # Topright
-            pygame.Vector2(body_width / 2, -body_length / 2),  # Bottomright
-            pygame.Vector2(-body_width / 2, -body_length / 2),  # Bottomleft
-        ]
-        translation = pygame.Vector2(0, body_length / 2).rotate(-angle)
-        for i in range(len(body_verts)):
-            body_verts[i].rotate_ip(-angle)
-            body_verts[i] += translation
-            body_verts[i] += start
-        draw_polygon_alpha(mainScreen, color, body_verts)
+    # Unnecessary, since the arrow is at least one square long
+    # if arrow.length() >= head_height:
+    # Calculate the body rect, rotate and translate into place
+    body_verts = [
+        pygame.Vector2(-body_width / 2, body_length / 2),  # Topleft
+        pygame.Vector2(body_width / 2, body_length / 2),  # Topright
+        pygame.Vector2(body_width / 2, -body_length / 2),  # Bottomright
+        pygame.Vector2(-body_width / 2, -body_length / 2),  # Bottomleft
+    ]
+    translation = pygame.Vector2(0, body_length / 2).rotate(-angle)
+    for i in range(len(body_verts)):
+        body_verts[i].rotate_ip(-angle)
+        body_verts[i] += translation
+        body_verts[i] += start
+    draw_polygon_alpha(mainScreen, color, body_verts)
 
 
 def drawIdentifiers(mainScreen: pygame.Surface, gameState: engine.GameState):
