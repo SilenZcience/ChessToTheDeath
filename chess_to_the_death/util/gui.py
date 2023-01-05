@@ -39,14 +39,24 @@ COLORS = [(230, 230, 230, 255), #"#E6E6E6" -> WHITE / CELL + HOVER
 # define a holder object to hold variables bundled in a global spectrum
 # and instantiate it
 class Holder:
-    selectedCell: Piece = None
+    # Engine
+    selectedPiece: Piece = None
     winner: str = ''
     options_move, options_attack = [], []
     last_move = []
+    # Planning
     marked_cells = set()
     planning_arrows = []
+    # GUI
     attack_icon: pygame.Surface = None
     fps: fpsClock = None
+    # Args
+    # for performance reasons and avoidance of visual glitches we disable
+    # cell hover highlighting during planning (arrows, marks)
+    # we copy the original HIGHLIGHT_CELLS parameter, so we can backup
+    # the given value later.
+    highlight_cells = argparser.HIGHLIGHT_CELLS
+
 
 holder = Holder()
 
@@ -187,7 +197,7 @@ def highlightSelectedCell(mainScreen: pygame.Surface, cell: tuple) -> None:
     """
     highlight the cell that is currently selected.
     """
-    if cell != holder.selectedCell.getPos():
+    if cell != holder.selectedPiece.getPos():
         return
     highlightCell(mainScreen, (cell[0] * CELL_SIZE[0], cell[1] * CELL_SIZE[1]),
                   CELL_SIZE, COLORS[3])
@@ -286,12 +296,12 @@ def drawGameCell(mainScreen: pygame.Surface, gameState: engine.GameState, cell: 
                              *CELL_SIZE)
     drawBoardCell(mainScreen, cell, cellSquare)
     highlightLastMovedCell(mainScreen, cell)
-    if holder.selectedCell:
+    if holder.selectedPiece:
         highlightSelectedCell(mainScreen, cell)
         highlightMoveOptions(mainScreen, cell)
         highlightAttackOptions(mainScreen, cell)
     highlightMarkedCell(mainScreen, cell)
-    if argparser.HIGHLIGHT_CELLS:
+    if holder.highlight_cells:
         highlightHoveredCell(mainScreen, getMouseCell(), cell)
     drawPiece(mainScreen, gameState.getPiece(cell), cell)
     pygame.display.update(cellSquare)
@@ -477,7 +487,7 @@ def newGame() -> engine.GameState:
     """
     Resets all values and starts/returns a new engine.GameState.
     """
-    holder.selectedCell, holder.winner = None, None
+    holder.selectedPiece, holder.winner = None, None
     holder.options_move, holder.options_attack = [], []
     holder.last_move = [(-1, -1), (-1, -1)]
     # new game is tarted so we allow mouse presses again
@@ -500,10 +510,7 @@ def mainGUI():
     gameState = newGame()
     holder.attack_icon = loadImage("damage", BOARD_OFFSET)
     marked_old = (-1, -1)
-    # for performance reasons and avoidance of visual glitches we disable
-    # cell hover highlighting during planning (arrows, marks)
-    # we backup the original HIGHLIGHT_CELLS parameter.
-    HIGHLIGHT_CELLS = argparser.HIGHLIGHT_CELLS
+    
     # isPlanning = 0 -> not planning -> highlight cells
     # isPlanning = 1 -> is planning -> remove last cell highlight
     # isPlanning = 2 -> is planning -> don't highlight cells
@@ -519,11 +526,11 @@ def mainGUI():
 
         # highlight cell at mouse position and re-render
         # cell at previous mouse position
-        if argparser.HIGHLIGHT_CELLS and not holder.winner:
+        if holder.highlight_cells and not holder.winner:
             mouseHover = getMouseCell()
             if isPlanning == 1 and mouseHover != mouseHover_old:
                 drawGameCell(mainScreen, gameState, mouseHover_old)
-                argparser.HIGHLIGHT_CELLS = False
+                holder.highlight_cells = False
                 isPlanning = 2
             elif isPlanning == 0:
                 drawGameCell(mainScreen, gameState, mouseHover)
@@ -541,7 +548,7 @@ def mainGUI():
                 if event.button == 1:
                     # reset planning and cell highlighting
                     isPlanning = 0
-                    argparser.HIGHLIGHT_CELLS = HIGHLIGHT_CELLS
+                    holder.highlight_cells = argparser.HIGHLIGHT_CELLS
                     # Clear all previous rendered marked cells
                     old_marks = holder.marked_cells.copy()
                     holder.marked_cells.clear()
@@ -558,11 +565,11 @@ def mainGUI():
                     # if it is a valid piece of the current team, we can select it
                     if piece and gameState.selectablePiece(piece):
                         # if it was previously selected we deselect it
-                        if piece == holder.selectedCell:
+                        if piece == holder.selectedPiece:
                             piece = None
                         options_move_old, options_attack_old = holder.options_move, holder.options_attack
-                        piece_old = holder.selectedCell
-                        holder.selectedCell = piece
+                        piece_old = holder.selectedPiece
+                        holder.selectedPiece = piece
                         holder.options_move, holder.options_attack = gameState.getOptions(piece)
                         # render all optional actions and re-render all option actions from the previous selection
                         for cell in options_move_old + options_attack_old + holder.options_move + holder.options_attack:
@@ -572,19 +579,19 @@ def mainGUI():
                         if piece_old:  # re-render old position
                             drawGameCell(mainScreen, gameState, piece_old.getPos())
                     # if there already is a piece selected and now we clicked an empty piece or an empty cell
-                    elif holder.selectedCell:
+                    elif holder.selectedPiece:
                         # backup old piece and action options, for later re-rendering
-                        piece_old = holder.selectedCell
+                        piece_old = holder.selectedPiece
                         options_move_old, options_attack_old = holder.options_move, holder.options_attack
                         piecePos_old = piece_old.getPos()
 
                         # take the action, this will return the type of action taken or if the game is finished or
                         # if a pawn can be promoted
                         action = gameState.action(
-                            holder.selectedCell, mouseHover, holder.options_move, holder.options_attack)
+                            holder.selectedPiece, mouseHover, holder.options_move, holder.options_attack)
                         if action:
                             holder.options_move, holder.options_attack = [], []
-                            holder.selectedCell = None
+                            holder.selectedPiece = None
 
                             # we re-render the old action options and the old piece position
                             for cell in options_move_old + options_attack_old:
