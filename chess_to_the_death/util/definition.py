@@ -26,3 +26,12 @@ class PieceChar:
     ROOK = 'r'
     QUEEN = 'q'
     KING = 'k'
+    
+class PieceNames:
+    NAMES = {PieceChar.UNDEFINED: 'Undefined',
+             PieceChar.PAWN: 'Pawn',
+             PieceChar.BISHOP: 'Bishop',
+             PieceChar.KNIGHT: 'Kight',
+             PieceChar.ROOK: 'Rook',
+             PieceChar.QUEEN: 'Queen',
+             PieceChar.KING: 'King'}

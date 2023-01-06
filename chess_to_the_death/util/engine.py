@@ -4,7 +4,7 @@ import chess_to_the_death.parser.argparser as argparser
 from chess_to_the_death.entity.pieces import *
 from chess_to_the_death.entity.player import Player
 from chess_to_the_death.util.action import Action, ActionLog
-from chess_to_the_death.util.definition import Outcome, ActionName, PieceChar
+from chess_to_the_death.util.definition import Outcome, ActionName, PieceChar, PieceNames
 
 DIMENSION = config.DIMENSION
 pieceTranslateDic = {PieceChar.PAWN: 1, PieceChar.BISHOP: 2, PieceChar.KNIGHT: 3,
@@ -31,6 +31,40 @@ def createPiece(name: str, pos: tuple, player: str, image_size):
         return King(  pos, player, image_size)
     print("Unknown Piece:", name)
     return None
+
+
+def printValueStatistic(health_damage_dict: dict) -> None:
+    print("-------------------- Statistics --------------------")
+    pieceTypes = list(health_damage_dict.keys())
+    pieceNames = [PieceNames.NAMES[pT] for pT in pieceTypes]
+    health_values = [health_damage_dict[pT][0] for pT in pieceTypes]
+    attack_values = [health_damage_dict[pT][1] for pT in pieceTypes]
+    longestString = 1 + max(len(str(x)) for x in (pieceNames + health_values + attack_values))
+    
+    print("Piece :", end='')
+    print(*[val.rjust(longestString) for val in pieceNames], sep='')
+
+    print("Health:", end='')
+    print(*[str(val).rjust(longestString) for val in health_values], sep='')
+        
+    print("Damage:", end='')
+    print(*[str(val).rjust(longestString) for val in attack_values], sep='')
+        
+    print("\nHits to the Death:")
+    
+    health_values = np.array(health_values)
+    attack_values = np.array(attack_values)
+    hits_to_death = np.ceil(health_values.reshape(-1, 1).repeat(attack_values.shape[0], axis=1) / attack_values)
+    
+    print('H/D'.rjust(longestString), end='')
+    print(*[val.rjust(longestString) for val in pieceNames], sep='')
+    
+    for y in range(hits_to_death.shape[0]):
+        print(pieceNames[y].rjust(longestString), end='')
+        print(*[str(int(val)).rjust(longestString) for val in list(hits_to_death[y])], sep='')
+    
+    
+    print("----------------------------------------------------")
 
 
 class GameState:
@@ -76,20 +110,29 @@ class GameState:
         self.pieces: list[Piece] = self.white_pieces + self.black_pieces
         # assign each piece type a random health- and damage value
         # save the value in health_damage_dict for possible pawn promotions
-        # if the random parameter is given
+        # if the random parameter is given, otherwise save the default
+        # values
         if argparser.RANDOM_VALUES:
             from random import randint
-            for piece in self.pieces:
-                if piece._name not in self.health_damage_dict:
+        for piece in self.pieces:
+            if piece._name not in self.health_damage_dict:
+                if argparser.RANDOM_VALUES:
                     self.health_damage_dict[piece._name] = (randint(10, 150), randint(10, 150))
-                piece.maxHealth = piece.health = self.health_damage_dict[piece._name][0]
-                piece.damage = self.health_damage_dict[piece._name][1]
+                else:
+                    self.health_damage_dict[piece._name] = (piece.health, piece.damage)
+            piece.maxHealth = piece.health = self.health_damage_dict[piece._name][0]
+            piece.damage = self.health_damage_dict[piece._name][1]
+
         # the default parameters actually sets all health- an damage values to 1
         # since 0 might throw division error
         if self.default:
             for piece in self.pieces:
                 piece.maxHealth = piece.health = 1
                 piece.damage = 1
+        else:
+            # if not the default variant is palyed, print the statistics
+            # about piece health/damage values.
+            printValueStatistic(self.health_damage_dict)
         
         self.createBoard()
         print(self.__repr__())
