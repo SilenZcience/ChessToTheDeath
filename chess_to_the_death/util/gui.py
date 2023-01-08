@@ -481,6 +481,8 @@ def rescaleWindow(newWidth: int, newHeight: int, gameState: engine.GameState):
         arrow[0][1] = arrow[0][1] * CELL_SIZE[1] + (CELL_SIZE[1] // 2)
         arrow[1][0] = arrow[1][0] * CELL_SIZE[0] + (CELL_SIZE[0] // 2)
         arrow[1][1] = arrow[1][1] * CELL_SIZE[1] + (CELL_SIZE[1] // 2)
+        
+    gameState.image_size = IMG_SIZE
 
 
 def newGame() -> engine.GameState:
