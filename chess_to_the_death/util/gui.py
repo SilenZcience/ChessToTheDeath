@@ -558,8 +558,14 @@ def mainGUI():
                     # clear all previous rendered arrows
                     clearPlanningArrows(mainScreen, gameState)
                     holder.planning_arrows.clear()
-
-                    # see if there is a piece at the clicked position
+                # if the secondary (right) mouse button is pressed down we save the location
+                elif event.button == 3:
+                    marked_old = mouseHover
+                    # planning begins
+                    isPlanning = 1
+            elif event.type == pygame.MOUSEBUTTONUP:
+                if event.button == 1:
+                     # see if there is a piece at the clicked position
                     piece = gameState.getPiece(mouseHover)
                     print("Selected:", piece, mouseHover)
                     # if it is a valid piece of the current team, we can select it
@@ -630,14 +636,8 @@ def mainGUI():
                                 gameState.nextTurn()
                                 
                                 setLastMoveCells(gameState)
-                                renderGame(mainScreen, gameState)
-                # if the secondary (right) mouse button is pressed down we save the location
+                                renderGame(mainScreen, gameState)                   
                 elif event.button == 3:
-                    marked_old = mouseHover
-                    # planning begins
-                    isPlanning = 1
-            elif event.type == pygame.MOUSEBUTTONUP:
-                if event.button == 3:
                     mouseHover = getMouseCell()
                     mouseHover = (min(mouseHover[0], engine.DIMENSION[1]-1),
                                   min(mouseHover[1], engine.DIMENSION[0]-1))
