@@ -150,14 +150,14 @@ class GameState:
         
         return [(from_col, from_row), (to_col, to_row)]
 
-    def writeActionLog(self, from_pos: tuple, to_pos: tuple, action: str = '') -> None:
+    def writeActionLog(self, from_pos: tuple, to_pos: tuple, action: str = '', pieceChar: str = '') -> None:
         """
         Take the column and row of start- and target position of any action.
         Saves an action object of said action. e.g.:(C1-G5) to the action_log list.
         Usefull for later analysis, undo functionality and EnPassant attacks.
         """
         self.action_log.add(self.board, self.alpha_identifiers[from_pos[0]], self.numbers_identifiers[from_pos[1]],
-                self.alpha_identifiers[to_pos[0]], self.numbers_identifiers[to_pos[1]], action)
+                self.alpha_identifiers[to_pos[0]], self.numbers_identifiers[to_pos[1]], action, PieceNames.NAMES[pieceChar])
 
     def currentPlayer(self) -> str:
         """
@@ -197,11 +197,11 @@ class GameState:
                 return True
         return False
 
-    def promotePiece(self, pos: tuple, newPieceName: str) -> None:
+    def placePiece(self, pos: tuple, newPieceName: str) -> None:
         """
         Takes an existing Piece and promotes it to another Piece-Type
         corresponding to the given 'newPieceName' identifier.
-        (e.g. promotePiece(Pawn(...), 'q') replaces the Pawn with a new Queen)
+        (e.g. placePiece(Pawn(...), 'q') replaces the Pawn with a new Queen)
         This should only happen to Pawn-pieces, checks have to be made beforehand.
         """
         oldPiece = self.getPiece(pos)
@@ -224,6 +224,9 @@ class GameState:
                 self.white_pieces.remove(oldPiece)
             else:
                 self.black_pieces.remove(oldPiece)
+        else:
+            self.writeActionLog(pos, pos, 'placed', newPieceName)
+            self.action_log.printAction(-1)
         self.createBoard()
 
     def promotePawnOption(self, piece: Piece) -> bool:

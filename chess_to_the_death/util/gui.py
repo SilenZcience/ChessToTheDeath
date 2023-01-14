@@ -25,6 +25,8 @@ IMG_SIZE = (int(CELL_SIZE[0] * 0.75),  # image is 3/4 the size of the cell
 IMAGE_OFFSET = (int(CELL_SIZE[0] * 0.125),  # half of the remaining 1/4 -> 1/8
                 int(CELL_SIZE[1] * 0.125))
 
+PLACEPIECE_QUIT, PLACEPIECE_PLACED, PLACEPIECE_ABORTED = range(3)
+
 COLORS = [(230, 230, 230, 255), #"#E6E6E6" -> WHITE / CELL + HOVER
           ( 32,  33,  36, 255), #"#202124" -> DARK_GRAY / CELL + HOVER
           (255,   0,   0, 255), #"#FF0000" -> RED / HEALTH
@@ -366,19 +368,19 @@ def setLastMoveCells(gameState: engine.GameState):
     holder.last_move = gameState.translateActionRepr(gameState.action_log.get(-1))
 
 
-def drawPromoteOptions(mainScreen: pygame.Surface, piece: Piece, promoteOptions: list) -> None:
+def drawPieceOptions(mainScreen: pygame.Surface, pos: tuple, promoteOptions: list) -> None:
     """
-    If a pawn can be promoted this function will draw the four promoteOptions on the
-    cell at which the pawn stands, aswell as the hover-highlight effect for
+    If a piece should be placed this function will draw the four options on the
+    cell at position 'pos', aswell as the hover-highlight effect for
     said options.
     """
-    pygame.draw.rect(mainScreen, COLORS[(piece.cell_col+piece.cell_row) % 2],
-                     pygame.Rect(piece.cell_col * CELL_SIZE[0],
-                                 piece.cell_row * CELL_SIZE[1],
+    pygame.draw.rect(mainScreen, COLORS[sum(pos) % 2],
+                     pygame.Rect(pos[0] * CELL_SIZE[0],
+                                 pos[1] * CELL_SIZE[1],
                                  *CELL_SIZE))
 
     col, row = getMouseCell(True)
-    if (col//2 == piece.cell_col) and (row//2 == piece.cell_row):
+    if (col//2 == pos[0]) and (row//2 == pos[1]):
         highlightedArea = highlightCell(mainScreen, ((col//2) * CELL_SIZE[0] + (HALF_CELL_SIZE[0] * (col % 2)),
                                                      (row//2) * CELL_SIZE[1] + (HALF_CELL_SIZE[1] * (row % 2))),
                                         HALF_CELL_SIZE, COLORS[3])
@@ -389,48 +391,53 @@ def drawPromoteOptions(mainScreen: pygame.Surface, piece: Piece, promoteOptions:
             pygame.display.update(promoteOption)
 
 
-def choosePromoteOptions(mainScreen: pygame.Surface, gameState: engine.GameState, piece: Piece) -> bool:
+def choosePieceOption(mainScreen: pygame.Surface, gameState: engine.GameState, pos: tuple, crazyPlace: bool = False) -> bool:
     """
-    Takes over the main Loop, until the player has decided to which piece the pawn
-    should be promoted.
-    Returns a boolean in case the game is being quit.
+    Takes over the main Loop, until the player has decided to which piece to place.
+    Returns a boolean in case the game is being quit, or the function is being aborted.
+    The return value depends on the context!
     """
     currentPlayer = gameState.currentPlayer()
     promoteOptions = [[PieceChar.KNIGHT, PieceChar.BISHOP],
                       [PieceChar.ROOK, PieceChar.QUEEN]]
     promoteOptionsDimensions = [[(loadImage(currentPlayer+PieceChar.KNIGHT, HALF_CELL_SIZE),
-                                  (piece.cell_col * CELL_SIZE[0],
-                                   piece.cell_row * CELL_SIZE[1],
+                                  (pos[0] * CELL_SIZE[0],
+                                   pos[1] * CELL_SIZE[1],
                                    *HALF_CELL_SIZE)),
                                  (loadImage(currentPlayer+PieceChar.BISHOP, HALF_CELL_SIZE),
-                                  (piece.cell_col * CELL_SIZE[0] + HALF_CELL_SIZE[0],
-                                     piece.cell_row * CELL_SIZE[1],
-                                     *HALF_CELL_SIZE))],
+                                  (pos[0] * CELL_SIZE[0] + HALF_CELL_SIZE[0],
+                                   pos[1] * CELL_SIZE[1],
+                                   *HALF_CELL_SIZE))],
                                 [(loadImage(currentPlayer+PieceChar.ROOK, HALF_CELL_SIZE),
-                                  (piece.cell_col * CELL_SIZE[0],
-                                    piece.cell_row *
-                                   CELL_SIZE[1] + HALF_CELL_SIZE[1],
-                                    *HALF_CELL_SIZE)),
+                                  (pos[0] * CELL_SIZE[0],
+                                   pos[1] * CELL_SIZE[1] + HALF_CELL_SIZE[1],
+                                   *HALF_CELL_SIZE)),
                                  (loadImage(currentPlayer+PieceChar.QUEEN, HALF_CELL_SIZE),
-                                    (piece.cell_col * CELL_SIZE[0] + HALF_CELL_SIZE[0],
-                                     piece.cell_row *
+                                    (pos[0] * CELL_SIZE[0] + HALF_CELL_SIZE[0],
+                                     pos[1] *
                                      CELL_SIZE[1] + HALF_CELL_SIZE[1],
                                      *HALF_CELL_SIZE))]]
     
-    while True:
-        drawPromoteOptions(mainScreen, piece, promoteOptionsDimensions)
+    piecePlaced = -1
+    while piecePlaced == -1:
+        drawPieceOptions(mainScreen, pos, promoteOptionsDimensions)
         pygame.time.delay(25)  # relieve the CPU a bit ...
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
-                return False
-            if event.type == pygame.MOUSEBUTTONDOWN:
-                col, row = getMouseCell(True)
-                if (col//2 == piece.cell_col) and (
-                        row//2 == piece.cell_row):
-                    col -= (2*piece.cell_col)
-                    row -= (2*piece.cell_row)
-                    gameState.promotePiece(piece.getPos(), promoteOptions[row][col])
-                    return True
+                piecePlaced = PLACEPIECE_QUIT
+            if event.type == pygame.MOUSEBUTTONUP:
+                if event.button == 1:
+                    col, row = getMouseCell(True)
+                    if (col//2 == pos[0]) and (
+                            row//2 == pos[1]):
+                        col -= (2*pos[0])
+                        row -= (2*pos[1])
+                        gameState.placePiece(pos, promoteOptions[row][col])
+                        piecePlaced = PLACEPIECE_PLACED
+                    elif crazyPlace: # if clicked somewhere else and we are not promoting -> abort
+                        piecePlaced = PLACEPIECE_ABORTED
+    drawGameCell(mainScreen, gameState, pos) # cleanup
+    return piecePlaced
 
 
 def rescaleWindow(newWidth: int, newHeight: int, gameState: engine.GameState):
@@ -498,7 +505,6 @@ def newGame() -> engine.GameState:
 
 
 def mainGUI():
-    
     pygame.init()
     mainScreen = pygame.display.set_mode(
         BOARD_SIZE, pygame.DOUBLEBUF | pygame.RESIZABLE)
@@ -625,10 +631,10 @@ def mainGUI():
                             elif action == Outcome.PAWN_PROMOTION:
                                 print("Choose Pawn Promotion...")
                                 # we let the player choose the promotion
-                                running = choosePromoteOptions(mainScreen, gameState, piece_old)
-                                print("Pawn promoted!")
-                                # render the new promoted piece
-                                drawGameCell(mainScreen, gameState, mouseHover)
+                                piecePlaced = choosePieceOption(mainScreen, gameState, mouseHover)
+                                if piecePlaced == PLACEPIECE_PLACED:
+                                    print("Pawn promoted!")
+                                running = not (piecePlaced == PLACEPIECE_QUIT)
                             if running and not holder.winner:
                                 # wait a short while, because instant board flip doesnt give the player enough
                                 # feedback, that his action was performed
@@ -638,7 +644,20 @@ def mainGUI():
                                 gameState.nextTurn()
                                 
                                 setLastMoveCells(gameState)
-                                renderGame(mainScreen, gameState)                   
+                                renderGame(mainScreen, gameState)
+                elif event.button == 2:
+                    piece = gameState.getPiece(mouseHover)
+                    if not piece:
+                        piecePlaced = choosePieceOption(mainScreen, gameState, mouseHover, True)
+                        if piecePlaced == PLACEPIECE_PLACED:
+                            pygame.time.delay(250)
+                            # switch to the other player and re-render the entire board, because of possible
+                            # board flips
+                            gameState.nextTurn()
+                            
+                            setLastMoveCells(gameState)
+                            renderGame(mainScreen, gameState)
+                        running = not (piecePlaced == PLACEPIECE_QUIT)
                 elif event.button == 3:
                     mouseHover = getMouseCell()
                     mouseHover = (min(mouseHover[0], engine.DIMENSION[1]-1),

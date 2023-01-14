@@ -1,7 +1,7 @@
 import numpy as np
 
 class Action:
-    def __init__(self, from_col: str, from_row: str, to_col: str, to_row: str, action: str) -> None:
+    def __init__(self, from_col: str, from_row: str, to_col: str, to_row: str, action: str, pieceName: str) -> None:
         """
         from_col and to_col expect a char like 'A', 'B', ...
         from_row and to_row expect a char like '1', '2', ...
@@ -11,16 +11,17 @@ class Action:
         self.to_col = to_col
         self.to_row = to_row
         self.action = action
+        self.pieceName = pieceName
         
     def __repr__(self) -> str:
-        return self.from_col + self.from_row + '-' + self.to_col + self.to_row + ' ' + self.action
+        return self.from_col + self.from_row + '-' + self.to_col + self.to_row + ' ' + self.action + ' ' + self.pieceName
 
 class ActionLog:
     def __init__(self) -> None:
         self.actions = []
         self.boards = []
     
-    def add(self, board: np.ndarray, from_col: str, from_row: str, to_col: str, to_row: str, action: str) -> None:
+    def add(self, board: np.ndarray, from_col: str, from_row: str, to_col: str, to_row: str, action: str, pieceName: str) -> None:
         """
         from_col and to_col expect a char like 'A', 'B', ...
         from_row and to_row expect a char like '1', '2', ...
@@ -28,7 +29,7 @@ class ActionLog:
         as the entire board
         """
         self.boards.append(board.copy())
-        self.actions.append(Action(from_col, from_row, to_col, to_row, action))
+        self.actions.append(Action(from_col, from_row, to_col, to_row, action, pieceName))
         
     def get(self, index: int) -> Action:
         """
