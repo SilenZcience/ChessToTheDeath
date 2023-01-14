@@ -338,9 +338,9 @@ class GameState:
                 outcome = Outcome.STALEMATE
                 if self.isCellAttacked(enemyKing.getPos()):
                     if self.player_turn:
-                        outcome = Outcome.WHITE_WON
-                    else:
                         outcome = Outcome.BLACK_WON
+                    else:
+                        outcome = Outcome.WHITE_WON
                 
         # switch back to actual player
         self.player_turn = not self.player_turn
