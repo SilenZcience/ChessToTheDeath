@@ -197,14 +197,15 @@ class GameState:
                 return True
         return False
 
-    def promotePiece(self, piece: Piece, newPieceName: str) -> None:
+    def promotePiece(self, pos: tuple, newPieceName: str) -> None:
         """
         Takes an existing Piece and promotes it to another Piece-Type
         corresponding to the given 'newPieceName' identifier.
         (e.g. promotePiece(Pawn(...), 'q') replaces the Pawn with a new Queen)
         This should only happen to Pawn-pieces, checks have to be made beforehand.
         """
-        promotedPiece = createPiece(newPieceName, piece.getPos(), piece._player, self.image_size)
+        oldPiece = self.getPiece(pos)
+        promotedPiece = createPiece(newPieceName, pos, self.currentPlayer(), self.image_size)
         # set health- and damage values corresponding to the given argv parameters
         if argparser.RANDOM_VALUES:
             promotedPiece.maxHealth = promotedPiece.health = self.health_damage_dict[promotedPiece._name][0]
@@ -217,7 +218,12 @@ class GameState:
             self.white_pieces.append(promotedPiece)
         else:
             self.black_pieces.append(promotedPiece)
-        self.pieces.remove(piece)
+        if oldPiece:
+            self.pieces.remove(oldPiece)
+            if oldPiece._player == Player.PLAYER_W:
+                self.white_pieces.remove(oldPiece)
+            else:
+                self.black_pieces.remove(oldPiece)
         self.createBoard()
 
     def promotePawnOption(self, piece: Piece) -> bool:

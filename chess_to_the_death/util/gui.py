@@ -429,7 +429,7 @@ def choosePromoteOptions(mainScreen: pygame.Surface, gameState: engine.GameState
                         row//2 == piece.cell_row):
                     col -= (2*piece.cell_col)
                     row -= (2*piece.cell_row)
-                    gameState.promotePiece(piece, promoteOptions[row][col])
+                    gameState.promotePiece(piece.getPos(), promoteOptions[row][col])
                     return True
 
 
