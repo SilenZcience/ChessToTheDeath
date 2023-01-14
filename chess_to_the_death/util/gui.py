@@ -57,7 +57,7 @@ class Holder:
     # cell hover highlighting during planning (arrows, marks)
     # we copy the original HIGHLIGHT_CELLS parameter, so we can backup
     # the given value later.
-    highlight_cells = argparser.HIGHLIGHT_CELLS
+    highlight_cells = None
 
 
 holder = Holder()
@@ -505,6 +505,7 @@ def newGame() -> engine.GameState:
 
 
 def mainGUI():
+    holder.highlight_cells = argparser.HIGHLIGHT_CELLS
     pygame.init()
     mainScreen = pygame.display.set_mode(
         BOARD_SIZE, pygame.DOUBLEBUF | pygame.RESIZABLE)
