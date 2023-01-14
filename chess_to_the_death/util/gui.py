@@ -492,6 +492,36 @@ def rescaleWindow(newWidth: int, newHeight: int, gameState: engine.GameState):
     gameState.image_size = IMG_SIZE
 
 
+def gameFinished(mainScreen: pygame.Surface, gameState: engine.GameState):
+    # we display the winning message and temporarily block mousepresses
+    # until the game is quit or restarted
+    holder.winner = gameState.playerWon()
+    if holder.winner:
+        pygame.event.set_blocked([pygame.MOUSEBUTTONDOWN, pygame.MOUSEBUTTONUP])
+        
+        # update the old and new last move taken cells
+        last_move_old = holder.last_move[:]
+        setLastMoveCells(gameState)
+        for cell in holder.last_move + last_move_old:
+            drawGameCell(mainScreen, gameState, cell)
+            
+        # draw the game-finished message
+        drawWinner(mainScreen)   
+
+
+def nextTurn(mainScreen: pygame.Surface, gameState: engine.GameState):
+    if not holder.winner:
+        # wait a short while, because instant board flip doesnt give the player enough
+        # feedback, that his action was performed
+        pygame.time.delay(250)
+        # switch to the other player and re-render the entire board, because of possible
+        # board flips
+        gameState.nextTurn()
+        
+        setLastMoveCells(gameState)
+        renderGame(mainScreen, gameState)   
+
+
 def newGame() -> engine.GameState:
     """
     Resets all values and starts/returns a new engine.GameState.
@@ -615,19 +645,7 @@ def mainGUI():
 
                             # if the game is finished (draw, stalemate, mate ...)
                             if action == Outcome.GAME_FINISHED:
-                                # we display the winning message and temporarily block mousepresses
-                                # until the game is quit or restarted
-                                holder.winner = gameState.playerWon()
-                                pygame.event.set_blocked([pygame.MOUSEBUTTONDOWN, pygame.MOUSEBUTTONUP])
-                                
-                                # update the old and new last move taken cells
-                                last_move_old = holder.last_move[:]
-                                setLastMoveCells(gameState)
-                                for cell in holder.last_move + last_move_old:
-                                    drawGameCell(mainScreen, gameState, cell)
-                                    
-                                # draw the game-finished message
-                                drawWinner(mainScreen)
+                                gameFinished(mainScreen, gameState)
                             # if a pawn can be promoted
                             elif action == Outcome.PAWN_PROMOTION:
                                 print("Choose Pawn Promotion...")
@@ -635,29 +653,17 @@ def mainGUI():
                                 piecePlaced = choosePieceOption(mainScreen, gameState, mouseHover)
                                 if piecePlaced == PLACEPIECE_PLACED:
                                     print("Pawn promoted!")
+                                    gameFinished(mainScreen, gameState)
                                 running = not (piecePlaced == PLACEPIECE_QUIT)
-                            if running and not holder.winner:
-                                # wait a short while, because instant board flip doesnt give the player enough
-                                # feedback, that his action was performed
-                                pygame.time.delay(250)
-                                # switch to the other player and re-render the entire board, because of possible
-                                # board flips
-                                gameState.nextTurn()
-                                
-                                setLastMoveCells(gameState)
-                                renderGame(mainScreen, gameState)
+                            if running:
+                                nextTurn(mainScreen, gameState)
                 elif event.button == 2:
                     piece = gameState.getPiece(mouseHover)
                     if not piece:
                         piecePlaced = choosePieceOption(mainScreen, gameState, mouseHover, True)
                         if piecePlaced == PLACEPIECE_PLACED:
-                            pygame.time.delay(250)
-                            # switch to the other player and re-render the entire board, because of possible
-                            # board flips
-                            gameState.nextTurn()
-                            
-                            setLastMoveCells(gameState)
-                            renderGame(mainScreen, gameState)
+                            gameFinished(mainScreen, gameState)
+                            nextTurn(mainScreen, gameState)
                         running = not (piecePlaced == PLACEPIECE_QUIT)
                 elif event.button == 3:
                     mouseHover = getMouseCell()
