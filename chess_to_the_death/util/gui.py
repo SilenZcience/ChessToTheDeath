@@ -387,10 +387,11 @@ def drawPieceOptions(mainScreen: pygame.Surface, pos: tuple, promoteOptions: lis
         pygame.display.update(highlightedArea)
     for options in promoteOptions:
         for option in options:
-            promoteOption = mainScreen.blit(option[0], pygame.Rect(*option[1]))
-            pygame.display.update(promoteOption)
+            if option:
+                promoteOption = mainScreen.blit(option[0], pygame.Rect(*option[1]))
+                pygame.display.update(promoteOption)
 
-
+# TODO: pawn option for crazyhouse
 def choosePieceOption(mainScreen: pygame.Surface, gameState: engine.GameState, pos: tuple, crazyPlace: bool = False) -> bool:
     """
     Takes over the main Loop, until the player has decided to which piece to place.
@@ -417,6 +418,24 @@ def choosePieceOption(mainScreen: pygame.Surface, gameState: engine.GameState, p
                                      pos[1] *
                                      CELL_SIZE[1] + HALF_CELL_SIZE[1],
                                      *HALF_CELL_SIZE))]]
+    availablePieces = []
+    if crazyPlace:
+        availablePieces = gameState.getDefeatedPieces()
+        availablePieceNames = [piece._name for piece in availablePieces]
+        if not PieceChar.KNIGHT in availablePieceNames:
+            promoteOptionsDimensions[0][0] = None
+        if not PieceChar.BISHOP in availablePieceNames:
+            promoteOptionsDimensions[0][1] = None
+        if not PieceChar.ROOK in availablePieceNames:
+            promoteOptionsDimensions[1][0] = None
+        if not PieceChar.QUEEN in availablePieceNames:
+            promoteOptionsDimensions[1][1] = None
+        for option in [option for sublist in promoteOptionsDimensions for option in sublist]:
+            if option:
+                break
+        else:
+            return PLACEPIECE_ABORTED
+        
     
     piecePlaced = -1
     while piecePlaced == -1:
@@ -432,8 +451,15 @@ def choosePieceOption(mainScreen: pygame.Surface, gameState: engine.GameState, p
                             row//2 == pos[1]):
                         col -= (2*pos[0])
                         row -= (2*pos[1])
-                        gameState.placePiece(pos, promoteOptions[row][col])
-                        piecePlaced = PLACEPIECE_PLACED
+                        if promoteOptionsDimensions[row][col]: # check if the option is valid in case of crazyhouse variant
+                            gameState.placePiece(pos, promoteOptions[row][col])
+                            piecePlaced = PLACEPIECE_PLACED
+                            if crazyPlace:
+                                for piece in availablePieces:
+                                    if piece._name == promoteOptions[row][col]:
+                                        availablePieces.remove(piece)
+                                        gameState.setDefeatedPieces(availablePieces)
+                                        break
                     elif crazyPlace: # if clicked somewhere else and we are not promoting -> abort
                         piecePlaced = PLACEPIECE_ABORTED
     drawGameCell(mainScreen, gameState, pos) # cleanup

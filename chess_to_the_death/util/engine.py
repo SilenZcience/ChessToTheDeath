@@ -162,6 +162,16 @@ class GameState:
         self.action_log.add(self.board, self.alpha_identifiers[from_pos[0]], self.numbers_identifiers[from_pos[1]],
                 self.alpha_identifiers[to_pos[0]], self.numbers_identifiers[to_pos[1]], action, pieceName)
 
+    def getDefeatedPieces(self):
+        if self.currentPlayer() == Player.PLAYER_W:
+            return self.black_casualties
+        return self.white_casualties
+    
+    def setDefeatedPieces(self, casualties: list):
+        if self.currentPlayer() == Player.PLAYER_W:
+            self.black_casualties = casualties
+        self.white_casualties = casualties
+
     def currentPlayer(self) -> str:
         """
         returns 'white' or 'black'.
