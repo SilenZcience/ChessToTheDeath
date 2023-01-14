@@ -657,7 +657,7 @@ def mainGUI():
                                 running = not (piecePlaced == PLACEPIECE_QUIT)
                             if running:
                                 nextTurn(mainScreen, gameState)
-                elif event.button == 2:
+                elif event.button == 2 and argparser.CRAZY_MODE:
                     piece = gameState.getPiece(mouseHover)
                     if not piece:
                         piecePlaced = choosePieceOption(mainScreen, gameState, mouseHover, True)

@@ -156,8 +156,11 @@ class GameState:
         Saves an action object of said action. e.g.:(C1-G5) to the action_log list.
         Usefull for later analysis, undo functionality and EnPassant attacks.
         """
+        pieceName = PieceNames.NAMES[pieceChar]
+        if pieceName == PieceNames.NAMES[PieceChar.UNDEFINED]:
+            pieceName = ''
         self.action_log.add(self.board, self.alpha_identifiers[from_pos[0]], self.numbers_identifiers[from_pos[1]],
-                self.alpha_identifiers[to_pos[0]], self.numbers_identifiers[to_pos[1]], action, PieceNames.NAMES[pieceChar])
+                self.alpha_identifiers[to_pos[0]], self.numbers_identifiers[to_pos[1]], action, pieceName)
 
     def currentPlayer(self) -> str:
         """

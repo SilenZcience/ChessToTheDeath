@@ -10,6 +10,7 @@ HIGHLIGHT_CELLS = True
 FLIP_BOARD = True
 RANDOM_VALUES = False
 DEFAULT_MODE = False
+CRAZY_MODE = False
 
 class ArgsHandler:
     params: argparse.Namespace = None
@@ -37,6 +38,8 @@ class ArgsHandler:
                             const=True, help="randomize the health and damage values of all pieces.")
         parser.add_argument("-default", action="store_const", default=False, dest="default",
                             const=True, help="play the default chess variant.")
+        parser.add_argument("-crazy", action="store_const", default=False, dest="crazy",
+                            const=True, help="play the crazyhouse chess variant.")
         
         self.params = parser.parse_args()
     
@@ -46,6 +49,7 @@ class ArgsHandler:
         global FLIP_BOARD
         global RANDOM_VALUES
         global DEFAULT_MODE
+        global CRAZY_MODE
         if getattr(self.params, 'version'):
             self._showVersion()
             sysexit(0)
@@ -54,6 +58,7 @@ class ArgsHandler:
         FLIP_BOARD = getattr(self.params, 'flip')
         RANDOM_VALUES = getattr(self.params, 'random')
         DEFAULT_MODE = getattr(self.params, 'default')
+        CRAZY_MODE = getattr(self.params, 'crazy')
         
     def _showVersion(self) -> None:
         print()
