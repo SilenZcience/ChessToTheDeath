@@ -169,8 +169,9 @@ class GameState:
     
     def setDefeatedPieces(self, casualties: list):
         if self.currentPlayer() == Player.PLAYER_W:
-            self.black_casualties = casualties
-        self.white_casualties = casualties
+            self.black_casualties = casualties[:]
+        else:
+            self.white_casualties = casualties[:]
 
     def currentPlayer(self) -> str:
         """
