@@ -607,7 +607,7 @@ class GameState:
 
     def nextTurn(self) -> None:
         """
-        flips the board at switches to thee team whose
+        flips the board and switches to the team whose
         turn it is at the moment.
         """
         self.player_turn = not self.player_turn
@@ -616,7 +616,12 @@ class GameState:
         print(self)
 
     def __str__(self) -> str:
-        return self.board.__str__()
+        boardRepr = ' ' + '   '.join(self.alpha_identifiers[:DIMENSION[1]]) + ' |\n'
+        boardRepr += '-' * 31 + '|' + '-' * len(str(DIMENSION[0])) + '\n'
+        number_ids = [' |' + id for id in self.numbers_identifiers[:DIMENSION[0]]]
+        board = ['  '.join(map(lambda x: " " * (x >= 0) + str(x), row)) for row in self.board]
+        boardRepr += '\n'.join(list(''.join(row) for row in zip(board, number_ids)))
+        return boardRepr
 
     def __repr__(self) -> str:
         return self.__str__()
