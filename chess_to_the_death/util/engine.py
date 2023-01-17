@@ -7,11 +7,14 @@ from chess_to_the_death.util.action import Action, ActionLog
 from chess_to_the_death.util.definition import Outcome, ActionName, PieceChar, PieceNames
 
 DIMENSION = config.DIMENSION
-pieceTranslateDic = {PieceChar.PAWN: 1, PieceChar.BISHOP: 2, PieceChar.KNIGHT: 3,
-                     PieceChar.ROOK: 4, PieceChar.QUEEN: 5, PieceChar.KING: 6,
-                     1: PieceChar.PAWN, 2: PieceChar.BISHOP, 3: PieceChar.KNIGHT,
-                     4: PieceChar.ROOK, 5: PieceChar.QUEEN, 6: PieceChar.KING}
+boardDtype = config.boardDtype
 
+pieceTranslateDic = {}
+for id, char in enumerate(PieceNames.NAMES.keys()):
+    pieceTranslateDic[id] = char
+    pieceTranslateDic[char] = id
+
+assert (len(pieceTranslateDic)//2) ** 2 <= np.iinfo(boardDtype).max, "The BoardDtype has to be smaller than sqrt(max(pieceID))."
 
 def createPiece(name: str, pos: tuple, player: str, image_size):
     """
@@ -401,6 +404,45 @@ class GameState:
                 outcome = Outcome.BLACK_WON
         return outcome
 
+    def _restrictedCrazyPlaceDefault(self, pos: tuple) -> str:
+        """
+        check if the friendly king would be threatened even with the
+        newly placed piece.
+        """
+        placementAllowed = False
+        # temporarily block the position in question on the board
+        self.board[pos[1],pos[0]] = pieceTranslateDic[PieceChar.OBSTACLE]
+        # get the position of the current king
+        friendlyKingPos = self.king_pieces[self.player_turn].getPos()
+        
+        for piece in self.pieces:
+            if piece._player == self.currentPlayer():
+                continue
+            options_move, options_attack = piece.getOptions(self.board, not self.flippedAction())
+            # if an enemy piece threatens king, the placement is not allowed
+            if friendlyKingPos in (options_move + options_attack):
+                break
+        else:
+            # if no enemy piece threatens the king, the placement is allowed
+            placementAllowed = True
+
+        # reset the position
+        self.board[pos[1],pos[0]] = 0
+        return placementAllowed
+
+    def restrictedCrazyPlace(self, pos: tuple) -> bool:
+        """
+        check if a 'crazy' - piece placement is allowed at position 'pos'
+        """
+        piece = self.getPiece(pos)
+        # the position has to be empty
+        if piece:
+            return False
+        # it only matters in default mode
+        if not self.default:
+            return True
+        return self._restrictedCrazyPlaceDefault(pos)
+    
     def checkPinnedOptions(self, piece: Piece, options_move: list, options_attack: list) -> tuple:
         """
         check if a piece is pinned such that it cannot move without exposing the king to attacks.
@@ -557,7 +599,7 @@ class GameState:
         [ 1.  1.  1.  1.  1.  1.  1.  1.]       
         [ 4.  3.  2.  5.  6.  2.  3.  4.]]
         """
-        self.board = np.zeros(DIMENSION, dtype=np.int8)
+        self.board = np.zeros(DIMENSION, dtype=boardDtype)
         for piece in self.pieces:
             self.board[piece.cell_row, piece.cell_col] = pieceTranslateDic[piece._name] * (
                 1 if piece._player == Player.PLAYER_W else -1

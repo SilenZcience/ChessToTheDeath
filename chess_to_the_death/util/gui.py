@@ -28,7 +28,7 @@ IMAGE_OFFSET = (int(CELL_SIZE[0] * 0.125),  # half of the remaining 1/4 -> 1/8
 PLACEPIECE_QUIT, PLACEPIECE_PLACED, PLACEPIECE_ABORTED = range(3)
 
 COLORS = [(230, 230, 230, 255), #"#E6E6E6" -> WHITE / CELL + HOVER
-          ( 32,  33,  36, 255), #"#202124" -> DARK_GRAY / CELL + HOVER
+          ( 45,  46,  48, 255), #"#202124" -> DARK_GRAY / CELL + HOVER
           (255,   0,   0, 255), #"#FF0000" -> RED / HEALTH
           (  0,   0, 255, 255), #"#0000FF" -> BLUE / SELECTED
           (  0, 255,   0, 255), #"#00FF00" -> GREEN / MOVABLE
@@ -36,7 +36,8 @@ COLORS = [(230, 230, 230, 255), #"#E6E6E6" -> WHITE / CELL + HOVER
           ( 46, 149, 153, 255), #"#2E9599" -> TEAL / TEXT
           (  0,   0,   0, 255), #"#000000" -> BLACK / REDO
           (255, 165,   0, 150), #"#FFA500" -> ORANGE / PLANNING_ARROWS
-          (218, 112, 214, 255)] #"#DA70D6" -> PINK / LAST MOVE
+          (218, 112, 214, 255), #"#DA70D6" -> PINK / LAST MOVE
+          ( 66, 245, 227, 255)] #"#42F5E3" -> / PLACE PIECE
 
 # define a holder object to hold variables bundled in a global spectrum
 # and instantiate it
@@ -370,37 +371,45 @@ def setLastMoveCells(gameState: engine.GameState):
 
 def drawPieceOptionsGen(mainScreen: pygame.Surface, pos: tuple, promoteOptions: list) -> None:
     """
-    If a piece should be placed this function will draw the four options on the
+    If a piece should be placed this function will draw the options on the
     cell at position 'pos', aswell as the hover-highlight effect for
     said options.
     """
     old_col, old_row = -1, -1
+    optionPositionOverall = pygame.Rect(promoteOptions[0][1][0],
+                                        promoteOptions[0][1][1],
+                                        CELL_SIZE[0],
+                                        CELL_SIZE[1] * len(promoteOptions))
+    
     while True:
         col, row = getMouseCell()
         if col != old_col or row != old_row:
-            x = pygame.draw.rect(mainScreen, COLORS[4],
-                            pygame.Rect(promoteOptions[0][1][0],
-                                        promoteOptions[0][1][1],
-                                        CELL_SIZE[0],
-                                        CELL_SIZE[1] * len(promoteOptions)))
+            # background
+            pygame.draw.rect(mainScreen, COLORS[6], optionPositionOverall)
             for i, option in enumerate(promoteOptions):
+                # round lightspot
+                pygame.draw.rect(mainScreen, COLORS[sum((pos[0],pos[1]+i)) % 2],
+                            pygame.Rect(*option[1], *CELL_SIZE), border_radius=90)
                 if (col == pos[0] and row == (pos[1] + i)):
-                    highlightCell(mainScreen, (option[1][0], option[1][1]),
+                    # highlight
+                    highlightCell(mainScreen, option[1],
                                     CELL_SIZE, COLORS[3])
+                # piece
                 mainScreen.blit(option[0],
                             pygame.Rect(option[1][0] + IMAGE_OFFSET[0],
                                         option[1][1] + IMAGE_OFFSET[1],
                                         *IMG_SIZE))
-            pygame.display.update(x)
+            pygame.display.update(optionPositionOverall)
         yield
 
-# TODO: check if crazy placement is allowed in default mode
-def choosePieceOption(mainScreen: pygame.Surface, gameState: engine.GameState, pos: tuple, crazyPlace: bool = False) -> bool:
+
+def choosePieceOption(gameState: engine.GameState, pos: tuple, crazyPlace: bool = False) -> bool:
     """
-    Takes over the main Loop, until the player has decided to which piece to place.
+    Takes over the main Loop, until the player has decided which piece to place.
     Returns a boolean in case the game is being quit, or the function is being aborted.
     The return value depends on the context!
     """
+    mainScreen = pygame.display.set_mode(BOARD_SIZE, pygame.DOUBLEBUF) # disable resizing momentarily
     currentPlayer = gameState.currentPlayer()
     if crazyPlace:
         availablePieces = gameState.getDefeatedPieces()
@@ -409,8 +418,9 @@ def choosePieceOption(mainScreen: pygame.Surface, gameState: engine.GameState, p
         if len(promoteOptions) == 0:
             return PLACEPIECE_ABORTED
     else:
-        promoteOptions = [PieceChar.QUEEN, PieceChar.ROOK,
-                          PieceChar.BISHOP,  PieceChar.KNIGHT]
+        promoteOptions = [PieceChar.BISHOP, PieceChar.KNIGHT,
+                          PieceChar.QUEEN,  PieceChar.ROOK]
+    
     offsetPos = pos
     if (pos[1] + len(promoteOptions)) > engine.DIMENSION[0]:
         offsetPos = (pos[0], pos[1] - ((pos[1] + len(promoteOptions)) - engine.DIMENSION[0]))
@@ -428,7 +438,7 @@ def choosePieceOption(mainScreen: pygame.Surface, gameState: engine.GameState, p
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 piecePlaced = PLACEPIECE_QUIT
-            if event.type == pygame.MOUSEBUTTONUP:
+            elif event.type == pygame.MOUSEBUTTONUP:
                 if event.button == 1:
                     col, row = getMouseCell()
                     if (col == offsetPos[0]) and (offsetPos[1] <= row < offsetPos[1] + len(promoteOptions)):
@@ -442,9 +452,9 @@ def choosePieceOption(mainScreen: pygame.Surface, gameState: engine.GameState, p
                                     break
                     elif crazyPlace: # if clicked somewhere else and we are not promoting -> abort
                         piecePlaced = PLACEPIECE_ABORTED
-    
     for i in range(len(promoteOptions)): # cleanup
         drawGameCell(mainScreen, gameState, (offsetPos[0], offsetPos[1] + i))
+    pygame.display.set_mode(BOARD_SIZE, pygame.DOUBLEBUF | pygame.RESIZABLE) # reset resizablity
     return piecePlaced
 
 
@@ -658,7 +668,7 @@ def mainGUI():
                             elif action == Outcome.PAWN_PROMOTION:
                                 print("Choose Pawn Promotion...")
                                 # we let the player choose the promotion
-                                piecePlaced = choosePieceOption(mainScreen, gameState, mouseHover)
+                                piecePlaced = choosePieceOption(gameState, mouseHover)
                                 if piecePlaced == PLACEPIECE_PLACED:
                                     print("Pawn promoted!")
                                     gameFinished(mainScreen, gameState)
@@ -666,9 +676,8 @@ def mainGUI():
                             if running:
                                 nextTurn(mainScreen, gameState)
                 elif event.button == 2 and argparser.CRAZY_MODE:
-                    piece = gameState.getPiece(mouseHover)
-                    if not piece:
-                        piecePlaced = choosePieceOption(mainScreen, gameState, mouseHover, True)
+                    if gameState.restrictedCrazyPlace(mouseHover):
+                        piecePlaced = choosePieceOption(gameState, mouseHover, True)
                         if piecePlaced == PLACEPIECE_PLACED:
                             gameFinished(mainScreen, gameState)
                             nextTurn(mainScreen, gameState)
