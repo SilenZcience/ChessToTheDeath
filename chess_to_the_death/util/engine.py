@@ -394,7 +394,7 @@ class GameState:
         Returns 'white' or 'black' according to the team that won,
         or returns an empty string if no team has won yet.
         """
-        if self.default:
+        if self.default: # TODO: check if crazy placement is posssible to stop checkmate
             return self.playerWonDefault() + self.gameIsDraw()
         outcome = Outcome.NONE
         if (self.king_pieces[not self.player_turn].health <= 0):
@@ -617,7 +617,7 @@ class GameState:
 
     def __str__(self) -> str:
         boardRepr = ' ' + '   '.join(self.alpha_identifiers[:DIMENSION[1]]) + ' |\n'
-        boardRepr += '-' * 31 + '|' + '-' * len(str(DIMENSION[0])) + '\n'
+        boardRepr += '-' * (4 * DIMENSION[1] - 1) + '|' + '-' * len(str(DIMENSION[0])) + '\n'
         number_ids = [' |' + id for id in self.numbers_identifiers[:DIMENSION[0]]]
         board = ['  '.join(map(lambda x: " " * (x >= 0) + str(x), row)) for row in self.board]
         boardRepr += '\n'.join(list(''.join(row) for row in zip(board, number_ids)))
