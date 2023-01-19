@@ -93,10 +93,9 @@ class Knight(Piece):
             if not ((0 <= x < board.shape[1]) and (
                     0 <= y < board.shape[0])):
                 continue
-            if board[y, x] != 0:
-                if super().isEnemy(x, y, board):
-                    options_attack.append((x, y))
-                    continue
+            if super().isEnemy(x, y, board):
+                options_attack.append((x, y))
+                continue
             if board[y, x] == 0:
                 options_move.append((x, y))
 
@@ -149,16 +148,15 @@ class Pawn(Piece):
             if not ((0 <= x < board.shape[1]) and (
                     0 <= y < board.shape[0])):
                 continue
-            if board[y, x] != 0:
-                if super().isEnemy(x, y, board):
-                    options_attack.append((x, y))
+            if super().isEnemy(x, y, board):
+                options_attack.append((x, y))
         
         if 0 <= self.cell_row+options_m[0][1] < board.shape[0]:
             if board[self.cell_row+options_m[0][1], self.cell_col] == 0:
                 options_move.append((self.cell_col, self.cell_row+options_m[0][1]))
-        if 0 <= self.cell_row+options_m[1][1] < board.shape[0] and self.firstMove:
-            if board[self.cell_row+options_m[1][1], self.cell_col] == 0:
-                options_move.append((self.cell_col, self.cell_row+options_m[1][1]))
+                if 0 <= self.cell_row+options_m[1][1] < board.shape[0] and self.firstMove:
+                    if board[self.cell_row+options_m[1][1], self.cell_col] == 0:
+                        options_move.append((self.cell_col, self.cell_row+options_m[1][1]))
 
         return (options_move, options_attack)
 
@@ -196,10 +194,9 @@ class King(Piece):
             if not ((0 <= x < board.shape[1]) and (
                     0 <= y < board.shape[0])):
                 continue
-            if board[y, x] != 0:
-                if super().isEnemy(x, y, board):
-                    options_attack.append((x, y))
-                    continue
+            if super().isEnemy(x, y, board):
+                options_attack.append((x, y))
+                continue
             if board[y, x] == 0:
                 options_move.append((x, y))
 
