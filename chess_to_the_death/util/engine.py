@@ -1,4 +1,6 @@
 import numpy as np
+from itertools import product
+
 import chess_to_the_death.util.config as config
 import chess_to_the_death.parser.argparser as argparser
 from chess_to_the_death.entity.pieces import *
@@ -78,6 +80,8 @@ class GameState:
         self.image_size: tuple = image_size
         self.flip_board: bool = argparser.FLIP_BOARD
         self.default: bool = argparser.DEFAULT_MODE
+        self.random: bool = argparser.RANDOM_VALUES
+        self.crazy: bool = argparser.CRAZY_MODE
         self.player_turn: bool = True # True -> 'white', False -> 'black'
         self.board_flipped: bool = False
         
@@ -115,11 +119,11 @@ class GameState:
         # save the value in health_damage_dict for possible pawn promotions
         # if the random parameter is given, otherwise save the default
         # values
-        if argparser.RANDOM_VALUES:
+        if self.random:
             from random import randint
         for piece in self.pieces:
             if piece._name not in self.health_damage_dict:
-                if argparser.RANDOM_VALUES:
+                if self.random:
                     self.health_damage_dict[piece._name] = (randint(10, 150), randint(10, 150))
                 else:
                     self.health_damage_dict[piece._name] = (piece.health, piece.damage)
@@ -224,7 +228,7 @@ class GameState:
         oldPiece = self.getPiece(pos)
         promotedPiece = createPiece(newPieceName, pos, self.currentPlayer(), self.image_size)
         # set health- and damage values corresponding to the given argv parameters
-        if argparser.RANDOM_VALUES:
+        if self.random:
             promotedPiece.maxHealth = promotedPiece.health = self.health_damage_dict[promotedPiece._name][0]
             promotedPiece.damage = self.health_damage_dict[promotedPiece._name][1]           
         if self.default:
@@ -358,6 +362,19 @@ class GameState:
                         outcome = Outcome.BLACK_WON
                     else:
                         outcome = Outcome.WHITE_WON
+                if self.crazy:
+                    placementOptions = self.getDefeatedPieces()
+                    if placementOptions:
+                        if outcome == Outcome.STALEMATE:
+                            outcome = Outcome.NONE
+                        else:
+                            for pos in product(range(DIMENSION[1]), range(DIMENSION[0])):
+                                if self.board[pos[1], pos[0]] != 0:
+                                    continue
+                                if self._restrictedCrazyPlaceDefault(pos):
+                                    outcome = Outcome.NONE
+                                    break
+                        
                 
         # switch back to actual player
         self.player_turn = not self.player_turn
@@ -368,7 +385,10 @@ class GameState:
         #by repitition
         if np.all(self.action_log.boards[-1] == self.action_log.boards, axis=(-1,1)).sum() == 3:
             outcome = Outcome.DRAW_REPITITION
-            
+        
+        if self.crazy:
+            return outcome
+        
         #insufficient material
         if len(self.pieces) <= 4:
             pieceChars = [piece._name for piece in self.pieces]
@@ -394,8 +414,12 @@ class GameState:
         Returns 'white' or 'black' according to the team that won,
         or returns an empty string if no team has won yet.
         """
-        if self.default: # TODO: check if crazy placement is posssible to stop checkmate
-            return self.playerWonDefault() + self.gameIsDraw()
+        if self.default:
+            gameDraw = self.gameIsDraw()
+            if gameDraw:
+                return gameDraw
+            gameWon = self.playerWonDefault()
+            return gameWon
         outcome = Outcome.NONE
         if (self.king_pieces[not self.player_turn].health <= 0):
             if self.player_turn:
