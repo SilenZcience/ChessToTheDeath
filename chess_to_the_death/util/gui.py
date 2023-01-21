@@ -403,13 +403,12 @@ def drawPieceOptionsGen(mainScreen: pygame.Surface, pos: tuple, promoteOptions: 
         yield
 
 
-def choosePieceOption(gameState: engine.GameState, pos: tuple, crazyPlace: bool = False) -> bool:
+def choosePieceOption(mainScreen: pygame.Surface, gameState: engine.GameState, pos: tuple, crazyPlace: bool = False) -> bool:
     """
     Takes over the main Loop, until the player has decided which piece to place.
     Returns a boolean in case the game is being quit, or the function is being aborted.
     The return value depends on the context!
     """
-    mainScreen = pygame.display.set_mode(BOARD_SIZE, pygame.DOUBLEBUF) # disable resizing momentarily
     currentPlayer = gameState.currentPlayer()
     if crazyPlace:
         availablePieces = gameState.getDefeatedPieces()
@@ -420,6 +419,8 @@ def choosePieceOption(gameState: engine.GameState, pos: tuple, crazyPlace: bool 
     else:
         promoteOptions = [PieceChar.BISHOP, PieceChar.KNIGHT,
                           PieceChar.QUEEN,  PieceChar.ROOK]
+    
+    pygame.display.set_mode(BOARD_SIZE, pygame.DOUBLEBUF) # disable resizing momentarily
     
     offsetPos = pos
     if (pos[1] + len(promoteOptions)) > engine.DIMENSION[0]:
@@ -668,7 +669,7 @@ def mainGUI():
                             elif action == Outcome.PAWN_PROMOTION:
                                 print("Choose Pawn Promotion...")
                                 # we let the player choose the promotion
-                                piecePlaced = choosePieceOption(gameState, mouseHover)
+                                piecePlaced = choosePieceOption(mainScreen, gameState, mouseHover)
                                 if piecePlaced == PLACEPIECE_PLACED:
                                     print("Pawn promoted!")
                                     gameFinished(mainScreen, gameState)
@@ -677,7 +678,7 @@ def mainGUI():
                                 nextTurn(mainScreen, gameState)
                 elif event.button == 2 and argparser.CRAZY_MODE:
                     if gameState.restrictedCrazyPlace(mouseHover):
-                        piecePlaced = choosePieceOption(gameState, mouseHover, True)
+                        piecePlaced = choosePieceOption(mainScreen, gameState, mouseHover, True)
                         if piecePlaced == PLACEPIECE_PLACED:
                             gameFinished(mainScreen, gameState)
                             nextTurn(mainScreen, gameState)
