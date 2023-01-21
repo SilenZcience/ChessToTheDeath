@@ -601,8 +601,8 @@ def mainGUI():
                 print(gameState.action_log)
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 mouseHover = getMouseCell()
-                # primary mouse button (left)
-                if event.button == 1:
+                # primary mouse button (left) or middle mouse button
+                if event.button == 1 or (event.button == 2 and argparser.CRAZY_MODE):
                     # reset planning and cell highlighting
                     isPlanning = 0
                     holder.highlight_cells = argparser.HIGHLIGHT_CELLS
