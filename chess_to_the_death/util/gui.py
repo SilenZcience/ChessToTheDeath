@@ -702,9 +702,8 @@ def mainGUI():
                         # if not newArrow in holder.planning_arrows:
                         holder.planning_arrows.append(newArrow)
                         arrow_thickness = 2 * min(IMAGE_OFFSET)
-                        planningBlit = drawArrow(mainScreen, newArrow[0], newArrow[1], COLORS[8],
-                                                 arrow_thickness, 2 * arrow_thickness, arrow_thickness)
-                        pygame.display.update(planningBlit)
+                        drawArrow(mainScreen, newArrow[0], newArrow[1], COLORS[8],
+                                  arrow_thickness, 2 * arrow_thickness, arrow_thickness)
             elif event.type == pygame.KEYDOWN and holder.winner:
                 if pygame.key.name(event.key) == 'r':
                     # restart the game if 'r' is pressed,
