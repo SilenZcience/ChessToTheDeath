@@ -84,8 +84,8 @@ def draw_polygon_alpha(mainScreen, color, points):
     shape_surf = pygame.Surface(target_rect.size, pygame.SRCALPHA)
     pygame.draw.polygon(shape_surf, color, [
                         (x - min_x, y - min_y) for x, y in points])
-    polyBlit = mainScreen.blit(shape_surf, target_rect)
-    pygame.display.update(polyBlit)
+    mainScreen.blit(shape_surf, target_rect)
+    pygame.display.update(target_rect)
 
 
 def drawArrow(mainScreen: pygame.Surface, start: pygame.Vector2, end: pygame.Vector2,
