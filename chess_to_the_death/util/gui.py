@@ -37,7 +37,7 @@ COLORS = [(230, 230, 230, 255), #"#E6E6E6" -> WHITE / CELL + HOVER
           (  0,   0,   0, 255), #"#000000" -> BLACK / REDO
           (255, 165,   0, 150), #"#FFA500" -> ORANGE / PLANNING_ARROWS
           (218, 112, 214, 255), #"#DA70D6" -> PINK / LAST MOVE
-          ( 66, 245, 227, 255)] #"#42F5E3" -> / PLACE PIECE
+          ( 66, 245, 227, 255)] #"#42F5E3" -> DARK TEAL / PLACE PIECE
 
 # define a holder object to hold variables bundled in a global spectrum
 # and instantiate it
@@ -77,7 +77,11 @@ def getMouseCell(halfCell: bool = False) -> tuple:
     return (col // CELL_SIZE[0], row // CELL_SIZE[1])
 
 
-def draw_polygon_alpha(mainScreen, color, points):
+def draw_polygon_alpha(mainScreen, color, points) -> None:
+    """
+    Draw a polygon from 'points' on the 'mainScreen'.
+    Renders with alpha values.
+    """
     lx, ly = zip(*points)
     min_x, min_y, max_x, max_y = min(lx), min(ly), max(lx), max(ly)
     target_rect = pygame.Rect(min_x, min_y, max_x - min_x, max_y - min_y)
@@ -89,7 +93,10 @@ def draw_polygon_alpha(mainScreen, color, points):
 
 
 def drawArrow(mainScreen: pygame.Surface, start: pygame.Vector2, end: pygame.Vector2,
-              color: tuple, body_width: int = 2, head_width: int = 4, head_height: int = 2):
+              color: tuple, body_width: int = 2, head_width: int = 4, head_height: int = 2) -> None:
+    """
+    Draw a alpha-colored array on the 'mainScreen'
+    """
     arrow = start - end
     angle = arrow.angle_to(pygame.Vector2(0, -1))
     body_length = arrow.length() - head_height
@@ -127,7 +134,7 @@ def drawArrow(mainScreen: pygame.Surface, start: pygame.Vector2, end: pygame.Vec
     draw_polygon_alpha(mainScreen, color, body_verts)
 
 
-def drawIdentifiers(mainScreen: pygame.Surface, gameState: engine.GameState):
+def drawIdentifiers(mainScreen: pygame.Surface, gameState: engine.GameState) -> None:
     """
     Draw the letters and numbers to identify a single cell.
     Only needs to happen once a move.
@@ -354,6 +361,23 @@ def clearPlanningArrows(mainScreen: pygame.Surface, gameState: engine.GameState)
         drawGameCell(mainScreen, gameState, cell)
 
 
+def clearPlanning(mainScreen: pygame.Surface, gameState: engine.GameState) -> None:
+    """
+    clear Planning Cells and Arrows from the 'mainScreen'
+    """
+    # reset cell highlighting
+    holder.highlight_cells = argparser.HIGHLIGHT_CELLS
+    # Clear all previous rendered marked cells
+    old_marks = holder.marked_cells.copy()
+    holder.marked_cells.clear()
+    for cell in old_marks:
+        drawGameCell(mainScreen, gameState, cell)
+
+    # clear all previous rendered arrows
+    clearPlanningArrows(mainScreen, gameState)
+    holder.planning_arrows.clear()
+
+
 def renderGame(mainScreen: pygame.Surface, gameState: engine.GameState) -> None:
     """
     draw every cell on the mainScreen.
@@ -365,7 +389,10 @@ def renderGame(mainScreen: pygame.Surface, gameState: engine.GameState) -> None:
     drawWinner(mainScreen)
 
 
-def setLastMoveCells(gameState: engine.GameState):
+def setLastMoveCells(gameState: engine.GameState) -> None:
+    """
+    get the last move starting and target cell.
+    """
     holder.last_move = gameState.translateActionRepr(gameState.action_log.get(-1))
 
 
@@ -459,7 +486,7 @@ def choosePieceOption(mainScreen: pygame.Surface, gameState: engine.GameState, p
     return piecePlaced
 
 
-def rescaleWindow(newWidth: int, newHeight: int, gameState: engine.GameState):
+def rescaleWindow(newWidth: int, newHeight: int, gameState: engine.GameState) -> None:
     """
     change all global size variables according to the rescaled window attributes.
     """
@@ -511,9 +538,11 @@ def rescaleWindow(newWidth: int, newHeight: int, gameState: engine.GameState):
     gameState.image_size = IMG_SIZE
 
 
-def gameFinished(mainScreen: pygame.Surface, gameState: engine.GameState):
-    # we display the winning message and temporarily block mousepresses
-    # until the game is quit or restarted
+def gameFinished(mainScreen: pygame.Surface, gameState: engine.GameState) -> None:
+    """
+    we display the winning message and temporarily block mousepresses
+    until the game is quit or restarted
+    """
     holder.winner = gameState.playerWon()
     if holder.winner:
         pygame.event.set_blocked([pygame.MOUSEBUTTONDOWN, pygame.MOUSEBUTTONUP])
@@ -528,7 +557,7 @@ def gameFinished(mainScreen: pygame.Surface, gameState: engine.GameState):
         drawWinner(mainScreen)   
 
 
-def nextTurn(mainScreen: pygame.Surface, gameState: engine.GameState):
+def nextTurn(mainScreen: pygame.Surface, gameState: engine.GameState) -> None:
     if not holder.winner:
         # wait a short while, because instant board flip doesnt give the player enough
         # feedback, that his action was performed
@@ -604,23 +633,14 @@ def mainGUI():
                 mouseHover = getMouseCell()
                 # primary mouse button (left) or middle mouse button
                 if event.button == 1 or (event.button == 2 and argparser.CRAZY_MODE):
-                    # reset planning and cell highlighting
+                    # reset planning
                     isPlanning = 0
-                    holder.highlight_cells = argparser.HIGHLIGHT_CELLS
-                    # Clear all previous rendered marked cells
-                    old_marks = holder.marked_cells.copy()
-                    holder.marked_cells.clear()
-                    for cell in old_marks:
-                        drawGameCell(mainScreen, gameState, cell)
-
-                    # clear all previous rendered arrows
-                    clearPlanningArrows(mainScreen, gameState)
-                    holder.planning_arrows.clear()
+                    clearPlanning(mainScreen, gameState)
                 # if the secondary (right) mouse button is pressed down we save the location
                 elif event.button == 3:
-                    marked_old = mouseHover
                     # planning begins
                     isPlanning = 1
+                    marked_old = mouseHover
             elif event.type == pygame.MOUSEBUTTONUP:
                 if event.button == 1:
                      # see if there is a piece at the clicked position
