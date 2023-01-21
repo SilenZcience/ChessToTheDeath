@@ -48,7 +48,8 @@ class Holder:
     options_move, options_attack = [], []
     last_move = []
     # Planning
-    marked_cells = set()
+    marked_cells_circle = set()
+    marked_cells_square = set()
     planning_arrows = []
     # GUI
     attack_icon: pygame.Surface = None
@@ -182,15 +183,22 @@ def drawBoardCell(mainScreen: pygame.Surface, cell: tuple, cellSquare: pygame.Re
     pygame.draw.rect(mainScreen, COLORS[sum(cell) % 2], cellSquare)
 
 
-def highlightCell(mainScreen: pygame.Surface, pos: tuple, size: tuple, color: tuple, alpha: int = 75) -> None:
+def highlightCell(mainScreen: pygame.Surface, pos: tuple, color: tuple, alpha: int = 75) -> None:
     """
-    Highlights a single cell at the coordinates 'pos' (x, y), with 'size' (w, h) 
+    Highlights a single cell at the index position 'pos' (x, y)
     and with the 'color' given as a tuple (R, G, B) and transperency 0 <= 'alpha' <= 255.
     """
-    highlight = pygame.Surface(size)
+    highlight = pygame.Surface(CELL_SIZE)
     highlight.set_alpha(alpha)
     highlight.fill(color)
-    mainScreen.blit(highlight, pos)
+    mainScreen.blit(highlight, (pos[0] * CELL_SIZE[0], pos[1] * CELL_SIZE[1]))
+
+
+def circleCell(mainScreen: pygame.Surface, pos: tuple, color: tuple):
+    circleRect = pygame.draw.circle(mainScreen, color,
+                                    (pos[0] * CELL_SIZE[0] + HALF_CELL_SIZE[0], pos[1] * CELL_SIZE[1] + HALF_CELL_SIZE[1]),
+                                    min(HALF_CELL_SIZE), 2)
+    pygame.display.update(circleRect)
 
 
 def highlightLastMovedCell(mainScreen: pygame.Surface, cell: tuple) -> None:
@@ -199,8 +207,7 @@ def highlightLastMovedCell(mainScreen: pygame.Surface, cell: tuple) -> None:
     """
     if not cell in holder.last_move:
         return
-    highlightCell(mainScreen, (cell[0] * CELL_SIZE[0], cell[1] * CELL_SIZE[1]),
-                  CELL_SIZE, COLORS[9])
+    highlightCell(mainScreen, cell, COLORS[9])
 
 
 def highlightSelectedCell(mainScreen: pygame.Surface, cell: tuple) -> None:
@@ -209,8 +216,7 @@ def highlightSelectedCell(mainScreen: pygame.Surface, cell: tuple) -> None:
     """
     if cell != holder.selectedPiece.getPos():
         return
-    highlightCell(mainScreen, (cell[0] * CELL_SIZE[0], cell[1] * CELL_SIZE[1]),
-                  CELL_SIZE, COLORS[3])
+    highlightCell(mainScreen, cell, COLORS[3])
 
 
 def highlightMoveOptions(mainScreen: pygame.Surface, cell: tuple) -> None:
@@ -219,8 +225,7 @@ def highlightMoveOptions(mainScreen: pygame.Surface, cell: tuple) -> None:
     """
     if not cell in holder.options_move:
         return
-    highlightCell(mainScreen, (cell[0] * CELL_SIZE[0], cell[1] * CELL_SIZE[1]),
-                  CELL_SIZE, COLORS[4])
+    highlightCell(mainScreen, cell, COLORS[4])
 
 
 def highlightAttackOptions(mainScreen: pygame.Surface, cell: tuple) -> None:
@@ -229,18 +234,19 @@ def highlightAttackOptions(mainScreen: pygame.Surface, cell: tuple) -> None:
     """
     if not cell in holder.options_attack:
         return
-    highlightCell(mainScreen, (cell[0] * CELL_SIZE[0], cell[1] * CELL_SIZE[1]),
-                  CELL_SIZE, COLORS[5])
+    highlightCell(mainScreen, cell, COLORS[5])
 
 
 def highlightMarkedCell(mainScreen: pygame.Surface, cell: tuple) -> None:
     """
     highlight a cell if it's position is marked
     """
-    if not cell in holder.marked_cells:
+    if not cell in holder.marked_cells_circle:
         return
-    highlightCell(mainScreen, (cell[0] * CELL_SIZE[0], cell[1] * CELL_SIZE[1]),
-                  CELL_SIZE, COLORS[2], 150)
+    if cell in holder.marked_cells_square:
+        highlightCell(mainScreen, cell, COLORS[2], 150)
+    else:
+        circleCell(mainScreen, cell, COLORS[2])
 
 
 def highlightHoveredCell(mainScreen: pygame.Surface, hoveredCell: tuple, cell: tuple) -> None:
@@ -249,8 +255,7 @@ def highlightHoveredCell(mainScreen: pygame.Surface, hoveredCell: tuple, cell: t
     """
     if not cell == hoveredCell:
         return
-    highlightCell(mainScreen, (cell[0] * CELL_SIZE[0], cell[1] * CELL_SIZE[1]),
-                  CELL_SIZE, COLORS[1 - (sum(cell) % 2)])
+    highlightCell(mainScreen, cell, COLORS[1 - (sum(cell) % 2)])
 
 
 def drawPiece(mainScreen: pygame.Surface, piece: Piece, cell: tuple) -> None:
@@ -368,8 +373,9 @@ def clearPlanning(mainScreen: pygame.Surface, gameState: engine.GameState) -> No
     # reset cell highlighting
     holder.highlight_cells = argparser.HIGHLIGHT_CELLS
     # Clear all previous rendered marked cells
-    old_marks = holder.marked_cells.copy()
-    holder.marked_cells.clear()
+    old_marks = holder.marked_cells_circle.copy()
+    holder.marked_cells_square.clear()
+    holder.marked_cells_circle.clear()
     for cell in old_marks:
         drawGameCell(mainScreen, gameState, cell)
 
@@ -403,11 +409,10 @@ def drawPieceOptionsGen(mainScreen: pygame.Surface, pos: tuple, promoteOptions: 
     said options.
     """
     old_col, old_row = -1, -1
-    optionPositionOverall = pygame.Rect(promoteOptions[0][1][0],
-                                        promoteOptions[0][1][1],
+    cellPositions = [(p[0] * CELL_SIZE[0], p[1] * CELL_SIZE[1]) for _,p in promoteOptions]
+    optionPositionOverall = pygame.Rect(*cellPositions[0],
                                         CELL_SIZE[0],
                                         CELL_SIZE[1] * len(promoteOptions))
-    
     while True:
         col, row = getMouseCell()
         if col != old_col or row != old_row:
@@ -415,16 +420,16 @@ def drawPieceOptionsGen(mainScreen: pygame.Surface, pos: tuple, promoteOptions: 
             pygame.draw.rect(mainScreen, COLORS[6], optionPositionOverall)
             for i, option in enumerate(promoteOptions):
                 # round lightspot
-                pygame.draw.rect(mainScreen, COLORS[sum((pos[0],pos[1]+i)) % 2],
-                            pygame.Rect(*option[1], *CELL_SIZE), border_radius=90)
+                pygame.draw.rect(mainScreen, COLORS[(sum(pos) + i) % 2],
+                                 pygame.Rect(*cellPositions[i], *CELL_SIZE),
+                                 border_radius=90)
                 if (col == pos[0] and row == (pos[1] + i)):
                     # highlight
-                    highlightCell(mainScreen, option[1],
-                                    CELL_SIZE, COLORS[3])
+                    highlightCell(mainScreen, option[1], COLORS[3])
                 # piece
                 mainScreen.blit(option[0],
-                            pygame.Rect(option[1][0] + IMAGE_OFFSET[0],
-                                        option[1][1] + IMAGE_OFFSET[1],
+                            pygame.Rect(cellPositions[i][0] + IMAGE_OFFSET[0],
+                                        cellPositions[i][1] + IMAGE_OFFSET[1],
                                         *IMG_SIZE))
             pygame.display.update(optionPositionOverall)
         yield
@@ -445,7 +450,7 @@ def choosePieceOption(mainScreen: pygame.Surface, gameState: engine.GameState, p
             return PLACEPIECE_ABORTED
     else:
         promoteOptions = [PieceChar.BISHOP, PieceChar.KNIGHT,
-                          PieceChar.QUEEN,  PieceChar.ROOK]
+                            PieceChar.QUEEN,  PieceChar.ROOK]
     
     pygame.display.set_mode(BOARD_SIZE, pygame.DOUBLEBUF) # disable resizing momentarily
     
@@ -455,7 +460,7 @@ def choosePieceOption(mainScreen: pygame.Surface, gameState: engine.GameState, p
     
     promoteOptionsDimensions = []
     for i, pieceChar in enumerate(promoteOptions):
-        position = [offsetPos[0] * CELL_SIZE[0], (offsetPos[1] + i) * CELL_SIZE[1]]
+        position = (offsetPos[0], offsetPos[1] + i)
         promoteOptionsDimensions.append([loadImage(currentPlayer+pieceChar, IMG_SIZE), position])
     
     piecePlaced = -1
@@ -711,7 +716,9 @@ def mainGUI():
                                   min(marked_old[1], engine.DIMENSION[0]-1))
 
                     if mouseHover == marked_old:
-                        holder.marked_cells.add(mouseHover)
+                        if mouseHover in holder.marked_cells_circle:
+                            holder.marked_cells_square.add(mouseHover)
+                        holder.marked_cells_circle.add(mouseHover)
                         drawGameCell(mainScreen, gameState, mouseHover)
                         clearPlanningArrows(mainScreen, gameState)
                         drawPlanningArrows(mainScreen)
