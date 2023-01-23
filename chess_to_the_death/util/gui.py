@@ -27,17 +27,17 @@ IMAGE_OFFSET = (int(CELL_SIZE[0] * 0.125),  # half of the remaining 1/4 -> 1/8
 
 PLACEPIECE_QUIT, PLACEPIECE_PLACED, PLACEPIECE_ABORTED = range(3)
 
-COLORS = [(230, 230, 230, 255), #"#E6E6E6" -> WHITE / CELL + HOVER
-          ( 45,  46,  48, 255), #"#202124" -> DARK_GRAY / CELL + HOVER
-          (255,   0,   0, 255), #"#FF0000" -> RED / HEALTH
-          (  0,   0, 255, 255), #"#0000FF" -> BLUE / SELECTED
-          (  0, 255,   0, 255), #"#00FF00" -> GREEN / MOVABLE
-          (255,   0,   0, 255), #"#FF0000" -> RED / ATTACKABLE
-          ( 46, 149, 153, 255), #"#2E9599" -> TEAL / TEXT
-          (  0,   0,   0, 255), #"#000000" -> BLACK / REDO
-          (255, 165,   0, 150), #"#FFA500" -> ORANGE / PLANNING_ARROWS
-          (218, 112, 214, 255), #"#DA70D6" -> PINK / LAST MOVE
-          ( 66, 245, 227, 255)] #"#42F5E3" -> DARK TEAL / PLACE PIECE
+COLORS = [(230, 230, 230), #"#E6E6E6" -> WHITE / CELL + HOVER
+          ( 45,  46,  48), #"#202124" -> DARK_GRAY / CELL + HOVER
+          (255,   0,   0), #"#FF0000" -> RED / HEALTH
+          (  0,   0, 255), #"#0000FF" -> BLUE / SELECTED
+          (  0, 255,   0), #"#00FF00" -> GREEN / MOVABLE
+          (255,   0,   0), #"#FF0000" -> RED / ATTACKABLE
+          ( 46, 149, 153), #"#2E9599" -> TEAL / TEXT
+          (  0,   0,   0), #"#000000" -> BLACK / REDO
+          (255, 165,   0), #"#FFA500" -> ORANGE / PLANNING_ARROWS
+          (218, 112, 214), #"#DA70D6" -> PINK / LAST MOVE
+          ( 66, 245, 227)] #"#42F5E3" -> DARK TEAL / PLACE PIECE
 
 # define a holder object to hold variables bundled in a global spectrum
 # and instantiate it
@@ -78,7 +78,7 @@ def getMouseCell(halfCell: bool = False) -> tuple:
     return (col // CELL_SIZE[0], row // CELL_SIZE[1])
 
 
-def draw_polygon_alpha(mainScreen, color, points) -> None:
+def draw_polygon_alpha(mainScreen: pygame.Surface, color: tuple, points: list, alpha: int = 150) -> None:
     """
     Draw a polygon from 'points' on the 'mainScreen'.
     Renders with alpha values.
@@ -87,6 +87,7 @@ def draw_polygon_alpha(mainScreen, color, points) -> None:
     min_x, min_y, max_x, max_y = min(lx), min(ly), max(lx), max(ly)
     target_rect = pygame.Rect(min_x, min_y, max_x - min_x, max_y - min_y)
     shape_surf = pygame.Surface(target_rect.size, pygame.SRCALPHA)
+    shape_surf.set_alpha(alpha)
     pygame.draw.polygon(shape_surf, color, [
                         (x - min_x, y - min_y) for x, y in points])
     mainScreen.blit(shape_surf, target_rect)
@@ -194,11 +195,15 @@ def highlightCell(mainScreen: pygame.Surface, pos: tuple, color: tuple, alpha: i
     mainScreen.blit(highlight, (pos[0] * CELL_SIZE[0], pos[1] * CELL_SIZE[1]))
 
 
-def circleCell(mainScreen: pygame.Surface, pos: tuple, color: tuple):
-    circleRect = pygame.draw.circle(mainScreen, color,
-                                    (pos[0] * CELL_SIZE[0] + HALF_CELL_SIZE[0], pos[1] * CELL_SIZE[1] + HALF_CELL_SIZE[1]),
-                                    min(HALF_CELL_SIZE), 2)
-    pygame.display.update(circleRect)
+def circleCell(mainScreen: pygame.Surface, pos: tuple, color: tuple, alpha: int = 75):
+    """
+    Draw a transparent circle on the cell at index position 'pos' (x, y)
+    """
+    target_rect = pygame.Rect(pos[0] * CELL_SIZE[0], pos[1] * CELL_SIZE[1], *CELL_SIZE)
+    shape_surf = pygame.Surface(target_rect.size, pygame.SRCALPHA)
+    shape_surf.set_alpha(alpha)
+    pygame.draw.circle(shape_surf, color, HALF_CELL_SIZE, min(HALF_CELL_SIZE), 5)
+    mainScreen.blit(shape_surf, target_rect)
 
 
 def highlightLastMovedCell(mainScreen: pygame.Surface, cell: tuple) -> None:
@@ -237,16 +242,24 @@ def highlightAttackOptions(mainScreen: pygame.Surface, cell: tuple) -> None:
     highlightCell(mainScreen, cell, COLORS[5])
 
 
-def highlightMarkedCell(mainScreen: pygame.Surface, cell: tuple) -> None:
+def highlightMarkedCellSquare(mainScreen: pygame.Surface, cell: tuple) -> None:
+    """
+    highlight a cell if it's position is marked
+    """
+    if not cell in holder.marked_cells_square:
+        return
+    highlightCell(mainScreen, cell, COLORS[2], 150)
+        
+        
+def highlightMarkedCellCircle(mainScreen: pygame.Surface, cell: tuple) -> None:
     """
     highlight a cell if it's position is marked
     """
     if not cell in holder.marked_cells_circle:
         return
     if cell in holder.marked_cells_square:
-        highlightCell(mainScreen, cell, COLORS[2], 150)
-    else:
-        circleCell(mainScreen, cell, COLORS[2])
+        return
+    circleCell(mainScreen, cell, COLORS[2], 150)
 
 
 def highlightHoveredCell(mainScreen: pygame.Surface, hoveredCell: tuple, cell: tuple) -> None:
@@ -315,10 +328,11 @@ def drawGameCell(mainScreen: pygame.Surface, gameState: engine.GameState, cell: 
         highlightSelectedCell(mainScreen, cell)
         highlightMoveOptions(mainScreen, cell)
         highlightAttackOptions(mainScreen, cell)
-    highlightMarkedCell(mainScreen, cell)
+    highlightMarkedCellSquare(mainScreen, cell)
     if holder.highlight_cells:
         highlightHoveredCell(mainScreen, getMouseCell(), cell)
     drawPiece(mainScreen, gameState.getPiece(cell), cell)
+    highlightMarkedCellCircle(mainScreen, cell)
     pygame.display.update(cellSquare)
 
 
