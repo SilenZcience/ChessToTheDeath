@@ -500,9 +500,18 @@ def choosePieceOption(mainScreen: pygame.Surface, gameState: engine.GameState, p
                                     break
                     elif crazyPlace: # if clicked somewhere else and we are not promoting -> abort
                         piecePlaced = PLACEPIECE_ABORTED
-    for i in range(len(promoteOptions)): # cleanup
-        drawGameCell(mainScreen, gameState, (offsetPos[0], offsetPos[1] + i))
     pygame.display.set_mode(BOARD_SIZE, pygame.DOUBLEBUF | pygame.RESIZABLE) # reset resizablity
+    
+    # if we aborted the option to place a piece by clicking somewhere else
+    # we need to re-render the entire screen, because we messed with
+    # pygame.display
+    if crazyPlace and piecePlaced == PLACEPIECE_ABORTED:
+        renderGame(mainScreen, gameState)
+    # otherwise it is sufficient to render the used cells, because
+    # the turn is thereby finished and the screen will re-render anyway
+    else:
+        for i in range(len(promoteOptions)): # cleanup
+            drawGameCell(mainScreen, gameState, (offsetPos[0], offsetPos[1] + i))
     return piecePlaced
 
 
