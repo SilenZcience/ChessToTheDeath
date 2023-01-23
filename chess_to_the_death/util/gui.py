@@ -429,14 +429,13 @@ def drawPieceOptionsGen(mainScreen: pygame.Surface, pos: tuple, promoteOptions: 
                                         CELL_SIZE[1] * len(promoteOptions))
     while True:
         col, row = getMouseCell()
-        if col != old_col or row != old_row:
-            # background
-            pygame.draw.rect(mainScreen, COLORS[6], optionPositionOverall)
+        # only render the options, when the mouse is over another cell, and the cell is
+        # in close proximity to the options
+        if (col != old_col or row != old_row) and pos[0] - 1 <= col <= pos[0] + 1 and pos[1] - 1 <= row <= pos[1] + len(promoteOptions):
             for i, option in enumerate(promoteOptions):
-                # round lightspot
+                # draw board cell
                 pygame.draw.rect(mainScreen, COLORS[(sum(pos) + i) % 2],
-                                 pygame.Rect(*cellPositions[i], *CELL_SIZE),
-                                 border_radius=90)
+                                 pygame.Rect(*cellPositions[i], *CELL_SIZE))
                 if (col == pos[0] and row == (pos[1] + i)):
                     # highlight
                     highlightCell(mainScreen, option[1], COLORS[3])
@@ -445,6 +444,8 @@ def drawPieceOptionsGen(mainScreen: pygame.Surface, pos: tuple, promoteOptions: 
                             pygame.Rect(cellPositions[i][0] + IMAGE_OFFSET[0],
                                         cellPositions[i][1] + IMAGE_OFFSET[1],
                                         *IMG_SIZE))
+                # circle option
+                circleCell(mainScreen, (pos[0], pos[1] + i), COLORS[6], 200)
             pygame.display.update(optionPositionOverall)
         yield
 
