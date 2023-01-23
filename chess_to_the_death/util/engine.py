@@ -527,7 +527,7 @@ class GameState:
         if abs(self.board[piece.cell_row, 0]) == pieceTranslateDic[PieceChar.ROOK]:
             rook = self.getPiece((0, piece.cell_row))
             # rook must never have moved and no pieces between rook and king
-            if (rook.firstMove) and (np.sum(self.board[piece.cell_row, 1:piece.cell_col]) == 0):
+            if (rook.firstMove) and (np.all(self.board[piece.cell_row, 1:piece.cell_col] == 0)):
                 if self.default:
                     for x in range(0, piece.cell_col+1):
                         if self.isCellAttacked((x, piece.cell_row)):
@@ -540,7 +540,7 @@ class GameState:
         if abs(self.board[piece.cell_row, DIMENSION[1]-1]) == pieceTranslateDic[PieceChar.ROOK]:
             rook = self.getPiece((DIMENSION[1]-1, piece.cell_row))
             # rook must never have moved and no pieces between rook and king
-            if (rook.firstMove) and (np.sum(self.board[piece.cell_row, piece.cell_col+1:DIMENSION[1]-1]) == 0):
+            if (rook.firstMove) and (np.all(self.board[piece.cell_row, piece.cell_col+1:DIMENSION[1]-1] == 0)):
                 if self.default:
                     for x in range(piece.cell_col, DIMENSION[0]):
                         if self.isCellAttacked((x, piece.cell_row)):
