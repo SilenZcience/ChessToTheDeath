@@ -37,3 +37,13 @@ class PieceNames:
              PieceChar.QUEEN: 'Queen',
              PieceChar.KING: 'King',
              PieceChar.OBSTACLE: 'Obstacle'}
+    
+class PieceValues:
+    VALUES = {PieceChar.UNDEFINED: 0,
+             PieceChar.PAWN: 1,
+             PieceChar.BISHOP: 3,
+             PieceChar.KNIGHT: 3,
+             PieceChar.ROOK: 5,
+             PieceChar.QUEEN: 9,
+             PieceChar.KING: 10,
+             PieceChar.OBSTACLE: 0}

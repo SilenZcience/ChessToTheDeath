@@ -6,7 +6,7 @@ import chess_to_the_death.parser.argparser as argparser
 from chess_to_the_death.entity.pieces import *
 from chess_to_the_death.entity.player import Player
 from chess_to_the_death.util.action import Action, ActionLog
-from chess_to_the_death.util.definition import Outcome, ActionName, PieceChar, PieceNames
+from chess_to_the_death.util.definition import *
 
 DIMENSION = config.DIMENSION
 boardDtype = config.boardDtype
@@ -94,6 +94,7 @@ class GameState:
         
         self.white_casualties: list[Piece] = []
         self.black_casualties: list[Piece] = []
+        self.value_taken: list[int] = [0, 0]
         
         self.action_log: ActionLog = ActionLog()
         
@@ -168,6 +169,23 @@ class GameState:
             pieceName = ''
         self.action_log.add(self.board, self.alpha_identifiers[from_pos[0]], self.numbers_identifiers[from_pos[1]],
                 self.alpha_identifiers[to_pos[0]], self.numbers_identifiers[to_pos[1]], action, pieceName)
+        
+    def getPlayerValue(self) -> tuple:
+        """
+        return a tuple containing the piece-values, that have been taken.
+        """
+        white_casualties_ids = [p._name for p in self.white_casualties]
+        black_casualties_ids = [p._name for p in self.black_casualties]
+        for id in white_casualties_ids[:]:
+            if id in black_casualties_ids:
+                white_casualties_ids.remove(id)
+                black_casualties_ids.remove(id)
+        for id in black_casualties_ids[:]:
+            if id in white_casualties_ids:
+                white_casualties_ids.remove(id)
+                black_casualties_ids.remove(id)
+            
+        return (self.value_taken[1] - self.value_taken[0], white_casualties_ids, black_casualties_ids)
 
     def getDefeatedPieces(self):
         if self.currentPlayer() == Player.PLAYER_W:
@@ -310,6 +328,7 @@ class GameState:
             else:
                 self.black_pieces.remove(attacked_piece)
                 self.black_casualties.append(attacked_piece)
+            self.value_taken[self.player_turn] += PieceValues.VALUES[attacked_piece._name]
 
         return action
 
@@ -632,6 +651,25 @@ class GameState:
         self.flipBoard()
         self.createBoard()
         print(self)
+        # TODO: print available placement options in crazyhouse variant.
+        # -> seperate casualties list from crazyhouse list
+        playerValue, white_diff, black_diff = self.getPlayerValue()
+        if playerValue == 0:
+            return
+        elif playerValue > 0:
+            print('white: +', playerValue, sep='')
+            if black_diff:
+                print(*black_diff)
+            if white_diff:
+                print('black:')
+                print(*white_diff)
+        elif playerValue < 0:
+            if black_diff:
+                print('white:')
+                print(*black_diff)
+            print('black: +', abs(playerValue), sep='')
+            if white_diff:
+                print(*white_diff)
 
     def __str__(self) -> str:
         boardRepr = ' ' + '   '.join(self.alpha_identifiers[:DIMENSION[1]]) + ' |\n'

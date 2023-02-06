@@ -365,6 +365,7 @@ def drawPlanningArrows(mainScreen: pygame.Surface) -> None:
 
 
 def clearPlanningArrows(mainScreen: pygame.Surface, gameState: engine.GameState) -> None:
+    # TODO: raytrace neccessary cells
     arrowCoveredCells = set()
     for from_pos, to_pos in holder.planning_arrows:
         from_pos_x, from_pos_y = from_pos
