@@ -773,5 +773,7 @@ def mainGUI():
                 mainScreen = pygame.display.set_mode(BOARD_SIZE, pygame.DOUBLEBUF | pygame.RESIZABLE)
                 # then we render everything again
                 renderGame(mainScreen, gameState)
+            elif event.type == pygame.WINDOWRESTORED:  # handles window minimising/maximising
+                renderGame(mainScreen, gameState)
     pygame.quit()
     print("GoodBye!")
