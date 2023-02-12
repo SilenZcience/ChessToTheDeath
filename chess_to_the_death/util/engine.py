@@ -158,7 +158,7 @@ class GameState:
         
         return [(from_col, from_row), (to_col, to_row)]
 
-    def writeActionLog(self, from_pos: tuple, to_pos: tuple, action: str = '', pieceChar: str = '') -> None:
+    def writeActionLog(self, from_pos: tuple, to_pos: tuple, action: str = '', pieceChar: str = PieceChar.UNDEFINED) -> None:
         """
         Take the column and row of start- and target position of any action.
         Saves an action object of said action. e.g.:(C1-G5) to the action_log list.
@@ -672,10 +672,10 @@ class GameState:
                 print(*white_diff)
 
     def __str__(self) -> str:
-        boardRepr = ' ' + '   '.join(self.alpha_identifiers[:DIMENSION[1]]) + ' |\n'
-        boardRepr += '-' * (4 * DIMENSION[1] - 1) + '|' + '-' * len(str(DIMENSION[0])) + '\n'
+        boardRepr = '  '.join(self.alpha_identifiers[:DIMENSION[1]]) + ' |\n'
+        boardRepr += '-' * (3 * DIMENSION[1] - 1) + '|' + '-' * len(str(DIMENSION[0])) + '\n'
         number_ids = [' |' + id for id in self.numbers_identifiers[:DIMENSION[0]]]
-        board = ['  '.join(map(lambda x: " " * (x >= 0) + str(x), row)) for row in self.board]
+        board = ['  '.join(map(lambda x: "\x1b[" + "36" * (x > 0) + "31" * (x < 0) + ";1m" + pieceTranslateDic[abs(x)] + "\x1b[0m", row)) for row in self.board]
         boardRepr += '\n'.join(list(''.join(row) for row in zip(board, number_ids)))
         return boardRepr
 

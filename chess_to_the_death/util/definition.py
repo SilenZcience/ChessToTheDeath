@@ -19,7 +19,7 @@ class ActionName:
     TAKES = 'takes'
     
 class PieceChar:
-    UNDEFINED = ''
+    UNDEFINED = '-'
     PAWN = 'p'
     BISHOP = 'b'
     KNIGHT = 'n'
