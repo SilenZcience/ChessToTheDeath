@@ -94,6 +94,8 @@ class GameState:
         
         self.white_casualties: list[Piece] = []
         self.black_casualties: list[Piece] = []
+        self.white_crazyoptions: list[Piece] = []
+        self.black_crazyoptions: list[Piece] = []
         self.value_taken: list[int] = [0, 0]
         
         self.action_log: ActionLog = ActionLog()
@@ -176,6 +178,8 @@ class GameState:
         """
         white_casualties_ids = [p._name for p in self.white_casualties]
         black_casualties_ids = [p._name for p in self.black_casualties]
+        white_casualties_ids.sort()
+        black_casualties_ids.sort()
         for id in white_casualties_ids[:]:
             if id in black_casualties_ids:
                 white_casualties_ids.remove(id)
@@ -187,16 +191,16 @@ class GameState:
             
         return (self.value_taken[1] - self.value_taken[0], white_casualties_ids, black_casualties_ids)
 
-    def getDefeatedPieces(self):
+    def getCrazyPlaceOptionsPieces(self):
         if self.currentPlayer() == Player.PLAYER_W:
-            return self.black_casualties
-        return self.white_casualties
+            return self.black_crazyoptions
+        return self.white_crazyoptions
     
-    def setDefeatedPieces(self, casualties: list):
+    def setCrazyPlaceOptionsPieces(self, casualties: list):
         if self.currentPlayer() == Player.PLAYER_W:
-            self.black_casualties = casualties[:]
+            self.black_crazyoptions = casualties[:]
         else:
-            self.white_casualties = casualties[:]
+            self.white_crazyoptions = casualties[:]
 
     def currentPlayer(self) -> str:
         """
@@ -325,9 +329,11 @@ class GameState:
             if attacked_piece._player == Player.PLAYER_W:
                 self.white_pieces.remove(attacked_piece)
                 self.white_casualties.append(attacked_piece)
+                self.white_crazyoptions.append(attacked_piece)
             else:
                 self.black_pieces.remove(attacked_piece)
                 self.black_casualties.append(attacked_piece)
+                self.black_crazyoptions.append(attacked_piece)
             self.value_taken[self.player_turn] += PieceValues.VALUES[attacked_piece._name]
 
         return action
@@ -382,7 +388,7 @@ class GameState:
                     else:
                         outcome = Outcome.WHITE_WON
                 if self.crazy:
-                    placementOptions = self.getDefeatedPieces()
+                    placementOptions = self.getCrazyPlaceOptionsPieces()
                     if placementOptions:
                         if outcome == Outcome.STALEMATE:
                             outcome = Outcome.NONE
@@ -651,8 +657,6 @@ class GameState:
         self.flipBoard()
         self.createBoard()
         print(self)
-        # TODO: print available placement options in crazyhouse variant.
-        # -> seperate casualties list from crazyhouse list
         playerValue, white_diff, black_diff = self.getPlayerValue()
         if playerValue == 0:
             return
@@ -670,6 +674,17 @@ class GameState:
             print('black: +', abs(playerValue), sep='')
             if white_diff:
                 print(*white_diff)
+        if self.crazy:
+            placableWhite = [p._name for p in self.black_crazyoptions]
+            placableBlack = [p._name for p in self.white_crazyoptions]
+            placableWhite.sort()
+            placableBlack.sort()
+            if placableWhite:
+                print('placement options (white):')
+                print(*placableWhite)
+            if placableBlack:
+                print('placement options (black):')
+                print(*placableBlack)
 
     def __str__(self) -> str:
         boardRepr = '  '.join(self.alpha_identifiers[:DIMENSION[1]]) + ' |\n'

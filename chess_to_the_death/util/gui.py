@@ -459,7 +459,7 @@ def choosePieceOption(mainScreen: pygame.Surface, gameState: engine.GameState, p
     """
     currentPlayer = gameState.currentPlayer()
     if crazyPlace:
-        availablePieces = gameState.getDefeatedPieces()
+        availablePieces = gameState.getCrazyPlaceOptionsPieces()
         promoteOptions = list(set([piece._name for piece in availablePieces]))
         promoteOptions.sort()
         if len(promoteOptions) == 0:
@@ -497,7 +497,7 @@ def choosePieceOption(mainScreen: pygame.Surface, gameState: engine.GameState, p
                             for piece in availablePieces:
                                 if piece._name == promoteOptions[row-offsetPos[1]]:
                                     availablePieces.remove(piece)
-                                    gameState.setDefeatedPieces(availablePieces)
+                                    gameState.setCrazyPlaceOptionsPieces(availablePieces)
                                     break
                     elif crazyPlace: # if clicked somewhere else and we are not promoting -> abort
                         piecePlaced = PLACEPIECE_ABORTED
