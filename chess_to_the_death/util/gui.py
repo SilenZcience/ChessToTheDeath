@@ -12,14 +12,14 @@ from chess_to_the_death.util.loader import loadImage, clearPieceImageCache
 from chess_to_the_death.util.definition import Outcome, PieceChar
 
 
-BOARD_SIZE = (1044, 1044)
-BOARD_OFFSET = (BOARD_SIZE[0] // 50,  # 2% for cell identifiers
-                BOARD_SIZE[1] // 50)
-CELL_SIZE = ((BOARD_SIZE[0] - BOARD_OFFSET[0]) // engine.DIMENSION[1],
-             (BOARD_SIZE[1] - BOARD_OFFSET[1]) // engine.DIMENSION[0])
+CELL_SIZE = (128, 128)
 HALF_CELL_SIZE = (CELL_SIZE[0]//2, CELL_SIZE[1]//2)
+BOARD_OFFSET = (CELL_SIZE[0] // 7,
+                CELL_SIZE[1] // 7)
 IDENTIFIER_OFFSET = (engine.DIMENSION[1] * CELL_SIZE[0],
                      engine.DIMENSION[0] * CELL_SIZE[1])
+BOARD_SIZE = (IDENTIFIER_OFFSET[0] + BOARD_OFFSET[0],
+              IDENTIFIER_OFFSET[1] + BOARD_OFFSET[1])
 IMG_SIZE = (int(CELL_SIZE[0] * 0.75),  # image is 3/4 the size of the cell
             int(CELL_SIZE[1] * 0.75))
 IMAGE_OFFSET = (int(CELL_SIZE[0] * 0.125),  # half of the remaining 1/4 -> 1/8
@@ -520,23 +520,26 @@ def rescaleWindow(newWidth: int, newHeight: int, gameState: engine.GameState) ->
     """
     change all global size variables according to the rescaled window attributes.
     """
-    global BOARD_SIZE
-    global BOARD_OFFSET
     global CELL_SIZE
     global HALF_CELL_SIZE
+    global BOARD_OFFSET
     global IDENTIFIER_OFFSET
+    global BOARD_SIZE
     global IMG_SIZE
     global IMAGE_OFFSET
 
     CELL_SIZE_OLD = CELL_SIZE
+    SIZE_FACTOR = (newWidth/BOARD_SIZE[0], newHeight/BOARD_SIZE[1])
     BOARD_SIZE = (newWidth, newHeight)
-    BOARD_OFFSET = (BOARD_SIZE[0] // 50,
-                    BOARD_SIZE[1] // 50)
+    BOARD_OFFSET = (int(BOARD_OFFSET[0] * SIZE_FACTOR[0]),
+                    int(BOARD_OFFSET[1] * SIZE_FACTOR[1]))
     CELL_SIZE = ((BOARD_SIZE[0] - BOARD_OFFSET[0]) // engine.DIMENSION[1],
                  (BOARD_SIZE[1] - BOARD_OFFSET[1]) // engine.DIMENSION[0])
     HALF_CELL_SIZE = (CELL_SIZE[0]//2, CELL_SIZE[1]//2)
     IDENTIFIER_OFFSET = (engine.DIMENSION[1] * CELL_SIZE[0],
                          engine.DIMENSION[0] * CELL_SIZE[1])
+    BOARD_SIZE = (IDENTIFIER_OFFSET[0] + BOARD_OFFSET[0],
+                    IDENTIFIER_OFFSET[1] + BOARD_OFFSET[1])
     IMG_SIZE = (int(CELL_SIZE[0] * 0.75),
                 int(CELL_SIZE[1] * 0.75))
     IMAGE_OFFSET = (int(CELL_SIZE[0] * 0.125),
@@ -615,6 +618,10 @@ def newGame() -> engine.GameState:
 def mainGUI():
     holder.highlight_cells = argparser.HIGHLIGHT_CELLS
     pygame.init()
+    monitor_info = pygame.display.Info()
+    window_pos = (max((monitor_info.current_w-BOARD_SIZE[0])//2, 0),
+                  max((monitor_info.current_h-BOARD_SIZE[1])//2, 30))
+    environ['SDL_VIDEO_WINDOW_POS'] = "%d,%d" % window_pos
     mainScreen = pygame.display.set_mode(
         BOARD_SIZE, pygame.DOUBLEBUF | pygame.RESIZABLE)
     # for performance reasons we block unnecessary events
