@@ -652,13 +652,14 @@ def mainGUI():
         # cell at previous mouse position
         if holder.highlight_cells and not holder.winner:
             mouseHover = getMouseCell()
-            if isPlanning == 1 and mouseHover != mouseHover_old:
-                drawGameCell(mainScreen, gameState, mouseHover_old)
-                holder.highlight_cells = False
-                isPlanning = 2
-            elif isPlanning == 0:
-                drawGameCell(mainScreen, gameState, mouseHover)
-                drawGameCell(mainScreen, gameState, mouseHover_old)
+            if mouseHover != mouseHover_old:
+                if isPlanning == 1:
+                    drawGameCell(mainScreen, gameState, mouseHover_old)
+                    holder.highlight_cells = False
+                    isPlanning = 2
+                elif isPlanning == 0:
+                    drawGameCell(mainScreen, gameState, mouseHover)
+                    drawGameCell(mainScreen, gameState, mouseHover_old)
             mouseHover_old = mouseHover
         pygame.time.delay(25)  # relieve the CPU a bit ...
         for event in pygame.event.get():
