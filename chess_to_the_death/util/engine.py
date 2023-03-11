@@ -8,15 +8,6 @@ from chess_to_the_death.entity.player import Player
 from chess_to_the_death.util.action import Action, ActionLog
 from chess_to_the_death.util.definition import *
 
-DIMENSION = config.DIMENSION
-boardDtype = config.boardDtype
-
-pieceTranslateDic = {}
-for id, char in enumerate(PieceNames.NAMES.keys()):
-    pieceTranslateDic[id] = char
-    pieceTranslateDic[char] = id
-
-assert (len(pieceTranslateDic)//2) ** 2 <= np.iinfo(boardDtype).max, "The BoardDtype has to be smaller than sqrt(max(pieceID))."
 
 def createPiece(name: str, pos: tuple, player: str, image_size):
     """
@@ -74,8 +65,8 @@ def printValueStatistic(health_damage_dict: dict) -> None:
 
 class GameState:
     def __init__(self, image_size: tuple):
-        self.alpha_identifiers = list(map(chr, range(65, 65+DIMENSION[1])))
-        self.numbers_identifiers = list(map(str, range(DIMENSION[0], 0, -1)))
+        self.alpha_identifiers = list(map(chr, range(65, 65+config.DIMENSION[1])))
+        self.numbers_identifiers = list(map(str, range(config.DIMENSION[0], 0, -1)))
         
         self.image_size: tuple = image_size
         self.flip_board: bool = argparser.FLIP_BOARD
@@ -143,7 +134,8 @@ class GameState:
             # if not the default variant is palyed, print the statistics
             # about piece health/damage values.
             printValueStatistic(self.health_damage_dict)
-        
+        # if black_turn:
+        #     self.nextTurn(False)
         self.createBoard()
         print(self.__repr__())
 
@@ -279,7 +271,7 @@ class GameState:
         of the board.
         """
         promotable = piece._name == PieceChar.PAWN and \
-                    piece.cell_row in [0, DIMENSION[1]-1]
+                    piece.cell_row in [0, config.DIMENSION[1]-1]
         return promotable
 
     def move(self, piece: Piece, to_pos: tuple, options_move: list) -> str:
@@ -393,7 +385,7 @@ class GameState:
                         if outcome == Outcome.STALEMATE:
                             outcome = Outcome.NONE
                         else:
-                            for pos in product(range(DIMENSION[1]), range(DIMENSION[0])):
+                            for pos in product(range(config.DIMENSION[1]), range(config.DIMENSION[0])):
                                 if self.board[pos[1], pos[0]] != 0:
                                     continue
                                 if self._restrictedCrazyPlaceDefault(pos):
@@ -562,12 +554,12 @@ class GameState:
                 else:
                     options.append(((piece.cell_col-2, piece.cell_row), (piece.cell_col-1, piece.cell_row), rook))
         # right castle demands rook at right-most position
-        if abs(self.board[piece.cell_row, DIMENSION[1]-1]) == pieceTranslateDic[PieceChar.ROOK]:
-            rook = self.getPiece((DIMENSION[1]-1, piece.cell_row))
+        if abs(self.board[piece.cell_row, config.DIMENSION[1]-1]) == pieceTranslateDic[PieceChar.ROOK]:
+            rook = self.getPiece((config.DIMENSION[1]-1, piece.cell_row))
             # rook must never have moved and no pieces between rook and king
-            if (rook.firstMove) and (np.all(self.board[piece.cell_row, piece.cell_col+1:DIMENSION[1]-1] == 0)):
+            if (rook.firstMove) and (np.all(self.board[piece.cell_row, piece.cell_col+1:config.DIMENSION[1]-1] == 0)):
                 if self.default:
-                    for x in range(piece.cell_col, DIMENSION[0]):
+                    for x in range(piece.cell_col, config.DIMENSION[0]):
                         if self.isCellAttacked((x, piece.cell_row)):
                             break
                     else:
@@ -625,8 +617,8 @@ class GameState:
         self.alpha_identifiers.reverse()
         self.numbers_identifiers.reverse()
         for piece in self.pieces:
-            piece.cell_col = DIMENSION[1] - piece.cell_col - 1
-            piece.cell_row = DIMENSION[0] - piece.cell_row - 1
+            piece.cell_col = config.DIMENSION[1] - piece.cell_col - 1
+            piece.cell_row = config.DIMENSION[0] - piece.cell_row - 1
 
     def createBoard(self) -> None:
         """
@@ -642,13 +634,13 @@ class GameState:
         [ 1.  1.  1.  1.  1.  1.  1.  1.]       
         [ 4.  3.  2.  5.  6.  2.  3.  4.]]
         """
-        self.board = np.zeros(DIMENSION, dtype=boardDtype)
+        self.board = np.zeros(config.DIMENSION, dtype=config.boardDtype)
         for piece in self.pieces:
             self.board[piece.cell_row, piece.cell_col] = pieceTranslateDic[piece._name] * (
                 1 if piece._player == Player.PLAYER_W else -1
             )
 
-    def nextTurn(self) -> None:
+    def nextTurn(self, displayInfo = True) -> None:
         """
         flips the board and switches to the team whose
         turn it is at the moment.
@@ -656,6 +648,8 @@ class GameState:
         self.player_turn = not self.player_turn
         self.flipBoard()
         self.createBoard()
+        if not displayInfo:
+            return
         print(self)
         playerValue, white_diff, black_diff = self.getPlayerValue()
         if playerValue == 0:
@@ -687,9 +681,9 @@ class GameState:
                 print(*placableBlack)
 
     def __str__(self) -> str:
-        boardRepr = '  '.join(self.alpha_identifiers[:DIMENSION[1]]) + ' |\n'
-        boardRepr += '-' * (3 * DIMENSION[1] - 1) + '|' + '-' * len(str(DIMENSION[0])) + '\n'
-        number_ids = [' |' + id for id in self.numbers_identifiers[:DIMENSION[0]]]
+        boardRepr = '  '.join(self.alpha_identifiers[:config.DIMENSION[1]]) + ' |\n'
+        boardRepr += '-' * (3 * config.DIMENSION[1] - 1) + '|' + '-' * len(str(config.DIMENSION[0])) + '\n'
+        number_ids = [' |' + id for id in self.numbers_identifiers[:config.DIMENSION[0]]]
         board = ['  '.join(map(lambda x: "\x1b[" + "36" * (x > 0) + "31" * (x < 0) + ";1m" + pieceTranslateDic[abs(x)] + "\x1b[0m", row)) for row in self.board]
         boardRepr += '\n'.join(list(''.join(row) for row in zip(board, number_ids)))
         return boardRepr

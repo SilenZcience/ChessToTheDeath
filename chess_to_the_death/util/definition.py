@@ -47,3 +47,8 @@ class PieceValues:
              PieceChar.QUEEN: 9,
              PieceChar.KING: 10,
              PieceChar.OBSTACLE: 0}
+    
+pieceTranslateDic = {}
+for id, char in enumerate(PieceNames.NAMES.keys()):
+    pieceTranslateDic[id] = char
+    pieceTranslateDic[char] = id

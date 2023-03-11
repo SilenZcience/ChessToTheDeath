@@ -2,6 +2,7 @@ import argparse
 from sys import exit as sysexit
 from datetime import datetime
 from os import path
+import chess_to_the_death.util.config as config
 from chess_to_the_death.web.UpdateChecker import printUpdateInformation
 from chess_to_the_death import __version__, __sysversion__, __author__
 
@@ -11,6 +12,7 @@ FLIP_BOARD = True
 RANDOM_VALUES = False
 DEFAULT_MODE = False
 CRAZY_MODE = False
+STARTING_POSITION = None
 
 class ArgsHandler:
     params: argparse.Namespace = None
@@ -40,6 +42,8 @@ class ArgsHandler:
                             const=True, help="play the default chess variant.")
         parser.add_argument("-crazy", action="store_const", default=False, dest="crazy",
                             const=True, help="play the crazyhouse chess variant.")
+        parser.add_argument("-pos", action="store", default=None, dest="position",
+                            help="FEN starting position")
         
         self.params = parser.parse_args()
     
@@ -50,6 +54,7 @@ class ArgsHandler:
         global RANDOM_VALUES
         global DEFAULT_MODE
         global CRAZY_MODE
+        global STARTING_POSITION
         if getattr(self.params, 'version'):
             self._showVersion()
             sysexit(0)
@@ -59,6 +64,8 @@ class ArgsHandler:
         RANDOM_VALUES = getattr(self.params, 'random')
         DEFAULT_MODE = getattr(self.params, 'default')
         CRAZY_MODE = getattr(self.params, 'crazy')
+        STARTING_POSITION = getattr(self.params, 'position')
+        config.generateBoardFromFEN(STARTING_POSITION)
         
     def _showVersion(self) -> None:
         print()
