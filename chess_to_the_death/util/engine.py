@@ -134,8 +134,8 @@ class GameState:
             # if not the default variant is palyed, print the statistics
             # about piece health/damage values.
             printValueStatistic(self.health_damage_dict)
-        # if black_turn:
-        #     self.nextTurn(False)
+        if config.BLACKS_TURN:
+            self.nextTurn(False)
         self.createBoard()
         print(self.__repr__())
 

@@ -688,6 +688,7 @@ def mainGUI():
                 running = False
                 print("Log:")
                 print(gameState.action_log)
+                break
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 mouseHover = getMouseCell()
                 # primary mouse button (left) or middle mouse button
@@ -804,4 +805,5 @@ def mainGUI():
             elif event.type == pygame.WINDOWRESTORED:  # handles window minimising/maximising
                 renderGame(mainScreen, gameState)
     pygame.quit()
+    print("Current Board Position:", config.generateFENFromBoard(gameState.board, gameState.player_turn), sep="\n")
     print("GoodBye!")
