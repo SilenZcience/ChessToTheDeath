@@ -1,5 +1,5 @@
 import numpy as np
-from chess_to_the_death.util.definition import pieceTranslateDic
+from chess_to_the_death.util.definition import PieceChar, pieceTranslateDic
 
 
 boardDtype = np.int8
@@ -16,7 +16,7 @@ DIMENSION = board.shape
 assert (len(pieceTranslateDic)//2) ** 2 <= np.iinfo(boardDtype).max, "The BoardDtype has to be smaller than sqrt(max(pieceID))."
 BLACKS_TURN = False
 
-def generateBoardFromFEN(fen: str) -> None:
+def generateBoardFromFEN(fen: str, isCrazyMode: bool) -> None:
     if fen == None:
         return
     global board
@@ -53,6 +53,12 @@ def generateBoardFromFEN(fen: str) -> None:
     if len(whiteSpaceSplit) >= 2:
         if whiteSpaceSplit[1].upper() == "B":
             BLACKS_TURN = True
+    possiblePieceOptions = [attr for attr in dir(PieceChar) if not callable(getattr(PieceChar, attr)) and not attr.startswith("__")]
+    # the options to promote/crazyplace a piece will not fit if the board height is less than 4, or
+    # the crazyoptions exceed the board height. We subtract UNDEFINED, OBSTACLE, and KING, because we cannot crazyplace these.
+    if DIMENSION[0] < 4 or (isCrazyMode and DIMENSION[0] < len(possiblePieceOptions)-3):
+        # print(possiblePieceOptions)
+        print("\x1b[33mWARNING: the board height is unusually small. You may experience problems promoting or crazyplacing pieces.\x1b[0m")
 
 
 def generateFENFromBoard(board: np.ndarray, whites_turn: bool) -> str:

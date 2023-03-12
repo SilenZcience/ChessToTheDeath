@@ -65,7 +65,7 @@ class ArgsHandler:
         DEFAULT_MODE = getattr(self.params, 'default')
         CRAZY_MODE = getattr(self.params, 'crazy')
         STARTING_POSITION = getattr(self.params, 'position')
-        config.generateBoardFromFEN(STARTING_POSITION)
+        config.generateBoardFromFEN(STARTING_POSITION, CRAZY_MODE)
         
     def _showVersion(self) -> None:
         print()
