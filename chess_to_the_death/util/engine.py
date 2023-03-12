@@ -271,7 +271,7 @@ class GameState:
         of the board.
         """
         promotable = piece._name == PieceChar.PAWN and \
-                    piece.cell_row in [0, config.DIMENSION[1]-1]
+                    piece.cell_row in [0, config.DIMENSION[0]-1]
         return promotable
 
     def move(self, piece: Piece, to_pos: tuple, options_move: list) -> str:
