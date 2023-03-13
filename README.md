@@ -105,6 +105,13 @@ python -m chess_to_the_death [-h] [-v] ...
 | -crazy                 | play the crazyhouse chess variant                    |
 | -pos POSITION          | FEN starting position                                |
 
+- ***leftclick*** a piece to select it
+- ***leftclick*** a tile to move/attack with your selected piece
+- ***rightclick*** a tile to mark it with a circle
+- ***rightclick*** a circled tile to mark it with a square
+- ***rightclick*** drag & drop across different tiles to draw an arrow
+- ***middleclick*** an empty tile to crazyplace a piece (only with `-crazy` parameter enabled)
+
 ### Examples
 
 ![Example1](https://raw.githubusercontent.com/SilenZcience/ChessToTheDeath/main/img/example1.png "example1")
