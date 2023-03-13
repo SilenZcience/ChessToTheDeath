@@ -100,9 +100,10 @@ python -m chess_to_the_death [-h] [-v] ...
 | -fps FPS, --fps FPS    | set max fps (a lower value will improve performance) |
 | -nohighlight           | disable cell-highlighting on mouse hover             |
 | -noflip                | disable board flipping                               |
-| -random                | randomize the health and damage values of all pieces.|
-| -default               | play the default chess variant.                      |
-| -crazy                 | play the crazyhouse chess variant.                   |
+| -random                | randomize the health and damage values of all pieces |
+| -default               | play the default chess variant                       |
+| -crazy                 | play the crazyhouse chess variant                    |
+| -pos POSITION          | FEN starting position                                |
 
 ### Examples
 

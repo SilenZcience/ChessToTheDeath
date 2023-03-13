@@ -37,11 +37,11 @@ class ArgsHandler:
         parser.add_argument("-noflip", action="store_const", default=True, dest="flip",
                             const=False, help="disable board flipping")
         parser.add_argument("-random", action="store_const", default=False, dest="random",
-                            const=True, help="randomize the health and damage values of all pieces.")
+                            const=True, help="randomize the health and damage values of all pieces")
         parser.add_argument("-default", action="store_const", default=False, dest="default",
-                            const=True, help="play the default chess variant.")
+                            const=True, help="play the default chess variant")
         parser.add_argument("-crazy", action="store_const", default=False, dest="crazy",
-                            const=True, help="play the crazyhouse chess variant.")
+                            const=True, help="play the crazyhouse chess variant")
         parser.add_argument("-pos", action="store", default=None, dest="position",
                             help="FEN starting position")
         
