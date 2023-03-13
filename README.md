@@ -51,6 +51,7 @@
          <li><a href="#examples">Examples</a></li>
          </ul>
       </li>
+      <li><a href="#help">Help</a></li>
       <li><a href="#license">License</a></li>
       <li><a href="#contact">Contact</a></li>
    </ol>
@@ -111,6 +112,14 @@ python -m chess_to_the_death [-h] [-v] ...
 - ***rightclick*** a circled tile to mark it with a square
 - ***rightclick*** drag & drop across different tiles to draw an arrow
 - ***middleclick*** an empty tile to crazyplace a piece (only with `-crazy` parameter enabled)
+
+### Help
+
+> Q: Why am i seeing weird characters like `[31;1mr[0m `in the console?
+
+> A: This project uses `ANSI-Escape Codes` to display colors in the Terminal. If you see these weird characters, then your Terminal does not support these Codes.
+
+> ⚠️If you are using the Command Prompt on Windows 10 you can most likely solve this issue by going in the Registry under `Computer\HKEY_CURRENT_USER\Console` and adding/editing the `DWORD` value `VirtualTerminalLevel` and setting it to `1`.
 
 ### Examples
 
