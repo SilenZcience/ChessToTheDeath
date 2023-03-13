@@ -115,11 +115,18 @@ python -m chess_to_the_death [-h] [-v] ...
 
 ### Help
 
-> Q: Why am i seeing weird characters like `[31;1mr[0m `in the console?
+> **Q: Why am i seeing weird characters like `[31;1mr[0m `in the console?**
 
 > A: This project uses `ANSI-Escape Codes` to display colors in the Terminal. If you see these weird characters, then your Terminal does not support these Codes.
 
 > ⚠️If you are using the Command Prompt on Windows 10 you can most likely solve this issue by going in the Registry under `Computer\HKEY_CURRENT_USER\Console` and adding/editing the `DWORD` value `VirtualTerminalLevel` and setting it to `1`.
+
+- - - -
+
+> **Q: Is it possible to have a different board size/shape?**
+
+> A: Yes, the `-pos POSITION` parameter supports different board widths and heights. Simply expand the notation with additional rows or columns.
+
 
 ### Examples
 
