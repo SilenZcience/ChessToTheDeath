@@ -138,6 +138,8 @@ class GameState:
             self.nextTurn(False)
         self.createBoard()
         print(self.__repr__())
+        currentGameOutcome = self.playerWon()
+        assert currentGameOutcome == Outcome.NONE, 'The Game is not playable!\n' + currentGameOutcome
 
     def translateActionRepr(self, actionRepr: Action) -> list:
         """
@@ -400,7 +402,8 @@ class GameState:
     def gameIsDraw(self):
         outcome = Outcome.NONE
         #by repitition
-        if np.all(self.action_log.boards[-1] == self.action_log.boards, axis=(-1,1)).sum() == 3:
+
+        if len(self.action_log.boards) and np.all(self.action_log.boards[-1] == self.action_log.boards, axis=(-1,1)).sum() == 3:
             outcome = Outcome.DRAW_REPITITION
         
         if self.crazy:

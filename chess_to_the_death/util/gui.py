@@ -722,7 +722,7 @@ def mainGUI():
                             drawGameCell(mainScreen, gameState, piece.getPos())
                         if piece_old:  # re-render old position
                             drawGameCell(mainScreen, gameState, piece_old.getPos())
-                    # if there already is a piece selected and now we clicked an empty piece or an empty cell
+                    # if there already is a piece selected and now we clicked an enemy piece or an empty cell
                     elif holder.selectedPiece:
                         # backup old piece and action options, for later re-rendering
                         piece_old = holder.selectedPiece
