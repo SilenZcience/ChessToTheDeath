@@ -359,13 +359,13 @@ def drawWinner(mainScreen: pygame.Surface) -> None:
     """
     if not holder.winner:
         return
-    font = pygame.font.SysFont("Verdana", int(64 * ((min(CELL_SIZE)/128))))
+    font = pygame.font.SysFont("Verdana", int(8 * config.DIMENSION[1] * CELL_SIZE[0] / (6 * len(holder.winner))))
     text = font.render(holder.winner, True, COLORS[6])
     text_size = (text.get_width(), text.get_height())
     text_location = pygame.Rect(BOARD_SIZE[0] // 2 - text_size[0] // 2,
                                 BOARD_SIZE[1] // 2 - text_size[1] // 2, *text_size)
     pygame.display.update(mainScreen.blit(text, text_location))
-    font = pygame.font.SysFont("Verdana", int(32 * ((min(CELL_SIZE)/128))))
+    font = pygame.font.SysFont("Verdana", int(8 * config.DIMENSION[1] * CELL_SIZE[0] / 128))
     text = font.render("Play Again (R)", True, COLORS[7])
     text_location = pygame.Rect(BOARD_SIZE[0] // 2 - text.get_width() // 2,
                                 BOARD_SIZE[1] // 2 + text_size[1] // 2,
