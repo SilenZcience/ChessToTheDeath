@@ -49,7 +49,6 @@ def generateBoardFromFEN(fen: str, isCrazyMode: bool) -> None:
         tempBoard = [row + [0] * (maxRowLength-len(row)) for row in tempBoard]
     board = np.asarray(tempBoard, dtype=boardDtype)
     DIMENSION = board.shape
-    assert np.count_nonzero(board == 6) == np.count_nonzero(board == -6) == 1, "There can only be one King to each color!"
     if len(whiteSpaceSplit) >= 2:
         if whiteSpaceSplit[1].upper() == "B":
             BLACKS_TURN = True

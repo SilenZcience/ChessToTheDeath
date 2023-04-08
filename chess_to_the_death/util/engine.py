@@ -138,10 +138,20 @@ class GameState:
             self.nextTurn(False)
         self.createBoard()
         print(self.__repr__())
-        if self.playerWon() != Outcome.NONE:
-            print('The given board position is not playable!')
+        
+        self.player_turn = not self.player_turn
+        if (self.default and self.isCellAttacked(self.king_pieces[self.player_turn].getPos())) or \
+             not (np.count_nonzero(self.board == pieceTranslateDic[PieceChar.KING]) == np.count_nonzero(self.board == -pieceTranslateDic[PieceChar.KING]) == 1):
+            print('\x1b[31mCannot load position because it is invalid. Every position must have exactly one king of each color, and the side to move must not be able to capture the enemy king.\x1b[0m')
             from sys import exit as sysexit
             sysexit(1)
+        currentOutcome = self.playerWon()
+        if currentOutcome != Outcome.NONE:
+            print('\x1b[31mCannot load position because it has already reached a finished state:\x1b[0m')
+            print('\x1b[31m', currentOutcome, '\x1b[0m', sep='')
+            from sys import exit as sysexit
+            sysexit(1)
+        self.player_turn = not self.player_turn
 
     def translateActionRepr(self, actionRepr: Action) -> list:
         """
