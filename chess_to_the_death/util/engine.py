@@ -138,8 +138,10 @@ class GameState:
             self.nextTurn(False)
         self.createBoard()
         print(self.__repr__())
-        currentGameOutcome = self.playerWon()
-        assert currentGameOutcome == Outcome.NONE, 'The Game is not playable!\n' + currentGameOutcome
+        if self.playerWon() != Outcome.NONE:
+            print('The given board position is not playable!')
+            from sys import exit as sysexit
+            sysexit(1)
 
     def translateActionRepr(self, actionRepr: Action) -> list:
         """
