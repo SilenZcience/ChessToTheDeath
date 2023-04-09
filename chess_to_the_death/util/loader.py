@@ -1,10 +1,11 @@
-from os import path
+from os import path, pardir
 from pygame import image, transform, Surface
 
 workingDir = path.abspath(
-    path.join(path.dirname(path.realpath(__file__)), '..')
+    path.join(path.dirname(path.realpath(__file__)), pardir)
 )
-basePath = path.join(workingDir, 'images')
+
+basePath = path.join(workingDir, 'media', 'images')
 PIECE_IMAGES = {}
 
 
@@ -16,9 +17,9 @@ def loadImage(relPath: str, size: tuple) -> Surface:
     """
     if not size:
         return None
-    if not (relPath + str(size[0]) + "x" + str(size[1])) in PIECE_IMAGES:
-        PIECE_IMAGES[relPath + str(size[0]) + "x" + str(size[1])] = transform.smoothscale(
-            image.load(path.join(basePath, relPath + ".png")).convert_alpha(), size)
+    if not (relPath + str(size[0]) + 'x' + str(size[1])) in PIECE_IMAGES:
+        PIECE_IMAGES[relPath + str(size[0]) + 'x' + str(size[1])] = transform.smoothscale(
+            image.load(path.join(basePath, relPath + '.png')).convert_alpha(), size)
     return PIECE_IMAGES[relPath + str(size[0]) + "x" + str(size[1])]
 
 def clearPieceImageCache() -> None:
