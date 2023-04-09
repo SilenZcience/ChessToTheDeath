@@ -130,11 +130,24 @@ python -m chess_to_the_death [-h] [-v] ...
 
 ### Examples
 
-![Example1](https://raw.githubusercontent.com/SilenZcience/ChessToTheDeath/main/img/example1.png "example1")
+```console
+python -m chess_to_the_death
+```
+<p float="left">
+   <img src="https://raw.githubusercontent.com/SilenZcience/ChessToTheDeath/main/img/example1.png" width="30%"/>
+   <img src="https://raw.githubusercontent.com/SilenZcience/ChessToTheDeath/main/img/example2.png" width="30%"/>
+   <img src="https://raw.githubusercontent.com/SilenZcience/ChessToTheDeath/main/img/example3.png" width="30%"/>
+</p>
 
-![Example2](https://raw.githubusercontent.com/SilenZcience/ChessToTheDeath/main/img/example2.png "example2")
+```console
+python -m chess_to_the_death -default -pos "5Q/3k2/1p4/1Pp2p/2Pp1P/3P1K b" -noflip
+```
+<p float="left">
+   <img src="https://raw.githubusercontent.com/SilenZcience/ChessToTheDeath/main/img/example4.png" width="30%"/>
+   <img src="https://raw.githubusercontent.com/SilenZcience/ChessToTheDeath/main/img/example5.png" width="30%"/>
+   <img src="https://raw.githubusercontent.com/SilenZcience/ChessToTheDeath/main/img/example6.png" width="30%"/>
+</p>
 
-![Example3](https://raw.githubusercontent.com/SilenZcience/ChessToTheDeath/main/img/example3.png "example3")
 
 <p align="right">(<a href="#top">back to top</a>)</p>
 
