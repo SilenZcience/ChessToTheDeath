@@ -48,14 +48,16 @@
       </li>
       <li><a href="#usage">Usage</a>
          <ul>
+         <li><a href="#help">Help</a></li>
          <li><a href="#examples">Examples</a></li>
          </ul>
       </li>
-      <li><a href="#help">Help</a></li>
       <li><a href="#license">License</a></li>
       <li><a href="#contact">Contact</a></li>
    </ol>
 </details>
+
+<div id="about-the-project"></div>
 
 ## About The Project
 
@@ -64,13 +66,18 @@ health and damage values. Therefor simply taking an enemy piece is not an option
 you have to fight it multiple times. The game ends when one of the Kings has no healthpoints
 left.
 
+<div id="made-with"></div>
+
 ### Made With
 [![Python][MadeWith-Python]](https://www.python.org/)
 [![Numpy][MadeWith-Numpy]](https://numpy.org/)
 
 <p align="right">(<a href="#top">back to top</a>)</p>
+<div id="getting-started"></div>
 
 ## Getting Started
+
+<div id="installation"></div>
 
 ### Installation
 
@@ -87,6 +94,7 @@ cd ./ChessToTheDeath
 ```
 
 <p align="right">(<a href="#top">back to top</a>)</p>
+<div id="usage"></div>
 
 ## Usage
 
@@ -113,6 +121,8 @@ python -m chess_to_the_death [-h] [-v] ...
 - ***rightclick*** drag & drop across different tiles to draw an arrow
 - ***middleclick*** an empty tile to crazyplace a piece (only with `-crazy` parameter enabled)
 
+<div id="help"></div>
+
 ### Help
 
 > **Q: Why am i seeing weird characters like `[31;1mr[0m `in the console?**
@@ -127,6 +137,7 @@ python -m chess_to_the_death [-h] [-v] ...
 
 > A: Yes, the `-pos POSITION` parameter supports different board widths and heights. Simply expand the notation with additional rows or columns.
 
+<div id="examples"></div>
 
 ### Examples
 
@@ -150,10 +161,13 @@ python -m chess_to_the_death -default -pos "5Q/3k2/1p4/1Pp2p/2Pp1P/3P1K b" -nofl
 
 
 <p align="right">(<a href="#top">back to top</a>)</p>
+<div id="license"></div>
 
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](https://github.com/SilenZcience/ChessToTheDeath/blob/main/LICENSE) file for details
+
+<div id="contact"></div>
 
 ## Contact
 
