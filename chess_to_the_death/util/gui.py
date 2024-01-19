@@ -656,11 +656,11 @@ def mainGUI():
     
     marked_old = (-1, -1)
     
-    # isPlanning = 0 -> not planning -> highlight cells
-    # isPlanning = 1 -> is planning -> remove last cell highlight
-    # isPlanning = 2 -> is planning -> don't highlight cells
-    isPlanning = 0
+    # isPlanning = False -> not planning -> highlight cells
+    # isPlanning = True  -> is planning -> don't highlight cells
+    isPlanning = False
     mouseHover_old = (-1, -1)
+    mouseUnfocused = not pygame.mouse.get_focused()
 
     # first time rendering of the whole board
     renderGame(mainScreen, gameState)
@@ -673,14 +673,16 @@ def mainGUI():
         # cell at previous mouse position
         if holder.highlight_cells and not holder.winner:
             mouseHover = getMouseCell()
-            if mouseHover != mouseHover_old:
-                if isPlanning == 1:
-                    drawGameCell(mainScreen, gameState, mouseHover_old)
+            if mouseHover != mouseHover_old and not isPlanning:
+                drawGameCell(mainScreen, gameState, mouseHover)
+                drawGameCell(mainScreen, gameState, mouseHover_old)
+            elif mouseUnfocused == pygame.mouse.get_focused():
+                if not mouseUnfocused:
                     holder.highlight_cells = False
-                    isPlanning = 2
-                elif isPlanning == 0:
-                    drawGameCell(mainScreen, gameState, mouseHover)
-                    drawGameCell(mainScreen, gameState, mouseHover_old)
+                drawGameCell(mainScreen, gameState, mouseHover_old)
+                if not mouseUnfocused:
+                    holder.highlight_cells = argparser.HIGHLIGHT_CELLS
+                mouseUnfocused = not mouseUnfocused
             mouseHover_old = mouseHover
         pygame.time.delay(25)  # relieve the CPU a bit ...
         for event in pygame.event.get():
@@ -694,12 +696,14 @@ def mainGUI():
                 # primary mouse button (left) or middle mouse button
                 if event.button == 1 or (event.button == 2 and argparser.CRAZY_MODE):
                     # reset planning
-                    isPlanning = 0
+                    isPlanning = False
                     clearPlanning(mainScreen, gameState)
                 # if the secondary (right) mouse button is pressed down we save the location
                 elif event.button == 3:
                     # planning begins
-                    isPlanning = 1
+                    holder.highlight_cells = False
+                    drawGameCell(mainScreen, gameState, mouseHover_old)
+                    isPlanning = True
                     marked_old = mouseHover
             elif event.type == pygame.MOUSEBUTTONUP:
                 if event.button == 1:
