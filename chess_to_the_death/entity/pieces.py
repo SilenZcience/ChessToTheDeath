@@ -37,7 +37,7 @@ class Piece:
         """
         return ((board[y, x] * board[self.cell_row, self.cell_col]) < 0)
 
-    def getOptions(self, board, flip: bool = True) -> tuple:
+    def getOptions(self, _, __: bool = True) -> tuple:
         """
         Takes a numpy-array board and returns a tuple containing
         two lists. The lists contain tuples of valid movement-moves
@@ -137,7 +137,7 @@ class Pawn(Piece):
         self.maxHealth = self.health = 120
         self.damage = 120
 
-    def getOptions(self, board, flip):
+    def getOptions(self, board, flip=False):
         options_move, options_attack = [], []
         options_m, options_a = [(0, -1), (0, -2)], [(-1, -1), (1, -1)]
         if flip:

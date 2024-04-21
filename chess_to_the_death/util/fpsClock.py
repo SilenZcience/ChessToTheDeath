@@ -10,7 +10,7 @@ class FPS:
         self.clock = pygame.time.Clock()
         self.font = pygame.font.SysFont('Verdana', 14)
 
-    def getFps(self) -> None:
+    def getFps(self) -> str:
         """
         ticks the pygame.time.Clock and returns the current fps as string
         """

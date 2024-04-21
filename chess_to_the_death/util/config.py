@@ -49,9 +49,8 @@ def generateBoardFromFEN(fen: str, isCrazyMode: bool) -> None:
         tempBoard = [row + [0] * (maxRowLength-len(row)) for row in tempBoard]
     board = np.asarray(tempBoard, dtype=boardDtype)
     DIMENSION = board.shape
-    if len(whiteSpaceSplit) >= 2:
-        if whiteSpaceSplit[1].upper() == "B":
-            BLACKS_TURN = True
+    if len(whiteSpaceSplit) >= 2 and whiteSpaceSplit[1].upper() == "B":
+        BLACKS_TURN = True
     possiblePieceOptions = [attr for attr in dir(PieceChar) if not callable(getattr(PieceChar, attr)) and not attr.startswith("__")]
     # the options to promote/crazyplace a piece will not fit if the board height is less than 4, or
     # the crazyoptions exceed the board height. We subtract UNDEFINED, OBSTACLE, and KING, because we cannot crazyplace these.

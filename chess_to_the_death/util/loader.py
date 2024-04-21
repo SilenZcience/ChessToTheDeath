@@ -17,7 +17,7 @@ def loadImage(relPath: str, size: tuple) -> Surface:
     """
     if not size:
         return None
-    if not (relPath + str(size[0]) + 'x' + str(size[1])) in PIECE_IMAGES:
+    if (relPath + str(size[0]) + 'x' + str(size[1])) not in PIECE_IMAGES:
         PIECE_IMAGES[relPath + str(size[0]) + 'x' + str(size[1])] = transform.smoothscale(
             image.load(path.join(basePath, relPath + '.png')).convert_alpha(), size)
     return PIECE_IMAGES[relPath + str(size[0]) + "x" + str(size[1])]

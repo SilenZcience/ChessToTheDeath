@@ -297,7 +297,7 @@ class GameState:
         action = ActionName.NONE
         if not self.isEmptyCell(to_pos):
             return action
-        if not to_pos in options_move:
+        if to_pos not in options_move:
             return action
         action = ActionName.MOVES
         castleOptions = self.getCastleOptions(piece)
@@ -320,7 +320,7 @@ class GameState:
         enPassant = (self.getEnPassantOptions(piece) == [to_pos])
         if self.isEmptyCell(to_pos) and not enPassant:
             return action
-        if not to_pos in options_attack:
+        if to_pos not in options_attack:
             return action
         action = ActionName.ATTACKS
         attacked_piece = self.getPiece(to_pos)
@@ -460,7 +460,7 @@ class GameState:
                 outcome = Outcome.BLACK_WON
         return outcome
 
-    def _restrictedCrazyPlaceDefault(self, pos: tuple) -> str:
+    def _restrictedCrazyPlaceDefault(self, pos: tuple) -> bool:
         """
         check if the friendly king would be threatened even with the
         newly placed piece.

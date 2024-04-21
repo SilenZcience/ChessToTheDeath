@@ -168,7 +168,7 @@ def drawIdentifiers(mainScreen: pygame.Surface, gameState: engine.GameState) -> 
     pygame.display.update(bottom_background)
 
     # Scale the Font according to the CELL_SIZE
-    font = pygame.font.SysFont("Verdana", int(16 * ((min(CELL_SIZE)/128))))
+    font = pygame.font.SysFont("Verdana", int(16 * (min(CELL_SIZE)/128)))
 
     # Draw the Number-Identifiers at the right side
     for i in range(config.DIMENSION[0]):
@@ -226,7 +226,7 @@ def highlightLastMovedCell(mainScreen: pygame.Surface, cell: tuple) -> None:
     """
     highlight the cell that is currently selected.
     """
-    if not cell in holder.last_move:
+    if cell not in holder.last_move:
         return
     highlightCell(mainScreen, cell, COLORS[9])
 
@@ -244,7 +244,7 @@ def highlightMoveOptions(mainScreen: pygame.Surface, cell: tuple) -> None:
     """
     highlight a cell if it's position is valid for movement
     """
-    if not cell in holder.options_move:
+    if cell not in holder.options_move:
         return
     highlightCell(mainScreen, cell, COLORS[4])
 
@@ -253,7 +253,7 @@ def highlightAttackOptions(mainScreen: pygame.Surface, cell: tuple) -> None:
     """
     highlight a cell if it's position is valid for attack
     """
-    if not cell in holder.options_attack:
+    if cell not in holder.options_attack:
         return
     highlightCell(mainScreen, cell, COLORS[5])
 
@@ -262,7 +262,7 @@ def highlightMarkedCellSquare(mainScreen: pygame.Surface, cell: tuple) -> None:
     """
     highlight a cell if it's position is marked
     """
-    if not cell in holder.marked_cells_square:
+    if cell not in holder.marked_cells_square:
         return
     highlightCell(mainScreen, cell, COLORS[2], 150)
         
@@ -271,7 +271,7 @@ def highlightMarkedCellCircle(mainScreen: pygame.Surface, cell: tuple) -> None:
     """
     highlight a cell if it's position is marked
     """
-    if not cell in holder.marked_cells_circle:
+    if cell not in holder.marked_cells_circle:
         return
     if cell in holder.marked_cells_square:
         return
@@ -282,7 +282,7 @@ def highlightHoveredCell(mainScreen: pygame.Surface, hoveredCell: tuple, cell: t
     """
     highlight a cell if it's position is currently hovered above.
     """
-    if not cell == hoveredCell:
+    if cell != hoveredCell:
         return
     highlightCell(mainScreen, cell, COLORS[1 - (sum(cell) % 2)])
 
@@ -300,7 +300,7 @@ def drawPiece(mainScreen: pygame.Surface, piece: Piece, cell: tuple) -> None:
     if argparser.DEFAULT_MODE:
         return
     mainScreen.blit(holder.attack_icon, (cell[0] * CELL_SIZE[0], cell[1] * CELL_SIZE[1]))
-    font = pygame.font.SysFont("Verdana", int(16 * ((min(CELL_SIZE)/128))))
+    font = pygame.font.SysFont("Verdana", int(16 * (min(CELL_SIZE)/128)))
     mainScreen.blit(font.render(str(piece.damage), True, COLORS[6]),
                     (cell[0] * CELL_SIZE[0] + BOARD_OFFSET[0],
                         cell[1] * CELL_SIZE[1]))
@@ -309,7 +309,7 @@ def drawPiece(mainScreen: pygame.Surface, piece: Piece, cell: tuple) -> None:
                                  (cell[1] + 1) * CELL_SIZE[1] - (IMAGE_OFFSET[1]//2),
                                  (piece.health * (CELL_SIZE[0] - IMAGE_OFFSET[0]))//piece.maxHealth,
                                  IMAGE_OFFSET[1] // 3))
-    font = pygame.font.SysFont("Verdana", int(10 * ((min(CELL_SIZE)/128))))
+    font = pygame.font.SysFont("Verdana", int(10 * (min(CELL_SIZE)/128)))
     text = font.render(str(piece.health), True, COLORS[6])
     text_size = (text.get_width(), text.get_height())
     text_location = pygame.Rect(cell[0] * CELL_SIZE[0] + (IMAGE_OFFSET[0]//2),
@@ -433,7 +433,7 @@ def setLastMoveCells(gameState: engine.GameState) -> None:
     holder.last_move = gameState.translateActionRepr(gameState.action_log.get(-1))
 
 
-def drawPieceOptionsGen(mainScreen: pygame.Surface, pos: tuple, promoteOptions: list) -> None:
+def drawPieceOptionsGen(mainScreen: pygame.Surface, pos: tuple, promoteOptions: list):
     """
     If a piece should be placed this function will draw the options on the
     cell at position 'pos', aswell as the hover-highlight effect for
@@ -503,20 +503,19 @@ def choosePieceOption(mainScreen: pygame.Surface, gameState: engine.GameState, p
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 piecePlaced = PLACEPIECE_QUIT
-            elif event.type == pygame.MOUSEBUTTONUP:
-                if event.button == 1:
-                    col, row = getMouseCell()
-                    if (col == offsetPos[0]) and (offsetPos[1] <= row < offsetPos[1] + len(promoteOptions)):
-                        gameState.placePiece(pos, promoteOptions[row-offsetPos[1]])
-                        piecePlaced = PLACEPIECE_PLACED
-                        if crazyPlace:
-                            for piece in availablePieces:
-                                if piece._name == promoteOptions[row-offsetPos[1]]:
-                                    availablePieces.remove(piece)
-                                    gameState.setCrazyPlaceOptionsPieces(availablePieces)
-                                    break
-                    elif crazyPlace: # if clicked somewhere else and we are not promoting -> abort
-                        piecePlaced = PLACEPIECE_ABORTED
+            elif event.type == pygame.MOUSEBUTTONUP and event.button == 1:
+                col, row = getMouseCell()
+                if (col == offsetPos[0]) and (offsetPos[1] <= row < offsetPos[1] + len(promoteOptions)):
+                    gameState.placePiece(pos, promoteOptions[row-offsetPos[1]])
+                    piecePlaced = PLACEPIECE_PLACED
+                    if crazyPlace:
+                        for piece in availablePieces:
+                            if piece._name == promoteOptions[row-offsetPos[1]]:
+                                availablePieces.remove(piece)
+                                gameState.setCrazyPlaceOptionsPieces(availablePieces)
+                                break
+                elif crazyPlace: # if clicked somewhere else and we are not promoting -> abort
+                    piecePlaced = PLACEPIECE_ABORTED
     pygame.display.set_mode(BOARD_SIZE, pygame.DOUBLEBUF | pygame.RESIZABLE) # reset resizablity
     
     # if we aborted the option to place a piece by clicking somewhere else
@@ -756,7 +755,7 @@ def mainGUI():
                                 if piecePlaced == PLACEPIECE_PLACED:
                                     print("Pawn promoted!")
                                     gameFinished(mainScreen, gameState)
-                                running = not (piecePlaced == PLACEPIECE_QUIT)
+                                running = (piecePlaced != PLACEPIECE_QUIT)
                             if running:
                                 nextTurn(mainScreen, gameState)
                 elif event.button == 2 and argparser.CRAZY_MODE:
@@ -765,7 +764,7 @@ def mainGUI():
                         if piecePlaced == PLACEPIECE_PLACED:
                             gameFinished(mainScreen, gameState)
                             nextTurn(mainScreen, gameState)
-                        running = not (piecePlaced == PLACEPIECE_QUIT)
+                        running = (piecePlaced != PLACEPIECE_QUIT)
                 elif event.button == 3:
                     mouseHover = getMouseCell()
                     mouseHover = (min(mouseHover[0], config.DIMENSION[1]-1),
