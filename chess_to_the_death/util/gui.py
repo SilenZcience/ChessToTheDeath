@@ -775,7 +775,11 @@ def mainGUI():
                     if mouseHover == marked_old:
                         if mouseHover in holder.marked_cells_circle:
                             holder.marked_cells_square.add(mouseHover)
-                        holder.marked_cells_circle.add(mouseHover)
+                            holder.marked_cells_circle.remove(mouseHover)
+                        elif mouseHover in holder.marked_cells_square:
+                            holder.marked_cells_square.remove(mouseHover)
+                        else:
+                            holder.marked_cells_circle.add(mouseHover)
                         drawGameCell(mainScreen, gameState, mouseHover)
                         clearPlanningArrows(mainScreen, gameState)
                         drawPlanningArrows(mainScreen)
