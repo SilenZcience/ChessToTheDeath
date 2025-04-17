@@ -5,7 +5,7 @@
       <img src="https://static.pepy.tech/personalized-badge/chesstothedeath?period=total&units=international_system&left_color=grey&right_color=orange&left_text=Downloads" align="right">
    </a>
    <a href="https://pypi.org/project/ChessToTheDeath/" alt="Visitors">
-      <img src="https://hits.seeyoufarm.com/api/count/incr/badge.svg?url=https%3A%2F%2Fgithub.com%2FSilenZcience%2FChessToTheDeath&count_bg=%2379C83D&title_bg=%23555555&icon=&icon_color=%23E7E7E7&title=Visitors&edge_flat=false" align="right">
+      <img src="https://hitscounter.dev/api/hit?url=https%3A%2F%2Fgithub.com%2FSilenZcience%2FChessToTheDeath&label=Visitors&icon=person-circle&color=%23479f76" align="right">
    </a>
 </p>
 
