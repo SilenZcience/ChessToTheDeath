@@ -3,21 +3,21 @@ class Outcome:
     NONE = ''
     PAWN_PROMOTION = 'PAWN_PROMOTION'
     GAME_FINISHED = 'GAME_FINISHED'
-    
+
     WHITE_WON = 'WHITE WON'
     BLACK_WON = 'BLACK WON'
-    
+
     STALEMATE = 'STALEMATE'
     DRAW_REPITITION = 'DRAW (BY REPITITION)'
     DRAW = 'DRAW'
-    
+
 class ActionName:
     NONE = ''
     MOVES = 'moves'
     CASTLES = 'castles'
     ATTACKS = 'attacks'
     TAKES = 'takes'
-    
+
 class PieceChar:
     UNDEFINED = '-'
     PAWN = 'p'
@@ -27,7 +27,7 @@ class PieceChar:
     QUEEN = 'q'
     KING = 'k'
     OBSTACLE = 'x'
-    
+
 class PieceNames:
     NAMES = {PieceChar.UNDEFINED: 'Undefined',
              PieceChar.PAWN: 'Pawn',
@@ -37,7 +37,7 @@ class PieceNames:
              PieceChar.QUEEN: 'Queen',
              PieceChar.KING: 'King',
              PieceChar.OBSTACLE: 'Obstacle'}
-    
+
 class PieceValues:
     VALUES = {PieceChar.UNDEFINED: 0,
              PieceChar.PAWN: 1,
@@ -47,7 +47,7 @@ class PieceValues:
              PieceChar.QUEEN: 9,
              PieceChar.KING: 10,
              PieceChar.OBSTACLE: 0}
-    
+
 pieceTranslateDic = {}
 for id, char in enumerate(PieceNames.NAMES.keys()):
     pieceTranslateDic[id] = char

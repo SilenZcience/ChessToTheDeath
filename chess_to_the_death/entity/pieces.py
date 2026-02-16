@@ -3,11 +3,11 @@ from chess_to_the_death.util.definition import PieceChar
 
 class Piece:
     _name = PieceChar.UNDEFINED
-    
+
     def __init__(self, cell_pos: tuple, player: str, image_size: tuple = None):
         self.setPos(cell_pos)
         self._player = player
-        
+
         self.firstMove = True
         self.loadImage(image_size)
 
@@ -16,10 +16,10 @@ class Piece:
         load the image to diplay the piece
         """
         self.image = loadImage(self._player + self._name, image_size)
-        
+
     def getPos(self) -> tuple:
         return (self.cell_col, self.cell_row)
-    
+
     def setPos(self, to_pos: tuple) -> None:
         self.cell_col, self.cell_row = to_pos
 
@@ -44,14 +44,14 @@ class Piece:
         and valid attack-moves.
         """
         return ([], [])
-    
+
     def __repr__(self) -> str:
         return self._player + self._name + " (" + hex(id(self)) + ")"
 
 
 class Rook(Piece):
     _name = PieceChar.ROOK
-    
+
     def __init__(self, cell_pos, player, image_size=None):
         super().__init__(cell_pos, player, image_size)
         self.maxHealth = self.health = 90
@@ -68,7 +68,7 @@ class Rook(Piece):
                         0 <= x < board.shape[1])):
                     break
                 if board[y, x] != 0:
-                    if super().isEnemy(x, y, board):
+                    if self.isEnemy(x, y, board):
                         options_attack.append((x, y))
                     break
                 options_move.append((x, y))
@@ -78,7 +78,7 @@ class Rook(Piece):
 
 class Knight(Piece):
     _name = PieceChar.KNIGHT
-    
+
     def __init__(self, cell_pos, player, image_size=None):
         super().__init__(cell_pos, player, image_size)
         self.maxHealth = self.health = 32
@@ -93,7 +93,7 @@ class Knight(Piece):
             if not ((0 <= x < board.shape[1]) and (
                     0 <= y < board.shape[0])):
                 continue
-            if super().isEnemy(x, y, board):
+            if self.isEnemy(x, y, board):
                 options_attack.append((x, y))
                 continue
             if board[y, x] == 0:
@@ -104,7 +104,7 @@ class Knight(Piece):
 
 class Bishop(Piece):
     _name = PieceChar.BISHOP
-    
+
     def __init__(self, cell_pos, player, image_size=None):
         super().__init__(cell_pos, player, image_size)
         self.maxHealth = self.health = 45
@@ -121,7 +121,7 @@ class Bishop(Piece):
                         0 <= y < board.shape[0])):
                     break
                 if board[y, x] != 0:
-                    if super().isEnemy(x, y, board):
+                    if self.isEnemy(x, y, board):
                         options_attack.append((x, y))
                     break
                 options_move.append((x, y))
@@ -131,7 +131,7 @@ class Bishop(Piece):
 
 class Pawn(Piece):
     _name = PieceChar.PAWN
-    
+
     def __init__(self, cell_pos, player, image_size=None):
         super().__init__(cell_pos, player, image_size)
         self.maxHealth = self.health = 120
@@ -148,9 +148,9 @@ class Pawn(Piece):
             if not ((0 <= x < board.shape[1]) and (
                     0 <= y < board.shape[0])):
                 continue
-            if super().isEnemy(x, y, board):
+            if self.isEnemy(x, y, board):
                 options_attack.append((x, y))
-        
+
         if 0 <= self.cell_row+options_m[0][1] < board.shape[0]:
             if board[self.cell_row+options_m[0][1], self.cell_col] == 0:
                 options_move.append((self.cell_col, self.cell_row+options_m[0][1]))
@@ -163,7 +163,7 @@ class Pawn(Piece):
 
 class Queen(Piece):
     _name = PieceChar.QUEEN
-    
+
     def __init__(self, cell_pos, player, image_size=None):
         super().__init__(cell_pos, player, image_size)
         self.maxHealth = self.health = 10
@@ -179,7 +179,7 @@ class Queen(Piece):
 
 class King(Piece):
     _name = PieceChar.KING
-    
+
     def __init__(self, cell_pos, player, image_size=None):
         super().__init__(cell_pos, player, image_size)
         self.maxHealth = self.health = 150
@@ -194,7 +194,7 @@ class King(Piece):
             if not ((0 <= x < board.shape[1]) and (
                     0 <= y < board.shape[0])):
                 continue
-            if super().isEnemy(x, y, board):
+            if self.isEnemy(x, y, board):
                 options_attack.append((x, y))
                 continue
             if board[y, x] == 0:

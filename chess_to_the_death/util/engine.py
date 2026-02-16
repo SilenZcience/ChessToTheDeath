@@ -36,30 +36,30 @@ def printValueStatistic(health_damage_dict: dict) -> None:
     health_values = [health_damage_dict[pT][0] for pT in pieceTypes]
     attack_values = [health_damage_dict[pT][1] for pT in pieceTypes]
     longestString = 1 + max(len(str(x)) for x in (pieceNames + health_values + attack_values))
-    
+
     print("Piece :", end='')
     print(*[val.rjust(longestString) for val in pieceNames], sep='')
 
     print("Health:", end='')
     print(*[str(val).rjust(longestString) for val in health_values], sep='')
-        
+
     print("Damage:", end='')
     print(*[str(val).rjust(longestString) for val in attack_values], sep='')
-        
+
     print("\nHits to the Death:")
-    
+
     health_values = np.array(health_values)
     attack_values = np.array(attack_values)
     hits_to_death = np.ceil(health_values.reshape(-1, 1).repeat(attack_values.shape[0], axis=1) / attack_values)
-    
+
     print('H/D'.rjust(longestString), end='')
     print(*[val.rjust(longestString) for val in pieceNames], sep='')
-    
+
     for y in range(hits_to_death.shape[0]):
         print(pieceNames[y].rjust(longestString), end='')
         print(*[str(int(val)).rjust(longestString) for val in list(hits_to_death[y])], sep='')
-    
-    
+
+
     print("----------------------------------------------------")
 
 
@@ -67,7 +67,7 @@ class GameState:
     def __init__(self, image_size: tuple):
         self.alpha_identifiers = list(map(chr, range(65, 65+config.DIMENSION[1])))
         self.numbers_identifiers = list(map(str, range(config.DIMENSION[0], 0, -1)))
-        
+
         self.image_size: tuple = image_size
         self.flip_board: bool = argparser.FLIP_BOARD
         self.default: bool = argparser.DEFAULT_MODE
@@ -75,22 +75,22 @@ class GameState:
         self.crazy: bool = argparser.CRAZY_MODE
         self.player_turn: bool = True # True -> 'white', False -> 'black'
         self.board_flipped: bool = False
-        
+
         self.board: np.ndarray = None
-        
+
         self.white_pieces: list[Piece] = []
         self.black_pieces: list[Piece] = []
         self.king_pieces: list[Piece] = [None, None]
-        self.pieces: list[Piece] = []  
-        
+        self.pieces: list[Piece] = []
+
         self.white_casualties: list[Piece] = []
         self.black_casualties: list[Piece] = []
         self.white_crazyoptions: list[Piece] = []
         self.black_crazyoptions: list[Piece] = []
         self.value_taken: list[int] = [0, 0]
-        
+
         self.action_log: ActionLog = ActionLog()
-        
+
         self.health_damage_dict = {}
 
         # generate the pieces of the default gameBoard defined in config.py
@@ -106,8 +106,8 @@ class GameState:
                     piece = createPiece(pieceChar, (col, row), Player.PLAYER_W, image_size)
                     self.white_pieces.append(piece)
                 if pieceChar == PieceChar.KING:
-                    self.king_pieces[config.board[row, col] > 0] = piece
-        
+                    self.king_pieces[int(config.board[row, col] > 0)] = piece
+
         self.pieces: list[Piece] = self.white_pieces + self.black_pieces
         # assign each piece type a random health- and damage value
         # save the value in health_damage_dict for possible pawn promotions
@@ -131,14 +131,14 @@ class GameState:
                 piece.maxHealth = piece.health = 1
                 piece.damage = 1
         else:
-            # if not the default variant is palyed, print the statistics
+            # if not the default variant is played, print the statistics
             # about piece health/damage values.
             printValueStatistic(self.health_damage_dict)
         if config.BLACKS_TURN:
             self.nextTurn(False)
         self.createBoard()
         print(self.__repr__())
-        
+
         self.player_turn = not self.player_turn
         if (self.default and self.isCellAttacked(self.king_pieces[self.player_turn].getPos())) or \
              not (np.count_nonzero(self.board == pieceTranslateDic[PieceChar.KING]) == np.count_nonzero(self.board == -pieceTranslateDic[PieceChar.KING]) == 1):
@@ -163,7 +163,7 @@ class GameState:
         from_row = self.numbers_identifiers.index(actionRepr.from_row)
         to_col = self.alpha_identifiers.index(actionRepr.to_col)
         to_row = self.numbers_identifiers.index(actionRepr.to_row)
-        
+
         return [(from_col, from_row), (to_col, to_row)]
 
     def writeActionLog(self, from_pos: tuple, to_pos: tuple, action: str = '', pieceChar: str = PieceChar.UNDEFINED) -> None:
@@ -177,7 +177,7 @@ class GameState:
             pieceName = ''
         self.action_log.add(self.board, self.alpha_identifiers[from_pos[0]], self.numbers_identifiers[from_pos[1]],
                 self.alpha_identifiers[to_pos[0]], self.numbers_identifiers[to_pos[1]], action, pieceName)
-        
+
     def getPlayerValue(self) -> tuple:
         """
         return a tuple containing the piece-values, that have been taken.
@@ -194,14 +194,14 @@ class GameState:
             if id in white_casualties_ids:
                 white_casualties_ids.remove(id)
                 black_casualties_ids.remove(id)
-            
+
         return (self.value_taken[1] - self.value_taken[0], white_casualties_ids, black_casualties_ids)
 
     def getCrazyPlaceOptionsPieces(self):
         if self.currentPlayer() == Player.PLAYER_W:
             return self.black_crazyoptions
         return self.white_crazyoptions
-    
+
     def setCrazyPlaceOptionsPieces(self, casualties: list):
         if self.currentPlayer() == Player.PLAYER_W:
             self.black_crazyoptions = casualties[:]
@@ -233,7 +233,7 @@ class GameState:
 
     def isEmptyCell(self, pos: tuple) -> bool:
         return not self.getPiece(pos)
-    
+
     def isCellAttacked(self, pos: tuple) -> bool:
         """
         Check if a given cell is threatened by any enemy piece.
@@ -258,7 +258,7 @@ class GameState:
         # set health- and damage values corresponding to the given argv parameters
         if self.random:
             promotedPiece.maxHealth = promotedPiece.health = self.health_damage_dict[promotedPiece._name][0]
-            promotedPiece.damage = self.health_damage_dict[promotedPiece._name][1]           
+            promotedPiece.damage = self.health_damage_dict[promotedPiece._name][1]
         if self.default:
             promotedPiece.maxHealth = promotedPiece.health = 1
             promotedPiece.damage = 1
@@ -313,7 +313,7 @@ class GameState:
     def attack(self, piece: Piece, to_pos: tuple, options_attack: list) -> str:
         """
         'piece' attacks another piece at the coordinates of the to_pos tuple
-        if it is a valid attack. 
+        if it is a valid attack.
         Returns an action string describing the action performed.
         """
         action = ActionName.NONE
@@ -365,7 +365,7 @@ class GameState:
             if self.promotePawnOption(piece):
                 return Outcome.PAWN_PROMOTION
         return gameStateAction
-    
+
     def playerWonDefault(self) -> str:
         """
         Check for default Checkmate and Stalemate.
@@ -405,22 +405,22 @@ class GameState:
                                 if self._restrictedCrazyPlaceDefault(pos):
                                     outcome = Outcome.NONE
                                     break
-                        
-                
+
+
         # switch back to actual player
         self.player_turn = not self.player_turn
         return outcome
-    
+
     def gameIsDraw(self):
         outcome = Outcome.NONE
         #by repitition
 
         if len(self.action_log.boards) and np.all(self.action_log.boards[-1] == self.action_log.boards, axis=(-1,1)).sum() == 3:
             outcome = Outcome.DRAW_REPITITION
-        
+
         if self.crazy:
             return outcome
-        
+
         #insufficient material
         if len(self.pieces) <= 4:
             pieceChars = [piece._name for piece in self.pieces]
@@ -436,9 +436,9 @@ class GameState:
                 if (bishops[0].cell_col % 2 == bishops[0].cell_row % 2) == \
                     (bishops[1].cell_col % 2 == bishops[1].cell_row % 2):
                         outcome = Outcome.DRAW
-        
+
         return outcome
-    
+
     def playerWon(self) -> str:
         """
         Checks if a player has won, by successfully defeating the
@@ -470,7 +470,7 @@ class GameState:
         self.board[pos[1],pos[0]] = pieceTranslateDic[PieceChar.OBSTACLE]
         # get the position of the current king
         friendlyKingPos = self.king_pieces[self.player_turn].getPos()
-        
+
         for piece in self.pieces:
             if piece._player == self.currentPlayer():
                 continue
@@ -498,7 +498,7 @@ class GameState:
         if not self.default:
             return True
         return self._restrictedCrazyPlaceDefault(pos)
-    
+
     def checkPinnedOptions(self, piece: Piece, options_move: list, options_attack: list) -> tuple:
         """
         check if a piece is pinned such that it cannot move without exposing the king to attacks.
@@ -536,7 +536,7 @@ class GameState:
         options_move, options_attack = piece.getOptions(self.board, self.flippedAction())
         if self.default:
             options_move, options_attack = self.checkPinnedOptions(piece, options_move, options_attack)
-            
+
         options_attack.extend(self.getEnPassantOptions(piece))
         castleOptions = self.getCastleOptions(piece)
         for castleOption, _, _ in castleOptions:
@@ -579,7 +579,7 @@ class GameState:
                             break
                     else:
                         options.append(((piece.cell_col+2, piece.cell_row), (piece.cell_col+1, piece.cell_row), rook))
-                else:           
+                else:
                     options.append(((piece.cell_col+2, piece.cell_row), (piece.cell_col+1, piece.cell_row), rook))
         return options
 
@@ -599,7 +599,7 @@ class GameState:
         to_col, to_row = last_move[1]
         # last move must be 2-square move forward
         if abs(from_row - to_row) != 2 or (from_col - to_col) != 0:
-            return options 
+            return options
         # last Piece must be enemy Pawn
         if self.board[piece.cell_row, piece.cell_col] == -self.board[to_row, to_col]:
             # enemy pawn at correct position
@@ -640,13 +640,13 @@ class GameState:
         Creates the gameboard as a numpy.ndarray representation.
         Each piece has a unique number identifier stored in 'pieceTranslateDic'.
         e.g.: startingPosition:
-        [[-4. -3. -2. -5. -6. -2. -3. -4.]       
-        [-1. -1. -1. -1. -1. -1. -1. -1.]       
-        [ 0.  0.  0.  0.  0.  0.  0.  0.]       
-        [ 0.  0.  0.  0.  0.  0.  0.  0.]       
-        [ 0.  0.  0.  0.  0.  0.  0.  0.]       
-        [ 0.  0.  0.  0.  0.  0.  0.  0.]       
-        [ 1.  1.  1.  1.  1.  1.  1.  1.]       
+        [[-4. -3. -2. -5. -6. -2. -3. -4.]
+        [-1. -1. -1. -1. -1. -1. -1. -1.]
+        [ 0.  0.  0.  0.  0.  0.  0.  0.]
+        [ 0.  0.  0.  0.  0.  0.  0.  0.]
+        [ 0.  0.  0.  0.  0.  0.  0.  0.]
+        [ 0.  0.  0.  0.  0.  0.  0.  0.]
+        [ 1.  1.  1.  1.  1.  1.  1.  1.]
         [ 4.  3.  2.  5.  6.  2.  3.  4.]]
         """
         self.board = np.zeros(config.DIMENSION, dtype=config.boardDtype)
@@ -699,7 +699,7 @@ class GameState:
         boardRepr = '  '.join(self.alpha_identifiers[:config.DIMENSION[1]]) + ' |\n'
         boardRepr += '-' * (3 * config.DIMENSION[1] - 1) + '|' + '-' * len(str(config.DIMENSION[0])) + '\n'
         number_ids = [' |' + id for id in self.numbers_identifiers[:config.DIMENSION[0]]]
-        board = ['  '.join(map(lambda x: "\x1b[" + "36" * (x > 0) + "31" * (x < 0) + ";1m" + pieceTranslateDic[abs(x)] + "\x1b[0m", row)) for row in self.board]
+        board = ['  '.join(map(lambda x: "\x1b[" + "36" * int(x > 0) + "31" * int(x < 0) + ";1m" + pieceTranslateDic[abs(x)] + "\x1b[0m", row)) for row in self.board]
         boardRepr += '\n'.join(list(''.join(row) for row in zip(board, number_ids)))
         return boardRepr
 
