@@ -47,9 +47,9 @@ class ArgsHandler:
         parser.add_argument("-pos", action="store", default=None, dest="position",
                             help="FEN starting position")
         parser.add_argument("-cpu", "--cpu-bot", action="store_const", default=False, dest="cpu_bot",
-                    const=True, help="play against the built-in CPU bot (black)")
+                    const=True, help="play against the built-in CPU bot")
         parser.add_argument("-black", "--play-black", action="store_const", default=False, dest="play_black",
-                const=True, help="start as black (CPU plays white)")
+                const=True, help="start as black")
 
         self.params = parser.parse_args()
 

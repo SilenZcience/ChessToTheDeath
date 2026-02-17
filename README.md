@@ -113,6 +113,8 @@ python -m chess_to_the_death [-h] [-v] ...
 | -default               | play the default chess variant                       |
 | -crazy                 | play the crazyhouse chess variant                    |
 | -pos POSITION          | FEN starting position                                |
+| -cpu, --cpu-bot        | play against the built-in CPU bot                    |
+| -black, --play-black   | start as black                                       |
 
 - ***leftclick*** a piece to select it
 - ***leftclick*** a tile to move/attack with your selected piece
