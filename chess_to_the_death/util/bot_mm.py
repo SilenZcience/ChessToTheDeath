@@ -5,7 +5,7 @@ from chess_to_the_death.entity.player import Player
 from chess_to_the_death.util.definition import Outcome, PieceChar, PieceValues
 
 
-def choose_move(game_state, depth: int = 5):
+def choose_move(game_state, depth: int = 3):
     """
     Return a (from_pos, to_pos) tuple for the best move found.
     """
