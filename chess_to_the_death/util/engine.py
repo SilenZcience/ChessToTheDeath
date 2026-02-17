@@ -278,12 +278,14 @@ class GameState:
             self.action_log.printAction(-1)
         self.createBoard()
 
-    def promotePawnOption(self, piece: Piece) -> bool:
+    def promotePawnOption(self, piece: Piece, from_pos: tuple) -> bool:
         """
         Checks whether or not a piece can be promoted.
         It has to be a pawn and it has to have reached the top/bottom
         of the board.
         """
+        if from_pos == piece.getPos():
+            return False
         promotable = piece._name == PieceChar.PAWN and \
                     piece.cell_row in [0, config.DIMENSION[0]-1]
         return promotable
@@ -362,7 +364,7 @@ class GameState:
             self.action_log.printAction(-1)
             if self.playerWon():
                 return Outcome.GAME_FINISHED
-            if self.promotePawnOption(piece):
+            if self.promotePawnOption(piece, from_pos):
                 return Outcome.PAWN_PROMOTION
         return gameStateAction
 
@@ -626,8 +628,6 @@ class GameState:
         x,y coordinates of all pieces at the center
         of the board.
         """
-        if not self.flip_board:
-            return
         self.board_flipped = not self.board_flipped
         self.alpha_identifiers.reverse()
         self.numbers_identifiers.reverse()
@@ -661,7 +661,8 @@ class GameState:
         turn it is at the moment.
         """
         self.player_turn = not self.player_turn
-        self.flipBoard()
+        if self.flip_board:
+            self.flipBoard()
         self.createBoard()
         if not displayInfo:
             return
