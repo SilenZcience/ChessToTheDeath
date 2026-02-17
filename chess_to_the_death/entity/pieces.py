@@ -48,6 +48,23 @@ class Piece:
     def __repr__(self) -> str:
         return self._player + self._name + " (" + hex(id(self)) + ")"
 
+    def __deepcopy__(self, memo):
+        result = self.__class__.__new__(self.__class__)
+        memo[id(self)] = result
+        result._name = self._name
+        result._player = self._player
+        result.cell_col = self.cell_col
+        result.cell_row = self.cell_row
+        result.firstMove = self.firstMove
+        if hasattr(self, "maxHealth"):
+            result.maxHealth = self.maxHealth
+        if hasattr(self, "health"):
+            result.health = self.health
+        if hasattr(self, "damage"):
+            result.damage = self.damage
+        result.image = self.image
+        return result
+
 
 class Rook(Piece):
     _name = PieceChar.ROOK

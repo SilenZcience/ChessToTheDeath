@@ -13,10 +13,12 @@ RANDOM_VALUES = False
 DEFAULT_MODE = False
 CRAZY_MODE = False
 STARTING_POSITION = None
+CPU_BOT = False
+START_AS_BLACK = False
 
 class ArgsHandler:
     params: argparse.Namespace = None
-    
+
     def __init__(self, file: str):
         self.file = file
         self.workingDir = path.dirname(path.realpath(self.file))
@@ -44,9 +46,13 @@ class ArgsHandler:
                             const=True, help="play the crazyhouse chess variant")
         parser.add_argument("-pos", action="store", default=None, dest="position",
                             help="FEN starting position")
-        
+        parser.add_argument("-cpu", "--cpu-bot", action="store_const", default=False, dest="cpu_bot",
+                    const=True, help="play against the built-in CPU bot (black)")
+        parser.add_argument("-black", "--play-black", action="store_const", default=False, dest="play_black",
+                const=True, help="start as black (CPU plays white)")
+
         self.params = parser.parse_args()
-    
+
     def translateArgs(self) -> None:
         global MAX_FPS
         global HIGHLIGHT_CELLS
@@ -55,6 +61,8 @@ class ArgsHandler:
         global DEFAULT_MODE
         global CRAZY_MODE
         global STARTING_POSITION
+        global CPU_BOT
+        global START_AS_BLACK
         if getattr(self.params, 'version'):
             self._showVersion()
             sysexit(0)
@@ -65,8 +73,10 @@ class ArgsHandler:
         DEFAULT_MODE = getattr(self.params, 'default')
         CRAZY_MODE = getattr(self.params, 'crazy')
         STARTING_POSITION = getattr(self.params, 'position')
+        CPU_BOT = getattr(self.params, 'cpu_bot')
+        START_AS_BLACK = getattr(self.params, 'play_black')
         config.generateBoardFromFEN(STARTING_POSITION, CRAZY_MODE)
-        
+
     def _showVersion(self) -> None:
         print()
         print("------------------------------------------------------------")

@@ -2,13 +2,18 @@ from os import environ
 environ['PYGAME_HIDE_SUPPORT_PROMPT'] = 'hide'  # sorry, pygame
 
 import pygame
+
+import io
+from contextlib import redirect_stdout
 from itertools import product
 
 import chess_to_the_death.parser.argparser as argparser
 import chess_to_the_death.util.fpsClock as fpsClock
 import chess_to_the_death.util.engine as engine
+import chess_to_the_death.util.bot_mm as bot_mm
 import chess_to_the_death.util.config as config
 from chess_to_the_death.entity.pieces import Piece  # only for type-hints
+from chess_to_the_death.entity.player import Player
 from chess_to_the_death.util.loader import loadImage, clearPieceImageCache
 from chess_to_the_death.util.definition import Outcome, PieceChar
 
@@ -265,8 +270,8 @@ def highlightMarkedCellSquare(mainScreen: pygame.Surface, cell: tuple) -> None:
     if cell not in holder.marked_cells_square:
         return
     highlightCell(mainScreen, cell, COLORS[2], 150)
-        
-        
+
+
 def highlightMarkedCellCircle(mainScreen: pygame.Surface, cell: tuple) -> None:
     """
     highlight a cell if it's position is marked
@@ -483,18 +488,18 @@ def choosePieceOption(mainScreen: pygame.Surface, gameState: engine.GameState, p
     else:
         promoteOptions = [PieceChar.BISHOP, PieceChar.KNIGHT,
                             PieceChar.QUEEN,  PieceChar.ROOK]
-    
+
     pygame.display.set_mode(BOARD_SIZE, pygame.DOUBLEBUF) # disable resizing momentarily
-    
+
     offsetPos = pos
     if (pos[1] + len(promoteOptions)) > config.DIMENSION[0]:
         offsetPos = (pos[0], pos[1] - ((pos[1] + len(promoteOptions)) - config.DIMENSION[0]))
-    
+
     promoteOptionsDimensions = []
     for i, pieceChar in enumerate(promoteOptions):
         position = (offsetPos[0], offsetPos[1] + i)
         promoteOptionsDimensions.append([loadImage(currentPlayer+pieceChar, IMG_SIZE), position])
-    
+
     piecePlaced = -1
     drawGen = drawPieceOptionsGen(mainScreen, offsetPos, promoteOptionsDimensions)
     while piecePlaced == -1:
@@ -517,7 +522,7 @@ def choosePieceOption(mainScreen: pygame.Surface, gameState: engine.GameState, p
                 elif crazyPlace: # if clicked somewhere else and we are not promoting -> abort
                     piecePlaced = PLACEPIECE_ABORTED
     pygame.display.set_mode(BOARD_SIZE, pygame.DOUBLEBUF | pygame.RESIZABLE) # reset resizablity
-    
+
     # if we aborted the option to place a piece by clicking somewhere else
     # we need to re-render the entire screen, because we messed with
     # pygame.display
@@ -582,7 +587,7 @@ def rescaleWindow(newWidth: int, newHeight: int, gameState: engine.GameState) ->
         arrow[0][1] = arrow[0][1] * CELL_SIZE[1] + (CELL_SIZE[1] // 2)
         arrow[1][0] = arrow[1][0] * CELL_SIZE[0] + (CELL_SIZE[0] // 2)
         arrow[1][1] = arrow[1][1] * CELL_SIZE[1] + (CELL_SIZE[1] // 2)
-        
+
     gameState.image_size = IMG_SIZE
 
 
@@ -594,15 +599,15 @@ def gameFinished(mainScreen: pygame.Surface, gameState: engine.GameState) -> Non
     holder.winner = gameState.playerWon()
     if holder.winner:
         pygame.event.set_blocked([pygame.MOUSEBUTTONDOWN, pygame.MOUSEBUTTONUP])
-        
+
         # update the old and new last move taken cells
         last_move_old = holder.last_move[:]
         setLastMoveCells(gameState)
         for cell in holder.last_move + last_move_old:
             drawGameCell(mainScreen, gameState, cell)
-            
+
         # draw the game-finished message
-        drawWinner(mainScreen)   
+        drawWinner(mainScreen)
 
 
 def nextTurn(mainScreen: pygame.Surface, gameState: engine.GameState) -> None:
@@ -613,9 +618,45 @@ def nextTurn(mainScreen: pygame.Surface, gameState: engine.GameState) -> None:
         # switch to the other player and re-render the entire board, because of possible
         # board flips
         gameState.nextTurn()
-        
+
         setLastMoveCells(gameState)
         renderGame(mainScreen, gameState)
+
+
+def runCpuTurn(mainScreen: pygame.Surface, gameState: engine.GameState) -> None:
+    pygame.event.set_blocked([pygame.MOUSEBUTTONDOWN, pygame.MOUSEBUTTONUP])
+    pygame.event.clear([pygame.MOUSEBUTTONDOWN, pygame.MOUSEBUTTONUP])
+    try:
+        with redirect_stdout(io.StringIO()):
+            move = bot_mm.choose_move(gameState)
+        if not move:
+            gameFinished(mainScreen, gameState)
+            return
+
+        from_pos, to_pos = move
+        piece = gameState.getPiece(from_pos)
+        if not piece:
+            return
+
+        options_move, options_attack = gameState.getOptions(piece)
+        print('CPU action: ', end='')
+        action = gameState.action(piece, to_pos, options_move, options_attack)
+        if not action:
+            return
+
+        if action == Outcome.GAME_FINISHED:
+            gameFinished(mainScreen, gameState)
+            return
+        if action == Outcome.PAWN_PROMOTION:
+            print('CPU action: ', end='')
+            gameState.placePiece(to_pos, PieceChar.QUEEN)
+            gameFinished(mainScreen, gameState)
+    finally:
+        pygame.event.clear([pygame.MOUSEBUTTONDOWN, pygame.MOUSEBUTTONUP])
+        if not holder.winner:
+            pygame.event.set_allowed([pygame.MOUSEBUTTONDOWN, pygame.MOUSEBUTTONUP])
+        if not holder.winner:
+            nextTurn(mainScreen, gameState)
 
 
 def newGame() -> engine.GameState:
@@ -646,15 +687,18 @@ def mainGUI():
 
     holder.fps = fpsClock.FPS(argparser.MAX_FPS, BOARD_SIZE[0]-30-BOARD_OFFSET[0], 0)
     holder.attack_icon = loadImage("damage", BOARD_OFFSET)
-    
+
     gameState = newGame()
+    if argparser.START_AS_BLACK:
+        gameState.flipBoard()
+        gameState.createBoard()
     # if argparser.STARTING_POSITION:
     #     setGlobalVars()
     #     mainScreen = pygame.display.set_mode(BOARD_SIZE, pygame.DOUBLEBUF | pygame.RESIZABLE)
     #     renderGame(mainScreen, gameState)
-    
+
     marked_old = (-1, -1)
-    
+
     # isPlanning = False -> not planning -> highlight cells
     # isPlanning = True  -> is planning -> don't highlight cells
     isPlanning = False
@@ -667,6 +711,11 @@ def mainGUI():
     running = True
     while running:
         pygame.display.set_caption('Chess to the Death ' + holder.fps.getFps())
+
+        cpu_player = Player.PLAYER_W if argparser.START_AS_BLACK else Player.PLAYER_B
+        if argparser.CPU_BOT and not holder.winner and gameState.currentPlayer() == cpu_player:
+            runCpuTurn(mainScreen, gameState)
+            continue
 
         # highlight cell at mouse position and re-render
         # cell at previous mouse position
@@ -801,6 +850,9 @@ def mainGUI():
                     print(gameState.action_log)
                     print("Restarting...")
                     gameState = newGame()
+                    if argparser.START_AS_BLACK:
+                        gameState.flipBoard()
+                        gameState.createBoard()
                     renderGame(mainScreen, gameState)
             elif event.type == pygame.VIDEORESIZE:
                 # if the window has been rescaled/resized we need to update all global variables
