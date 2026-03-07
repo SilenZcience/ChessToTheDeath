@@ -20,7 +20,7 @@ def choose_move(game_state, depth: int = 3):
         next_state = _simulate_move(game_state, from_pos, to_pos)
         if not next_state:
             continue
-        score = _minimax(next_state, depth - 1, max_player, False, -10**9, 10**9)
+        score = _minimax(next_state, depth - 1, max_player, -10**9, 10**9)
         if best_score is None or score > best_score:
             best_score = score
             best_moves = [(from_pos, to_pos)]
@@ -32,7 +32,7 @@ def choose_move(game_state, depth: int = 3):
     return random.choice(best_moves)
 
 
-def _minimax(game_state, depth: int, max_player: str, is_max: bool, alpha: float, beta: float):
+def _minimax(game_state, depth: int, max_player: str, alpha: float, beta: float):
     terminal_score = _terminal_score(game_state, max_player)
     if terminal_score is not None:
         return terminal_score
@@ -43,13 +43,16 @@ def _minimax(game_state, depth: int, max_player: str, is_max: bool, alpha: float
     if not moves:
         return _evaluate(game_state, max_player)
 
-    if is_max:
+
+    is_max_turn = (game_state.currentPlayer() == max_player)
+
+    if is_max_turn:
         best = -10**9
         for from_pos, to_pos in moves:
             next_state = _simulate_move(game_state, from_pos, to_pos)
             if not next_state:
                 continue
-            score = _minimax(next_state, depth - 1, max_player, False, alpha, beta)
+            score = _minimax(next_state, depth - 1, max_player, alpha, beta)
             if score > best:
                 best = score
             alpha = max(alpha, best)
@@ -62,7 +65,7 @@ def _minimax(game_state, depth: int, max_player: str, is_max: bool, alpha: float
         next_state = _simulate_move(game_state, from_pos, to_pos)
         if not next_state:
             continue
-        score = _minimax(next_state, depth - 1, max_player, True, alpha, beta)
+        score = _minimax(next_state, depth - 1, max_player, alpha, beta)
         if score < best:
             best = score
         beta = min(beta, best)
